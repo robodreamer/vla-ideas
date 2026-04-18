@@ -11,7 +11,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from matplotlib.animation import FuncAnimation, PillowWriter
-from matplotlib.patches import Rectangle
+from matplotlib.patches import Circle, Rectangle
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 
@@ -19,7 +19,7 @@ OUTPUT_DIR = os.path.join(BASE_DIR, "outputs")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 os.makedirs(os.environ["MPLCONFIGDIR"], exist_ok=True)
 
-SEED = 7
+SEED = 11
 torch.manual_seed(SEED)
 np.random.seed(SEED)
 
@@ -35,32 +35,48 @@ def get_device():
 
 DEVICE = get_device()
 
+COLORS = {
+    "plain": "#4c78a8",
+    "recap": "#4daf4a",
+    "artifact": "#ff9d2e",
+    "uplink": "#6bd0ff",
+    "extract": "#f6d54a",
+    "hazard": "#c64b59",
+    "floor": "#eaf1f8",
+    "grid": "#ced8e3",
+    "bg": "#f7fbff",
+}
 
-class KeyDoorEnv3D:
+
+class DroneHeistEnv3D:
     def __init__(self):
         self.dt = 0.075
         self.max_acc = 1.0
-        self.max_vel = 1.2
-        self.start = np.array([0.06, 0.08, 0.10], dtype=np.float32)
-        self.key = np.array([0.18, 0.84, 0.18], dtype=np.float32)
-        self.portal = np.array([0.98, 0.98, 0.94], dtype=np.float32)
-        self.key_radius = 0.09
-        self.portal_radius = 0.10
-        self.bounds = (-0.10, 1.12, -0.08, 1.12, -0.02, 1.08)
+        self.max_vel = 1.25
+        self.start = np.array([0.06, 0.10, 0.10], dtype=np.float32)
+        self.artifact = np.array([0.16, 0.82, 0.16], dtype=np.float32)
+        self.uplink = np.array([0.72, 0.86, 0.92], dtype=np.float32)
+        self.extract = np.array([0.98, 0.22, 0.90], dtype=np.float32)
+        self.artifact_radius = 0.09
+        self.uplink_radius = 0.10
+        self.extract_radius = 0.10
+        self.bounds = (-0.10, 1.10, -0.08, 1.08, -0.02, 1.08)
         self.obstacles = [
-            [0.36, 0.18, 0.00, 0.68, 0.84, 0.72],   # central tower
-            [0.52, 0.48, 0.30, 0.92, 0.78, 0.84],   # roof blocking low key->portal path
-            [0.72, 0.02, 0.00, 0.90, 0.34, 0.68],   # wrong-side wall
+            [0.34, 0.10, 0.00, 0.63, 0.76, 0.68],
+            [0.44, 0.54, 0.34, 0.92, 0.80, 0.88],
+            [0.58, 0.18, 0.00, 0.76, 0.42, 0.46],
+            [0.82, 0.38, 0.18, 0.96, 0.72, 0.74],
         ]
         self.state = None
 
     def reset(self, jitter_scale=0.0):
         pos_noise = np.random.normal(0.0, jitter_scale, size=3)
-        vel_noise = np.random.normal(0.0, jitter_scale * 0.4, size=3)
-        self.state = np.zeros(7, dtype=np.float32)
+        vel_noise = np.random.normal(0.0, jitter_scale * 0.35, size=3)
+        self.state = np.zeros(8, dtype=np.float32)
         self.state[:3] = self.start + pos_noise.astype(np.float32)
         self.state[3:6] = vel_noise.astype(np.float32)
         self.state[6] = 0.0
+        self.state[7] = 0.0
         return self.state.copy()
 
     def inside_obstacle(self, pos):
@@ -88,16 +104,22 @@ class KeyDoorEnv3D:
         self.state[:3] = self.state[:3] + self.state[3:6] * self.dt
 
         collided = self.inside_obstacle(self.state[:3]) or self.out_of_bounds(self.state[:3])
-        picked_key = False
-        if self.state[6] < 0.5 and np.linalg.norm(self.state[:3] - self.key) < self.key_radius:
+        grabbed_artifact = False
+        activated_uplink = False
+
+        if self.state[6] < 0.5 and np.linalg.norm(self.state[:3] - self.artifact) < self.artifact_radius:
             self.state[6] = 1.0
-            picked_key = True
+            grabbed_artifact = True
 
-        done = bool(self.state[6] > 0.5 and np.linalg.norm(self.state[:3] - self.portal) < self.portal_radius)
-        return self.state.copy(), done, collided, picked_key
+        if self.state[6] > 0.5 and self.state[7] < 0.5 and np.linalg.norm(self.state[:3] - self.uplink) < self.uplink_radius:
+            self.state[7] = 1.0
+            activated_uplink = True
+
+        done = bool(self.state[6] > 0.5 and self.state[7] > 0.5 and np.linalg.norm(self.state[:3] - self.extract) < self.extract_radius)
+        return self.state.copy(), done, collided, grabbed_artifact, activated_uplink
 
 
-env = KeyDoorEnv3D()
+env = DroneHeistEnv3D()
 
 
 @dataclass
@@ -106,23 +128,35 @@ class Demo:
     actions: np.ndarray
     score: float
     success: bool
-    got_key: bool
+    got_artifact: bool
+    got_uplink: bool
     steps: int
     label: str
 
 
-def pd_action(state, target, kp=5.2, kd=2.8):
+def pd_action(state, target, kp=5.2, kd=2.7):
     pos_err = target - state[:3]
     vel_err = -state[3:6]
     return np.clip(kp * pos_err + kd * vel_err, -1.0, 1.0)
 
 
-def run_waypoint_demo(waypoints, label, noise=0.0, kp=5.2, kd=2.8, max_steps=240):
+def eval_demo_score(state, steps, success, collided):
+    got_artifact = state[6] > 0.5
+    got_uplink = state[7] > 0.5
+    extract_dist = np.linalg.norm(state[:3] - env.extract)
+    progress_bonus = 0.75 * float(got_artifact) + 0.95 * float(got_uplink)
+    if success:
+        return 4.0 - 0.007 * steps
+    if collided:
+        return -2.6 + 0.55 * float(got_artifact) + 0.65 * float(got_uplink) - 0.002 * steps
+    return -1.1 + progress_bonus - 0.45 * extract_dist
+
+
+def run_waypoint_demo(waypoints, label, noise=0.0, kp=5.2, kd=2.7, max_steps=260):
     state = env.reset()
     states = []
     actions = []
     waypoint_idx = 0
-    got_key = False
     success = False
     collided = False
 
@@ -138,89 +172,79 @@ def run_waypoint_demo(waypoints, label, noise=0.0, kp=5.2, kd=2.8, max_steps=240
 
         states.append(state.copy())
         actions.append(act.copy())
-        state, success, collided, picked_key = env.step(act)
-        got_key = got_key or picked_key or state[6] > 0.5
+        state, success, collided, _, _ = env.step(act)
         if success or collided:
             break
-
-    if success:
-        score = 3.0 - 0.006 * len(states)
-    elif collided:
-        score = -2.2 + 0.4 * float(got_key) - 0.002 * len(states)
-    else:
-        portal_dist = np.linalg.norm(state[:3] - env.portal)
-        score = -1.0 + 0.7 * float(got_key) - 0.45 * portal_dist
 
     return Demo(
         states=np.array(states, dtype=np.float32),
         actions=np.array(actions, dtype=np.float32),
-        score=float(score),
+        score=float(eval_demo_score(state, len(states), success, collided)),
         success=bool(success and not collided),
-        got_key=bool(got_key),
+        got_artifact=bool(state[6] > 0.5),
+        got_uplink=bool(state[7] > 0.5),
         steps=len(states),
         label=label,
     )
 
 
-def run_bad_demo(kind, max_steps=260):
+def run_bad_demo(kind, max_steps=280):
     state = env.reset()
     states = []
     actions = []
-    got_key = False
     success = False
     collided = False
 
     for t in range(max_steps):
-        if kind == "portal_rush":
-            target = env.portal
-            act = pd_action(state, target, kp=3.6, kd=1.1)
-            act += np.array([0.05, 0.00, 0.04])
-        elif kind == "low_key_then_crash":
+        if kind == "rush_extract":
+            target = env.extract
+            act = pd_action(state, target, kp=3.4, kd=1.0)
+            act += np.array([0.05, -0.02, 0.05])
+        elif kind == "artifact_then_crash":
             if state[6] < 0.5:
-                target = env.key
-                act = pd_action(state, target, kp=4.8, kd=1.9)
+                target = env.artifact
+                act = pd_action(state, target, kp=4.9, kd=1.9)
             else:
-                target = np.array([0.74, 0.64, 0.40], dtype=np.float32)
-                act = pd_action(state, target, kp=4.4, kd=1.2)
-        elif kind == "hover_key":
-            target = env.key + np.array([0.10 * np.sin(t * 0.18), 0.0, 0.06 * np.cos(t * 0.22)], dtype=np.float32)
-            act = pd_action(state, target, kp=2.4, kd=0.7)
-        elif kind == "wrong_side_arc":
-            if t < 70:
-                target = np.array([0.86, 0.18, 0.22], dtype=np.float32)
+                target = np.array([0.58, 0.66, 0.42], dtype=np.float32)
+                act = pd_action(state, target, kp=4.4, kd=1.1)
+        elif kind == "camp_uplink":
+            if state[6] < 0.5:
+                target = env.artifact
             else:
-                target = np.array([0.94, 0.74, 0.42], dtype=np.float32) if state[6] > 0.5 else env.portal
-            act = pd_action(state, target, kp=3.8, kd=1.0)
+                target = env.uplink + np.array([0.10 * np.sin(t * 0.22), 0.06 * np.cos(t * 0.19), 0.04 * np.sin(t * 0.17)], dtype=np.float32)
+            act = pd_action(state, target, kp=2.5, kd=0.7)
+        elif kind == "wrong_side_swoop":
+            if t < 85:
+                target = np.array([0.88, 0.76, 0.26], dtype=np.float32)
+            elif state[6] < 0.5:
+                target = env.artifact
+            else:
+                target = np.array([0.92, 0.48, 0.48], dtype=np.float32)
+            act = pd_action(state, target, kp=3.7, kd=1.0)
         else:
             if state[6] < 0.5:
-                target = np.array([0.14, 0.76, 0.16], dtype=np.float32)
+                target = np.array([0.18, 0.84, 0.20], dtype=np.float32)
+            elif state[7] < 0.5:
+                target = np.array([0.50, 0.94, 0.62], dtype=np.float32)
             else:
-                target = np.array([0.56, 0.86, 0.52], dtype=np.float32)
+                target = np.array([0.82, 0.30, 0.80], dtype=np.float32)
             act = pd_action(state, target, kp=3.0, kd=0.8)
-            act += 0.25 * np.array([np.sin(t * 0.23), np.cos(t * 0.19), np.sin(t * 0.17)])
+            act += 0.23 * np.array([np.sin(t * 0.24), np.cos(t * 0.20), np.sin(t * 0.16)])
 
         act = np.clip(act + np.random.normal(0.0, 0.10, size=3), -1.0, 1.0)
         states.append(state.copy())
         actions.append(act.copy())
-        state, success, collided, picked_key = env.step(act)
-        got_key = got_key or picked_key or state[6] > 0.5
+        state, success, collided, _, _ = env.step(act)
         if success or collided:
             break
-
-    if success:
-        score = 1.0 - 0.008 * len(states)
-    elif collided:
-        score = -2.4 + 0.3 * float(got_key) - 0.002 * len(states)
-    else:
-        portal_dist = np.linalg.norm(state[:3] - env.portal)
-        score = -1.4 + 0.5 * float(got_key) - 0.35 * portal_dist
 
     return Demo(
         states=np.array(states, dtype=np.float32),
         actions=np.array(actions, dtype=np.float32),
-        score=float(score),
+        score=float(eval_demo_score(state, len(states), success, collided)),
         success=bool(success and not collided),
-        got_key=bool(got_key),
+        got_artifact=bool(state[6] > 0.5),
+        got_uplink=bool(state[7] > 0.5),
         steps=len(states),
         label=kind,
     )
@@ -229,35 +253,37 @@ def run_bad_demo(kind, max_steps=260):
 def build_dataset():
     demos = []
 
-    good_route = [
-        (0.10, 0.20, 0.12),
-        (0.16, 0.86, 0.18),
-        (0.34, 0.94, 0.80),
-        (0.82, 0.96, 0.98),
-        (0.98, 0.98, 0.94),
+    heist_route = [
+        (0.10, 0.18, 0.12),
+        (0.16, 0.82, 0.18),
+        (0.28, 0.96, 0.36),
+        (0.70, 0.88, 0.94),
+        (0.90, 0.54, 1.00),
+        (0.98, 0.22, 0.90),
     ]
-    wide_route = [
-        (0.08, 0.24, 0.10),
-        (0.18, 0.88, 0.20),
-        (0.28, 1.00, 0.88),
-        (0.90, 1.00, 1.00),
-        (0.98, 0.98, 0.94),
+    wide_heist_route = [
+        (0.08, 0.22, 0.10),
+        (0.18, 0.86, 0.20),
+        (0.26, 0.98, 0.42),
+        (0.64, 0.98, 0.98),
+        (0.90, 0.46, 1.02),
+        (0.98, 0.22, 0.90),
     ]
 
-    for _ in range(260):
-        demos.append(run_waypoint_demo(good_route, label="expert_route", noise=0.05, kp=5.8, kd=3.2))
-    for _ in range(70):
-        demos.append(run_waypoint_demo(wide_route, label="safe_route", noise=0.08, kp=4.8, kd=2.6))
+    for _ in range(300):
+        demos.append(run_waypoint_demo(heist_route, "expert_heist", noise=0.05, kp=5.8, kd=3.2))
+    for _ in range(90):
+        demos.append(run_waypoint_demo(wide_heist_route, "safe_heist", noise=0.08, kp=4.9, kd=2.6))
     for _ in range(420):
-        demos.append(run_bad_demo("portal_rush"))
-    for _ in range(280):
-        demos.append(run_bad_demo("low_key_then_crash"))
-    for _ in range(220):
-        demos.append(run_bad_demo("hover_key"))
+        demos.append(run_bad_demo("rush_extract"))
+    for _ in range(300):
+        demos.append(run_bad_demo("artifact_then_crash"))
     for _ in range(240):
-        demos.append(run_bad_demo("wrong_side_arc"))
+        demos.append(run_bad_demo("camp_uplink"))
+    for _ in range(220):
+        demos.append(run_bad_demo("wrong_side_swoop"))
     for _ in range(180):
-        demos.append(run_bad_demo("orbit"))
+        demos.append(run_bad_demo("jammed_orbit"))
 
     scores = np.array([demo.score for demo in demos], dtype=np.float32)
     threshold = np.quantile(scores, 0.80)
@@ -287,15 +313,15 @@ class Policy(nn.Module):
     def __init__(self, conditioned):
         super().__init__()
         self.conditioned = conditioned
-        in_dim = 8 if conditioned else 7
+        in_dim = 9 if conditioned else 8
         self.net = nn.Sequential(
-            nn.Linear(in_dim, 160),
+            nn.Linear(in_dim, 192),
             nn.ReLU(),
-            nn.Linear(160, 160),
+            nn.Linear(192, 192),
             nn.ReLU(),
-            nn.Linear(160, 96),
+            nn.Linear(192, 128),
             nn.ReLU(),
-            nn.Linear(96, 3),
+            nn.Linear(128, 3),
         )
 
     def forward(self, state, cond=None):
@@ -312,13 +338,13 @@ class ValueNet(nn.Module):
     def __init__(self):
         super().__init__()
         self.net = nn.Sequential(
-            nn.Linear(7, 160),
+            nn.Linear(8, 192),
             nn.ReLU(),
-            nn.Linear(160, 160),
+            nn.Linear(192, 192),
             nn.ReLU(),
-            nn.Linear(160, 96),
+            nn.Linear(192, 128),
             nn.ReLU(),
-            nn.Linear(96, 1),
+            nn.Linear(128, 1),
         )
 
     def forward(self, state):
@@ -376,13 +402,14 @@ def train_models(states, actions, conds, returns, epochs=150, batch_size=1024):
     return plain, recap, value
 
 
-def rollout(policy, conditioned, episodes=40, max_steps=240):
+def rollout(policy, conditioned, episodes=42, max_steps=260):
     trajectories = []
     effective_steps = []
     raw_steps = []
     successes = []
     collisions = []
-    key_rates = []
+    artifact_rate = []
+    uplink_rate = []
     path_lengths = []
 
     for _ in range(episodes):
@@ -390,7 +417,6 @@ def rollout(policy, conditioned, episodes=40, max_steps=240):
         traj = [state.copy()]
         collided = False
         success = False
-        got_key = bool(state[6] > 0.5)
 
         for _ in range(max_steps):
             state_tensor = torch.tensor(state, dtype=torch.float32, device=DEVICE).unsqueeze(0)
@@ -399,9 +425,8 @@ def rollout(policy, conditioned, episodes=40, max_steps=240):
                     action = policy(state_tensor, torch.ones(1, device=DEVICE))[0].detach().cpu().numpy()
                 else:
                     action = policy(state_tensor)[0].detach().cpu().numpy()
-            action = np.clip(action + np.random.normal(0.0, 0.012, size=3), -1.0, 1.0)
-            state, success, collided, picked_key = env.step(action)
-            got_key = got_key or picked_key or state[6] > 0.5
+            action = np.clip(action + np.random.normal(0.0, 0.010, size=3), -1.0, 1.0)
+            state, success, collided, _, _ = env.step(action)
             traj.append(state.copy())
             if success or collided:
                 break
@@ -414,7 +439,8 @@ def rollout(policy, conditioned, episodes=40, max_steps=240):
         effective_steps.append(step_count if success and not collided else max_steps)
         successes.append(bool(success and not collided))
         collisions.append(bool(collided))
-        key_rates.append(bool(got_key))
+        artifact_rate.append(bool(traj[-1, 6] > 0.5))
+        uplink_rate.append(bool(traj[-1, 7] > 0.5))
         path_lengths.append(path_len)
 
     return {
@@ -423,12 +449,13 @@ def rollout(policy, conditioned, episodes=40, max_steps=240):
         "effective_steps": np.array(effective_steps),
         "success_rate": float(np.mean(successes)),
         "collision_rate": float(np.mean(collisions)),
-        "key_rate": float(np.mean(key_rates)),
+        "artifact_rate": float(np.mean(artifact_rate)),
+        "uplink_rate": float(np.mean(uplink_rate)),
         "path_length": float(np.mean(path_lengths)),
     }
 
 
-def add_box_faces(ax, box, color, alpha=0.14):
+def add_box_faces(ax, box, color, alpha=0.18):
     x0, y0, z0, x1, y1, z1 = box
     vertices = np.array(
         [
@@ -450,7 +477,22 @@ def add_box_faces(ax, box, color, alpha=0.14):
         [vertices[i] for i in [1, 2, 6, 5]],
         [vertices[i] for i in [0, 3, 7, 4]],
     ]
-    ax.add_collection3d(Poly3DCollection(faces, facecolors=color, edgecolors=color, linewidths=0.6, alpha=alpha))
+    ax.add_collection3d(Poly3DCollection(faces, facecolors=color, edgecolors=color, linewidths=0.5, alpha=alpha))
+
+
+def draw_floor_plane(ax):
+    xmin, xmax, ymin, ymax, _, _ = env.bounds
+    xx, yy = np.meshgrid(np.linspace(xmin, xmax, 2), np.linspace(ymin, ymax, 2))
+    zz = np.zeros_like(xx)
+    ax.plot_surface(xx, yy, zz, color=COLORS["floor"], alpha=0.30, shade=False, linewidth=0)
+
+
+def draw_goal_halo(ax, center, radius, color):
+    u = np.linspace(0, 2 * np.pi, 40)
+    x = center[0] + radius * np.cos(u)
+    y = center[1] + radius * np.sin(u)
+    z = np.full_like(u, center[2])
+    ax.plot(x, y, z, color=color, lw=1.6, alpha=0.85)
 
 
 def style_3d_axis(ax, title):
@@ -461,13 +503,26 @@ def style_3d_axis(ax, title):
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.set_zlabel("z")
-    ax.set_title(title)
-    ax.view_init(elev=24, azim=-58)
-    ax.scatter(*env.start, c="black", s=36)
-    ax.scatter(*env.key, c="#f28e2b", s=80)
-    ax.scatter(*env.portal, c="#eeca3b", edgecolors="black", s=110)
+    ax.set_title(title, fontsize=14, pad=12)
+    ax.set_facecolor(COLORS["bg"])
+    ax.xaxis.set_pane_color((0.93, 0.96, 0.99, 0.68))
+    ax.yaxis.set_pane_color((0.93, 0.96, 0.99, 0.68))
+    ax.zaxis.set_pane_color((0.93, 0.96, 0.99, 0.24))
+    ax.grid(alpha=0.10)
+    ax.view_init(elev=24, azim=-56)
+    draw_floor_plane(ax)
     for box in env.obstacles:
-        add_box_faces(ax, box, "#b23a48")
+        add_box_faces(ax, box, COLORS["hazard"])
+    draw_goal_halo(ax, env.artifact, env.artifact_radius, COLORS["artifact"])
+    draw_goal_halo(ax, env.uplink, env.uplink_radius, COLORS["uplink"])
+    draw_goal_halo(ax, env.extract, env.extract_radius, COLORS["extract"])
+    ax.scatter(*env.start, c="black", s=30, depthshade=False)
+    ax.scatter(*env.artifact, c=COLORS["artifact"], s=70, depthshade=False)
+    ax.scatter(*env.uplink, c=COLORS["uplink"], s=85, depthshade=False)
+    ax.scatter(*env.extract, c=COLORS["extract"], edgecolors="black", s=100, depthshade=False)
+    ax.text(*env.artifact, " artifact", color="#9b5c00", fontsize=9)
+    ax.text(*env.uplink, " uplink", color="#155b74", fontsize=9)
+    ax.text(*env.extract, " extract", color="#6c5a00", fontsize=9)
 
 
 def projection_rectangles(plane):
@@ -482,40 +537,67 @@ def projection_rectangles(plane):
     return rects
 
 
+def add_projection_halo(ax, center, radius, color):
+    ax.add_patch(Circle((center[0], center[1]), radius, edgecolor=color, facecolor="none", linewidth=1.4, alpha=0.85))
+
+
 def style_projection(ax, plane, title):
     xmin, xmax, ymin, ymax, zmin, zmax = env.bounds
+    ax.set_facecolor("#fbfdff")
     if plane == "xy":
         ax.set_xlim(xmin, xmax)
         ax.set_ylim(ymin, ymax)
         start = env.start[[0, 1]]
-        key = env.key[[0, 1]]
-        portal = env.portal[[0, 1]]
+        artifact = env.artifact[[0, 1]]
+        uplink = env.uplink[[0, 1]]
+        extract = env.extract[[0, 1]]
         xlabel, ylabel = "x", "y"
     elif plane == "xz":
         ax.set_xlim(xmin, xmax)
         ax.set_ylim(zmin, zmax)
         start = env.start[[0, 2]]
-        key = env.key[[0, 2]]
-        portal = env.portal[[0, 2]]
+        artifact = env.artifact[[0, 2]]
+        uplink = env.uplink[[0, 2]]
+        extract = env.extract[[0, 2]]
         xlabel, ylabel = "x", "z"
     else:
         ax.set_xlim(ymin, ymax)
         ax.set_ylim(zmin, zmax)
         start = env.start[[1, 2]]
-        key = env.key[[1, 2]]
-        portal = env.portal[[1, 2]]
+        artifact = env.artifact[[1, 2]]
+        uplink = env.uplink[[1, 2]]
+        extract = env.extract[[1, 2]]
         xlabel, ylabel = "y", "z"
 
     for rect in projection_rectangles(plane):
-        ax.add_patch(Rectangle((rect[0], rect[1]), rect[2], rect[3], color="#b23a48", alpha=0.22))
-    ax.scatter(*start, c="black", s=28)
-    ax.scatter(*key, c="#f28e2b", s=52)
-    ax.scatter(*portal, c="#eeca3b", edgecolors="black", s=72)
+        ax.add_patch(Rectangle((rect[0], rect[1]), rect[2], rect[3], color=COLORS["hazard"], alpha=0.18))
+    ax.scatter(*start, c="black", s=26)
+    ax.scatter(*artifact, c=COLORS["artifact"], s=48)
+    ax.scatter(*uplink, c=COLORS["uplink"], s=54)
+    ax.scatter(*extract, c=COLORS["extract"], edgecolors="black", s=60)
+    add_projection_halo(ax, artifact, env.artifact_radius, COLORS["artifact"])
+    add_projection_halo(ax, uplink, env.uplink_radius, COLORS["uplink"])
+    add_projection_halo(ax, extract, env.extract_radius, COLORS["extract"])
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-    ax.set_title(title)
-    ax.grid(alpha=0.18)
+    ax.set_title(title, fontsize=12)
+    ax.grid(alpha=0.15, color=COLORS["grid"])
     ax.set_aspect("equal")
+
+
+def smooth_trajectory(traj, factor=4):
+    if len(traj) < 2:
+        return traj.copy()
+    pieces = []
+    ease = np.linspace(0.0, 1.0, factor, endpoint=False)
+    ease = ease * ease * (3.0 - 2.0 * ease)
+    for idx in range(len(traj) - 1):
+        start = traj[idx]
+        end = traj[idx + 1]
+        segment = start[None, :] * (1.0 - ease[:, None]) + end[None, :] * ease[:, None]
+        pieces.append(segment)
+    pieces.append(traj[-1][None, :])
+    return np.concatenate(pieces, axis=0)
 
 
 def choose_examples(results, count=6):
@@ -525,7 +607,7 @@ def choose_examples(results, count=6):
 
 
 def make_comparison_plot(plain_results, recap_results):
-    fig = plt.figure(figsize=(18, 11))
+    fig = plt.figure(figsize=(18, 11), facecolor="white")
     ax_plain_3d = fig.add_subplot(2, 3, 1, projection="3d")
     ax_recap_3d = fig.add_subplot(2, 3, 2, projection="3d")
     ax_bar = fig.add_subplot(2, 3, 3)
@@ -537,76 +619,83 @@ def make_comparison_plot(plain_results, recap_results):
     style_3d_axis(ax_recap_3d, "RECAP Conditioned")
 
     for traj in plain_results["trajectories"][:14]:
-        ax_plain_3d.plot(traj[:, 0], traj[:, 1], traj[:, 2], color="#4c78a8", alpha=0.32, lw=1.5)
+        smooth = smooth_trajectory(traj)
+        ax_plain_3d.plot(smooth[:, 0], smooth[:, 1], smooth[:, 2], color=COLORS["plain"], alpha=0.24, lw=1.8)
     for traj in recap_results["trajectories"][:14]:
-        ax_recap_3d.plot(traj[:, 0], traj[:, 1], traj[:, 2], color="#54a24b", alpha=0.42, lw=1.7)
+        smooth = smooth_trajectory(traj)
+        ax_recap_3d.plot(smooth[:, 0], smooth[:, 1], smooth[:, 2], color=COLORS["recap"], alpha=0.34, lw=2.0)
 
-    metrics = ["Eff. steps", "Success %", "Key pickup %", "Path len"]
+    metrics = ["Eff. steps", "Success %", "Artifact %", "Uplink %", "Path len"]
     plain_vals = [
         plain_results["effective_steps"].mean(),
         plain_results["success_rate"] * 100,
-        plain_results["key_rate"] * 100,
+        plain_results["artifact_rate"] * 100,
+        plain_results["uplink_rate"] * 100,
         plain_results["path_length"],
     ]
     recap_vals = [
         recap_results["effective_steps"].mean(),
         recap_results["success_rate"] * 100,
-        recap_results["key_rate"] * 100,
+        recap_results["artifact_rate"] * 100,
+        recap_results["uplink_rate"] * 100,
         recap_results["path_length"],
     ]
     x = np.arange(len(metrics))
     width = 0.34
-    ax_bar.bar(x - width / 2, plain_vals, width, label="Plain", color="#4c78a8")
-    ax_bar.bar(x + width / 2, recap_vals, width, label="RECAP", color="#54a24b")
+    ax_bar.bar(x - width / 2, plain_vals, width, label="Plain", color=COLORS["plain"], alpha=0.90)
+    ax_bar.bar(x + width / 2, recap_vals, width, label="RECAP", color=COLORS["recap"], alpha=0.90)
     ax_bar.set_xticks(x)
     ax_bar.set_xticklabels(metrics, rotation=16)
-    ax_bar.set_title("Episode Metrics")
-    ax_bar.legend()
+    ax_bar.set_title("Episode Metrics", fontsize=13)
+    ax_bar.grid(axis="y", alpha=0.12)
+    ax_bar.legend(frameon=False)
 
     for plane, ax, title in [("xy", ax_xy, "Top View"), ("xz", ax_xz, "Side View x-z"), ("yz", ax_yz, "Side View y-z")]:
         style_projection(ax, plane, title)
         for traj in plain_results["trajectories"][:10]:
+            smooth = smooth_trajectory(traj)
             if plane == "xy":
-                ax.plot(traj[:, 0], traj[:, 1], color="#4c78a8", alpha=0.26, lw=1.5)
+                ax.plot(smooth[:, 0], smooth[:, 1], color=COLORS["plain"], alpha=0.22, lw=1.5)
             elif plane == "xz":
-                ax.plot(traj[:, 0], traj[:, 2], color="#4c78a8", alpha=0.26, lw=1.5)
+                ax.plot(smooth[:, 0], smooth[:, 2], color=COLORS["plain"], alpha=0.22, lw=1.5)
             else:
-                ax.plot(traj[:, 1], traj[:, 2], color="#4c78a8", alpha=0.26, lw=1.5)
+                ax.plot(smooth[:, 1], smooth[:, 2], color=COLORS["plain"], alpha=0.22, lw=1.5)
         for traj in recap_results["trajectories"][:10]:
+            smooth = smooth_trajectory(traj)
             if plane == "xy":
-                ax.plot(traj[:, 0], traj[:, 1], color="#54a24b", alpha=0.34, lw=1.6)
+                ax.plot(smooth[:, 0], smooth[:, 1], color=COLORS["recap"], alpha=0.30, lw=1.8)
             elif plane == "xz":
-                ax.plot(traj[:, 0], traj[:, 2], color="#54a24b", alpha=0.34, lw=1.6)
+                ax.plot(smooth[:, 0], smooth[:, 2], color=COLORS["recap"], alpha=0.30, lw=1.8)
             else:
-                ax.plot(traj[:, 1], traj[:, 2], color="#54a24b", alpha=0.34, lw=1.6)
+                ax.plot(smooth[:, 1], smooth[:, 2], color=COLORS["recap"], alpha=0.30, lw=1.8)
 
-    fig.suptitle("3D Key-Then-Portal Task: Plain BC vs RECAP Conditioning", fontsize=18)
+    fig.suptitle("3D Drone Heist: Artifact -> Uplink -> Extraction", fontsize=18, y=0.98)
     fig.tight_layout()
     fig.savefig(os.path.join(OUTPUT_DIR, "game_3d_comparison.png"), dpi=220, bbox_inches="tight")
     plt.close(fig)
 
 
 def make_rollout_gif(results, path, title, color):
-    examples = choose_examples(results, count=6)
+    examples = [smooth_trajectory(traj, factor=4) for traj in choose_examples(results, count=6)]
     max_len = max(len(traj) for traj in examples)
 
-    fig, axes = plt.subplots(1, 3, figsize=(13.8, 4.6))
+    fig, axes = plt.subplots(1, 3, figsize=(13.8, 4.8), facecolor="white")
     plane_defs = [("xy", axes[0], "Top"), ("xz", axes[1], "x-z"), ("yz", axes[2], "y-z")]
     for plane, ax, plane_title in plane_defs:
         style_projection(ax, plane, plane_title)
 
-    counter = fig.text(0.50, 0.96, "", ha="center", fontsize=12)
-    fig.suptitle(title, y=1.02, fontsize=16)
+    counter = fig.text(0.50, 0.95, "", ha="center", fontsize=12)
+    fig.suptitle(title, y=1.01, fontsize=16)
 
     lines = []
     dots = []
-    for plane, ax, _ in plane_defs:
+    for _, ax, _ in plane_defs:
         plane_lines = []
         plane_dots = []
-        for idx, _ in enumerate(examples):
-            alpha = 0.32 + 0.10 * (idx / len(examples))
-            plane_lines.append(ax.plot([], [], color=color, lw=2.0, alpha=alpha)[0])
-            plane_dots.append(ax.plot([], [], "o", color=color, markersize=4.4)[0])
+        for idx in range(len(examples)):
+            alpha = 0.30 + 0.10 * (idx / len(examples))
+            plane_lines.append(ax.plot([], [], color=color, lw=2.1, alpha=alpha, solid_capstyle="round")[0])
+            plane_dots.append(ax.plot([], [], "o", color=color, markersize=4.6)[0])
         lines.append(plane_lines)
         dots.append(plane_dots)
 
@@ -621,7 +710,7 @@ def make_rollout_gif(results, path, title, color):
         return artists
 
     def update(frame):
-        counter.set_text(f"t = {frame:03d}")
+        counter.set_text(f"t = {frame / 4.0:05.1f}")
         artists = [counter]
         for plane_idx, (plane, _, _) in enumerate(plane_defs):
             for traj_idx, traj in enumerate(examples):
@@ -640,21 +729,24 @@ def make_rollout_gif(results, path, title, color):
                 artists.extend([lines[plane_idx][traj_idx], dots[plane_idx][traj_idx]])
         return artists
 
-    anim = FuncAnimation(fig, update, frames=max_len, init_func=init, interval=90, blit=True)
-    anim.save(path, writer=PillowWriter(fps=11))
+    anim = FuncAnimation(fig, update, frames=max_len, init_func=init, interval=55, blit=True)
+    anim.save(path, writer=PillowWriter(fps=18))
     plt.close(fig)
 
 
 def make_rollout_3d_gif(results, path, title, color):
-    examples = choose_examples(results, count=5)
+    examples = [smooth_trajectory(traj, factor=4) for traj in choose_examples(results, count=5)]
     max_len = max(len(traj) for traj in examples)
 
-    fig = plt.figure(figsize=(7.6, 7.0))
+    fig = plt.figure(figsize=(7.8, 7.1), facecolor="white")
     ax = fig.add_subplot(1, 1, 1, projection="3d")
     style_3d_axis(ax, title)
 
-    lines = [ax.plot([], [], [], color=color, lw=2.2, alpha=0.34 + 0.10 * (idx / len(examples)))[0] for idx in range(len(examples))]
-    dots = [ax.plot([], [], [], "o", color=color, markersize=5)[0] for _ in examples]
+    lines = [
+        ax.plot([], [], [], color=color, lw=2.4, alpha=0.34 + 0.10 * (idx / len(examples)), solid_capstyle="round")[0]
+        for idx in range(len(examples))
+    ]
+    dots = [ax.plot([], [], [], "o", color=color, markersize=5.2)[0] for _ in examples]
     counter = ax.text2D(0.02, 0.98, "", transform=ax.transAxes, fontsize=12)
 
     def init():
@@ -669,8 +761,8 @@ def make_rollout_3d_gif(results, path, title, color):
         return artists
 
     def update(frame):
-        counter.set_text(f"t = {frame:03d}")
-        ax.view_init(elev=24, azim=-58 + 0.20 * frame)
+        counter.set_text(f"t = {frame / 4.0:05.1f}")
+        ax.view_init(elev=24 + 2.5 * np.sin(frame * 0.035), azim=-56 + 0.11 * frame)
         artists = [counter]
         for line, dot, traj in zip(lines, dots, examples):
             idx = min(frame, len(traj) - 1)
@@ -681,20 +773,22 @@ def make_rollout_3d_gif(results, path, title, color):
             artists.extend([line, dot])
         return artists
 
-    anim = FuncAnimation(fig, update, frames=max_len, init_func=init, interval=100, blit=False)
-    anim.save(path, writer=PillowWriter(fps=10))
+    anim = FuncAnimation(fig, update, frames=max_len, init_func=init, interval=60, blit=False)
+    anim.save(path, writer=PillowWriter(fps=16))
     plt.close(fig)
 
 
 def main():
     print(f"Using device: {DEVICE}")
-    print("Generating 3D mixed-quality gameplay demonstrations...")
+    print("Generating 3D mixed-quality drone-heist demonstrations...")
     states, actions, conds, returns, demos = build_dataset()
     demo_success = np.mean([demo.success for demo in demos])
-    demo_key_rate = np.mean([demo.got_key for demo in demos])
+    demo_artifact = np.mean([demo.got_artifact for demo in demos])
+    demo_uplink = np.mean([demo.got_uplink for demo in demos])
     print(
         f"dataset demos: {len(demos)} | transitions: {len(states)} | "
-        f"key pickups: {demo_key_rate * 100:.1f}% | successes: {demo_success * 100:.1f}%"
+        f"artifact grabs: {demo_artifact * 100:.1f}% | uplinks: {demo_uplink * 100:.1f}% | "
+        f"successes: {demo_success * 100:.1f}%"
     )
 
     print("\nTraining plain imitation and RECAP-conditioned policies...")
@@ -711,48 +805,47 @@ def main():
     print(
         f"Plain Imitation  -> Avg steps: {plain_steps:.0f} | "
         f"Success: {plain_results['success_rate'] * 100:.0f}% | "
-        f"Key pickup: {plain_results['key_rate'] * 100:.0f}% | "
+        f"Artifact: {plain_results['artifact_rate'] * 100:.0f}% | "
+        f"Uplink: {plain_results['uplink_rate'] * 100:.0f}% | "
         f"Collisions: {plain_results['collision_rate'] * 100:.0f}% | "
         f"Raw term steps: {plain_results['raw_steps'].mean():.0f}"
     )
     print(
         f"RECAP Advantage  -> Avg steps: {recap_steps:.0f} | "
         f"Success: {recap_results['success_rate'] * 100:.0f}% | "
-        f"Key pickup: {recap_results['key_rate'] * 100:.0f}% | "
+        f"Artifact: {recap_results['artifact_rate'] * 100:.0f}% | "
+        f"Uplink: {recap_results['uplink_rate'] * 100:.0f}% | "
         f"Collisions: {recap_results['collision_rate'] * 100:.0f}% | "
         f"Raw term steps: {recap_results['raw_steps'].mean():.0f}"
     )
     print(f"Duration improvement: {plain_steps / recap_steps:.2f}x faster")
-    print(
-        f"Success improvement: "
-        f"{recap_results['success_rate'] / max(plain_results['success_rate'], 1e-6):.2f}x higher"
-    )
+    print(f"Success improvement: {recap_results['success_rate'] / max(plain_results['success_rate'], 1e-6):.2f}x higher")
 
     print("\nSaving visuals...")
     make_comparison_plot(plain_results, recap_results)
     make_rollout_gif(
         plain_results,
         os.path.join(OUTPUT_DIR, "game_3d_plain.gif"),
-        "Plain Imitation: 3D Key-Portal Rollouts",
-        "#4c78a8",
+        "Plain Imitation: Drone Heist",
+        COLORS["plain"],
     )
     make_rollout_gif(
         recap_results,
         os.path.join(OUTPUT_DIR, "game_3d_recap.gif"),
-        "RECAP Conditioned: 3D Key-Portal Rollouts",
-        "#54a24b",
+        "RECAP Conditioned: Drone Heist",
+        COLORS["recap"],
     )
     make_rollout_3d_gif(
         plain_results,
         os.path.join(OUTPUT_DIR, "game_3d_plain_3d.gif"),
         "Plain Imitation 3D",
-        "#4c78a8",
+        COLORS["plain"],
     )
     make_rollout_3d_gif(
         recap_results,
         os.path.join(OUTPUT_DIR, "game_3d_recap_3d.gif"),
         "RECAP Conditioned 3D",
-        "#54a24b",
+        COLORS["recap"],
     )
     print(f"Saved {os.path.join(OUTPUT_DIR, 'game_3d_comparison.png')}")
     print(f"Saved {os.path.join(OUTPUT_DIR, 'game_3d_plain.gif')}")
