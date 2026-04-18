@@ -1,6 +1,7 @@
 import os
 
-os.environ.setdefault("MPLCONFIGDIR", os.path.join(os.getcwd(), ".mplconfig"))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+os.environ.setdefault("MPLCONFIGDIR", os.path.join(BASE_DIR, ".mplconfig"))
 
 from dataclasses import dataclass
 
@@ -13,7 +14,7 @@ from matplotlib.animation import FuncAnimation, PillowWriter
 from matplotlib.patches import Rectangle
 
 
-OUTPUT_DIR = "outputs"
+OUTPUT_DIR = os.path.join(BASE_DIR, "outputs")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 os.makedirs(os.environ["MPLCONFIGDIR"], exist_ok=True)
 
