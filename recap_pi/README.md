@@ -25,6 +25,13 @@ cd recap_pi
 uv run python recap_demo_game_3d.py
 ```
 
+Render the TeX concept note to PDF with the cached Docker image:
+
+```bash
+cd recap_pi/docs
+./render_pdf.sh
+```
+
 The scripts write artifacts into `outputs/`:
 
 - `complex_comparison.png`
@@ -35,6 +42,11 @@ The scripts write artifacts into `outputs/`:
 - `game_3d_recap.gif`
 - `game_3d_plain_3d.gif`
 - `game_3d_recap_3d.gif`
+
+The writeup lives in `docs/`:
+
+- `recap_concept_writeup.tex`
+- `recap_concept_writeup.pdf`
 
 ## Current Snapshot Metrics
 
