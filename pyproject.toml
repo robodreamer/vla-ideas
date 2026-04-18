@@ -1,0 +1,15 @@
+[project]
+name = "vla-ideas"
+version = "0.1.0"
+description = "RECAP-conditioned navigation experiment snapshots"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "matplotlib>=3.8",
+    "numpy>=1.26",
+    "pillow>=10.0",
+    "torch>=2.2",
+]
+
+[tool.uv]
+package = false
