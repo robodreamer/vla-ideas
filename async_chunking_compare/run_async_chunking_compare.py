@@ -22,6 +22,7 @@ METHOD_ORDER = [
     "naive_async",
     "rtc_hard",
     "prefix_conditioned",
+    "history_conditioned",
     "vlash",
     "vlash_reflex",
 ]
@@ -31,6 +32,7 @@ REPORT_METHODS = [
     "naive_async",
     "rtc_hard",
     "prefix_conditioned",
+    "history_conditioned",
     "vlash",
 ]
 
@@ -39,6 +41,7 @@ COLORS = {
     "naive_async": "#f58518",
     "rtc_hard": "#54a24b",
     "prefix_conditioned": "#72b7b2",
+    "history_conditioned": "#4c9f70",
     "vlash": "#e45756",
     "vlash_reflex": "#b279a2",
 }
@@ -48,6 +51,7 @@ LABELS = {
     "naive_async": "Naive Async",
     "rtc_hard": "RTC Hard Stitch",
     "prefix_conditioned": "Train-Time Prefix",
+    "history_conditioned": "History + Prefix",
     "vlash": "VLASH",
     "vlash_reflex": "VLASH + Reflex",
 }
@@ -69,6 +73,7 @@ class Config:
     reflex_gain_p: float = 0.42
     reflex_gain_d: float = 0.16
     reflex_limit: float = 0.95
+    history_window: int = 6
 
 
 @dataclass
@@ -83,6 +88,33 @@ class PrefixConditionedModel:
 
     def predict_plan(self, state: np.ndarray, committed_tail: np.ndarray, cfg: Config) -> np.ndarray:
         accel = self.predict_accel(state, committed_tail, cfg)
+        return np.full(cfg.horizon, accel, dtype=np.float64)
+
+
+@dataclass
+class HistoryConditionedModel:
+    weights: np.ndarray
+    bias: float
+
+    def predict_accel(
+        self,
+        state: np.ndarray,
+        committed_tail: np.ndarray,
+        recent_actions: np.ndarray,
+        cfg: Config,
+    ) -> float:
+        features = history_features(state, committed_tail, recent_actions, cfg)
+        accel = float(features[:-1] @ self.weights + self.bias)
+        return float(np.clip(accel, -cfg.max_accel, cfg.max_accel))
+
+    def predict_plan(
+        self,
+        state: np.ndarray,
+        committed_tail: np.ndarray,
+        recent_actions: np.ndarray,
+        cfg: Config,
+    ) -> np.ndarray:
+        accel = self.predict_accel(state, committed_tail, recent_actions, cfg)
         return np.full(cfg.horizon, accel, dtype=np.float64)
 
 
@@ -126,6 +158,14 @@ def safe_nanmean(values: list[float]) -> float:
     if np.all(np.isnan(arr)):
         return float("nan")
     return float(np.nanmean(arr))
+
+
+def safe_sem(values: list[float]) -> float:
+    arr = np.array(values, dtype=np.float64)
+    arr = arr[~np.isnan(arr)]
+    if arr.size <= 1:
+        return 0.0
+    return float(np.std(arr, ddof=1) / np.sqrt(arr.size))
 
 
 def constant_accel_plan(state: np.ndarray, cfg: Config) -> np.ndarray:
@@ -190,6 +230,43 @@ def prefix_features(state: np.ndarray, committed_tail: np.ndarray, cfg: Config) 
     )
 
 
+def history_features(
+    state: np.ndarray,
+    committed_tail: np.ndarray,
+    recent_actions: np.ndarray,
+    cfg: Config,
+) -> np.ndarray:
+    prefix = prefix_features(state, committed_tail, cfg)[:-1]
+    if recent_actions.size == 0:
+        recent_mean = 0.0
+        recent_last = 0.0
+        recent_slope = 0.0
+        recent_std = 0.0
+        recent_energy = 0.0
+    else:
+        recent_mean = float(np.mean(recent_actions))
+        recent_last = float(recent_actions[-1])
+        recent_slope = float(recent_actions[-1] - recent_actions[0]) / max(recent_actions.size - 1, 1)
+        recent_std = float(np.std(recent_actions))
+        recent_energy = float(np.mean(recent_actions**2))
+
+    return np.array(
+        [
+            *prefix,
+            recent_mean,
+            recent_last,
+            recent_slope,
+            recent_std,
+            recent_energy,
+            recent_actions.size / max(cfg.history_window, 1),
+            prefix[3] * recent_mean,
+            prefix[1] * recent_last,
+            1.0,
+        ],
+        dtype=np.float64,
+    )
+
+
 def train_prefix_conditioned_model(cfg: Config, seed: int, samples: int = 7000) -> PrefixConditionedModel:
     rng = np.random.default_rng(seed)
     feature_rows = []
@@ -221,12 +298,54 @@ def train_prefix_conditioned_model(cfg: Config, seed: int, samples: int = 7000) 
     return PrefixConditionedModel(weights=weights[:-1], bias=float(weights[-1]))
 
 
+def train_history_conditioned_model(cfg: Config, seed: int, samples: int = 7000) -> HistoryConditionedModel:
+    rng = np.random.default_rng(seed)
+    feature_rows = []
+    targets = []
+
+    for _ in range(samples):
+        state = np.array(
+            [
+                rng.uniform(-4.0, 14.0),
+                rng.uniform(-7.0, 7.0),
+                cfg.goal + rng.uniform(-max(cfg.moving_goal_amplitude, 0.5), max(cfg.moving_goal_amplitude, 0.5)),
+            ],
+            dtype=np.float64,
+        )
+        stale_plan = constant_accel_plan(state, cfg)
+        recent_len = int(rng.integers(max(2, cfg.history_window // 2), cfg.history_window + 1))
+        recent_actions = np.clip(
+            stale_plan[0] + rng.normal(0.0, 0.75, size=recent_len),
+            -cfg.max_accel,
+            cfg.max_accel,
+        )
+        committed_tail = np.clip(
+            stale_plan[: cfg.delay] + 0.45 * recent_actions[-1] + rng.normal(0.0, 0.5, size=cfg.delay),
+            -cfg.max_accel,
+            cfg.max_accel,
+        )
+        future_state = rollout_future(state, committed_tail, cfg)
+        target = float(constant_accel_plan(future_state, cfg)[0])
+        feature_rows.append(history_features(state, committed_tail, recent_actions, cfg))
+        targets.append(target)
+
+    x_train = np.vstack(feature_rows)
+    y_train = np.array(targets, dtype=np.float64)
+    x_center = x_train[:, :-1]
+    x_aug = np.concatenate([x_center, np.ones((x_center.shape[0], 1), dtype=np.float64)], axis=1)
+    ridge = 1e-3 * np.eye(x_aug.shape[1], dtype=np.float64)
+    weights = np.linalg.solve(x_aug.T @ x_aug + ridge, x_aug.T @ y_train)
+    return HistoryConditionedModel(weights=weights[:-1], bias=float(weights[-1]))
+
+
 def plan_for_method(
     method: str,
     state_at_plan_start: np.ndarray,
     committed_tail: np.ndarray,
+    recent_actions: np.ndarray,
     cfg: Config,
     prefix_model: PrefixConditionedModel,
+    history_model: HistoryConditionedModel,
 ) -> np.ndarray:
     if method in {"vlash", "vlash_reflex"}:
         future_state = rollout_future(state_at_plan_start, committed_tail, cfg)
@@ -234,6 +353,9 @@ def plan_for_method(
 
     if method == "prefix_conditioned":
         return prefix_model.predict_plan(state_at_plan_start, committed_tail, cfg)
+
+    if method == "history_conditioned":
+        return history_model.predict_plan(state_at_plan_start, committed_tail, recent_actions, cfg)
 
     planned = constant_accel_plan(state_at_plan_start, cfg)
     if method == "rtc_hard" and committed_tail.size > 0:
@@ -284,7 +406,13 @@ def summarize_run(trace: dict, cfg: Config) -> dict:
     }
 
 
-def run_single(method: str, cfg: Config, seed: int, prefix_model: PrefixConditionedModel) -> tuple[dict, dict]:
+def run_single(
+    method: str,
+    cfg: Config,
+    seed: int,
+    prefix_model: PrefixConditionedModel,
+    history_model: HistoryConditionedModel,
+) -> tuple[dict, dict]:
     rng = np.random.default_rng(seed)
     env = PointMassEnv(cfg, rng)
     state = env.reset()
@@ -301,6 +429,7 @@ def run_single(method: str, cfg: Config, seed: int, prefix_model: PrefixConditio
     pending_ready_in = 0
     sync_wait = cfg.delay if method == "synchronous" else 0
     plan_started = False
+    recent_actions = [0.0 for _ in range(cfg.history_window)]
 
     while len(t_hist) < cfg.max_steps:
         if method == "synchronous":
@@ -328,7 +457,15 @@ def run_single(method: str, cfg: Config, seed: int, prefix_model: PrefixConditio
             remaining = cfg.horizon - active_idx
             if not plan_started and remaining <= cfg.delay:
                 committed_tail = active_chunk[active_idx : active_idx + cfg.delay].copy()
-                pending_chunk = plan_for_method(method, state.copy(), committed_tail, cfg, prefix_model)
+                pending_chunk = plan_for_method(
+                    method,
+                    state.copy(),
+                    committed_tail,
+                    np.array(recent_actions[-cfg.history_window :], dtype=np.float64),
+                    cfg,
+                    prefix_model,
+                    history_model,
+                )
                 pending_ready_in = cfg.delay
                 plan_started = True
 
@@ -352,6 +489,9 @@ def run_single(method: str, cfg: Config, seed: int, prefix_model: PrefixConditio
                 plan_started = False
 
         state = env.step(action)
+        recent_actions.append(action)
+        if len(recent_actions) > cfg.history_window:
+            recent_actions = recent_actions[-cfg.history_window :]
         x_hist.append(state[0])
         v_hist.append(state[1])
         a_hist.append(action)
@@ -374,17 +514,28 @@ def run_experiments(
     single_seed: int,
     monte_carlo_trials: int,
     prefix_model: PrefixConditionedModel,
-) -> tuple[dict, dict]:
+    history_model: HistoryConditionedModel,
+) -> tuple[dict, dict, list[dict]]:
     traces = {}
     metric_table = {method: [] for method in METHOD_ORDER}
+    trial_rows = []
 
     for method in METHOD_ORDER:
-        trace, _ = run_single(method, cfg, seed=single_seed, prefix_model=prefix_model)
+        trace, _ = run_single(method, cfg, seed=single_seed, prefix_model=prefix_model, history_model=history_model)
         traces[method] = trace
         for trial in range(monte_carlo_trials):
-            _, metrics = run_single(method, cfg, seed=single_seed + 1000 + trial, prefix_model=prefix_model)
+            _, metrics = run_single(
+                method,
+                cfg,
+                seed=single_seed + 1000 + trial,
+                prefix_model=prefix_model,
+                history_model=history_model,
+            )
             metric_table[method].append(metrics)
-    return traces, metric_table
+            trial_row = {"method": method, "trial": trial, "seed": single_seed + 1000 + trial}
+            trial_row.update(metrics)
+            trial_rows.append(trial_row)
+    return traces, metric_table, trial_rows
 
 
 def aggregate_metric_table(metric_table: dict) -> dict:
@@ -406,6 +557,17 @@ def save_metrics_csv(metric_table: dict, path: str) -> None:
         for method in METHOD_ORDER:
             row = {"method": method}
             row.update(aggregate_table[method])
+            writer.writerow(row)
+
+
+def save_trial_metrics_csv(trial_rows: list[dict], path: str) -> None:
+    fieldnames = ["method", "trial", "seed"] + sorted(
+        key for key in trial_rows[0].keys() if key not in {"method", "trial", "seed"}
+    )
+    with open(path, "w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in trial_rows:
             writer.writerow(row)
 
 
@@ -480,9 +642,19 @@ def make_metric_plot(metric_table: dict, path: str, methods: list[str], title: s
     axes = axes.ravel()
     x = np.arange(len(methods))
     bar_colors = [COLORS[m] for m in methods]
+    metric_keys = {
+        "Tail mean abs error": "tail_mean_abs_error",
+        "Within tolerance fraction": "within_tol_frac",
+        "RMS jerk": "rms_jerk",
+        "Control effort": "path_effort",
+        "Mean settle time (s)": "settle_time",
+        "Success rate": "success",
+    }
 
     for ax, (metric_title, values) in zip(axes, metrics.items()):
-        ax.bar(x, values, color=bar_colors, alpha=0.9)
+        metric_key = metric_keys[metric_title]
+        errors = [safe_sem([row[metric_key] for row in metric_table[m]]) for m in methods]
+        ax.bar(x, values, yerr=errors, capsize=4, color=bar_colors, alpha=0.9)
         ax.set_title(metric_title)
         ax.set_xticks(x, [LABELS[m] for m in methods], rotation=20, ha="right")
         ax.grid(axis="y", alpha=0.25)
@@ -512,15 +684,20 @@ def make_delay_sweep_plot(delay_rows: list[dict], path: str, scenario_name: str)
     fig, axes = plt.subplots(1, 3, figsize=(15, 4.6))
     for ax, (metric_key, metric_title) in zip(axes, metrics):
         for method in methods:
-            ys = [
-                next(
+            ys = []
+            yerr = []
+            for delay in delays:
+                values = [
                     row[metric_key]
                     for row in delay_rows
                     if row["scenario"] == scenario_name and row["method"] == method and int(row["delay"]) == delay
-                )
-                for delay in delays
-            ]
-            ax.plot(delays, ys, marker="o", linewidth=2.0, color=COLORS[method], label=LABELS[method])
+                ]
+                ys.append(safe_nanmean(values))
+                yerr.append(safe_sem(values))
+            ys_arr = np.array(ys, dtype=np.float64)
+            err_arr = np.array(yerr, dtype=np.float64)
+            ax.plot(delays, ys_arr, marker="o", linewidth=2.0, color=COLORS[method], label=LABELS[method])
+            ax.fill_between(delays, ys_arr - err_arr, ys_arr + err_arr, color=COLORS[method], alpha=0.15)
         ax.set_title(metric_title)
         ax.set_xlabel("Delay steps")
         ax.grid(alpha=0.25)
@@ -584,6 +761,8 @@ def write_report(
     dynamic_cfg: Config,
     static_metrics: dict,
     dynamic_metrics: dict,
+    static_trials: list[dict],
+    dynamic_trials: list[dict],
     paths: dict,
 ) -> None:
     report_path = os.path.join(DOCS_DIR, "async_chunking_experiment_report.md")
@@ -593,14 +772,15 @@ def write_report(
         handle.write("This note records the current comparison status for toy delayed-action VLA deployment ideas in `async_chunking_compare/`.\n\n")
         handle.write("## Bottom line\n\n")
         handle.write(
-            "In this point-mass simulator, `VLASH` is the strongest robust runtime strategy, the learned `Train-Time Prefix` baseline closes much of the gap without explicit rollout, and the crude `RTC Hard Stitch` fails badly because hard prefix freezing without inpainting breaks trajectory consistency.\n\n"
+            "This artifact should still be read as a delay-compensation toy, not a finished benchmark. In the static-goal setting, `VLASH` is the strongest method, the learned `Train-Time Prefix` baseline closes part of the gap without explicit rollout, and the crude `RTC Hard Stitch` fails badly because hard prefix freezing without inpainting breaks trajectory consistency. In the moving-goal setting, the ranking is more mixed.\n\n"
         )
         handle.write("The main qualitative pattern matches the motivating intuition from the papers:\n\n")
         handle.write("- `Synchronous` is stable but slow because the robot pauses while replanning.\n")
         handle.write("- `Naive Async` improves utilization but suffers stale-state oscillation.\n")
         handle.write("- `RTC Hard Stitch` is a useful negative control, not a faithful RTC implementation.\n")
         handle.write("- `Train-Time Prefix` learns to continue committed motion from stale observations plus the committed prefix.\n")
-        handle.write("- `VLASH` remains best because it aligns policy input to the future execution-time state directly.\n\n")
+        handle.write("- `History + Prefix` tests whether short action history can recover more of the missing state without explicit future rollout.\n")
+        handle.write("- `VLASH` is strongest on the static-goal task because it aligns policy input to the future execution-time state directly.\n\n")
 
         handle.write("## Implemented experiments\n\n")
         handle.write("Script:\n\n")
@@ -613,7 +793,9 @@ def write_report(
             "dynamic_metrics",
             "delay_sweep",
             "static_csv",
+            "static_trials_csv",
             "dynamic_csv",
+            "dynamic_trials_csv",
             "delay_csv",
         ]:
             handle.write(f"- `{os.path.relpath(paths[key], BASE_DIR)}`\n")
@@ -626,7 +808,7 @@ def write_report(
         handle.write(f"- Delay `d={static_cfg.delay}`\n")
         handle.write(f"- Control step `dt={static_cfg.dt:.2f}s`\n")
         handle.write(f"- Velocity disturbance std `{static_cfg.disturbance_std:.3f}`\n\n")
-        handle.write("Current verified results:\n\n")
+        handle.write("Current results (means; aggregate plots include standard-error bars):\n\n")
         for method in REPORT_METHODS:
             handle.write(format_metric_line(static_metrics, method) + "\n")
         handle.write("\n")
@@ -637,6 +819,7 @@ def write_report(
         handle.write("- `Synchronous` eventually reaches the target but wastes wall-clock time in every planning gap.\n")
         handle.write("- `Naive Async` keeps moving, but its commands were planned for the wrong physical state and it oscillates.\n")
         handle.write("- `Train-Time Prefix` clearly improves over naive async by using the committed prefix as an implicit delay cue.\n")
+        handle.write("- `History + Prefix` checks whether short control history can close more of the gap without future-state rollout; in the current toy it helps less than prefix-only conditioning.\n")
         handle.write("- `VLASH` is still better because it uses the exact rolled-forward future state instead of having to infer it.\n")
         handle.write("- `RTC Hard Stitch` demonstrates why hard handoff alone is not enough; the missing inpainting step matters.\n\n")
 
@@ -645,7 +828,7 @@ def write_report(
         handle.write(f"- Goal oscillation amplitude `{dynamic_cfg.moving_goal_amplitude:.2f}`\n")
         handle.write(f"- Goal oscillation period `{dynamic_cfg.moving_goal_period:.2f}s`\n")
         handle.write(f"- Same `H={dynamic_cfg.horizon}`, `d={dynamic_cfg.delay}`, `dt={dynamic_cfg.dt:.2f}s`\n\n")
-        handle.write("Current verified results:\n\n")
+        handle.write("Current results (means; aggregate plots include standard-error bars):\n\n")
         for method in REPORT_METHODS:
             handle.write(format_tracking_line(dynamic_metrics, method) + "\n")
         handle.write("\n")
@@ -655,7 +838,8 @@ def write_report(
         handle.write("Interpretation:\n\n")
         handle.write("- The moving target increases the penalty for stale state because the reference itself shifts during the delay window.\n")
         handle.write("- `Train-Time Prefix` still helps by damping the large stale-state oscillations, but it lags the moving reference.\n")
-        handle.write("- `VLASH` tracks the changing goal more tightly in the trace because it plans against the execution-time state instead of the stale one.\n")
+        handle.write("- `History + Prefix` tests whether recent action context helps tracking beyond prefix-only conditioning.\n")
+        handle.write("- `VLASH` stays competitive on moving-goal tracking because it plans against the execution-time state instead of the stale one, but the current metrics do not show clean dominance over every baseline.\n")
         handle.write("- This is the scenario where the biological internal-model analogy is most visible in the toy.\n\n")
 
         handle.write("### Delay sweep\n\n")
@@ -666,8 +850,11 @@ def write_report(
         handle.write("- The hard-stitch negative control becomes unstable quickly, reinforcing that RTC's actual guidance step is doing real work.\n\n")
 
         handle.write("## Current conclusion\n\n")
+        static_n = len(static_trials) // max(len(METHOD_ORDER), 1)
+        dynamic_n = len(dynamic_trials) // max(len(METHOD_ORDER), 1)
         handle.write(
-            "The toy now supports a more credible story than the first draft. The runtime ranking is no longer just `VLASH` versus obviously broken baselines: the learned prefix-conditioned policy demonstrates that delay-awareness can be internalized during training, but explicit future-state alignment still wins when the environment becomes more dynamic.\n"
+            f"The toy now exports per-trial metrics for uncertainty-aware analysis (`{static_n}` trials per method on the static task and `{dynamic_n}` on the moving-goal task). "
+            "Even with that improvement, the artifact should still be read as a delay-compensation toy rather than a finished benchmark.\n"
         )
 
 
@@ -709,19 +896,28 @@ def run_delay_sweep(
         )
         cfg.delay = delay
         prefix_model = train_prefix_conditioned_model(cfg, seed=seed + 77 + delay)
-        _, metric_table = run_experiments(cfg, single_seed=seed + delay, monte_carlo_trials=trials, prefix_model=prefix_model)
-        for method in REPORT_METHODS:
+        history_model = train_history_conditioned_model(cfg, seed=seed + 177 + delay)
+        _, _, trial_rows = run_experiments(
+            cfg,
+            single_seed=seed + delay,
+            monte_carlo_trials=trials,
+            prefix_model=prefix_model,
+            history_model=history_model,
+        )
+        for row in trial_rows:
+            if row["method"] not in REPORT_METHODS:
+                continue
             rows.append(
                 {
                     "scenario": scenario_name,
                     "delay": delay,
-                    "method": method,
-                    "success": np.mean([row["success"] for row in metric_table[method]]),
-                    "settle_time": safe_nanmean([row["settle_time"] for row in metric_table[method]]),
-                    "within_tol_frac": safe_nanmean([row["within_tol_frac"] for row in metric_table[method]]),
-                    "tail_mean_abs_error": safe_nanmean([row["tail_mean_abs_error"] for row in metric_table[method]]),
-                    "rms_jerk": safe_nanmean([row["rms_jerk"] for row in metric_table[method]]),
-                    "final_error": safe_nanmean([row["final_error"] for row in metric_table[method]]),
+                    "method": row["method"],
+                    "success": row["success"],
+                    "settle_time": row["settle_time"],
+                    "within_tol_frac": row["within_tol_frac"],
+                    "tail_mean_abs_error": row["tail_mean_abs_error"],
+                    "rms_jerk": row["rms_jerk"],
+                    "final_error": row["final_error"],
                 }
             )
     return rows
@@ -760,26 +956,32 @@ def main() -> None:
 
     static_prefix_model = train_prefix_conditioned_model(static_cfg, seed=args.seed + 11)
     dynamic_prefix_model = train_prefix_conditioned_model(dynamic_cfg, seed=args.seed + 29)
+    static_history_model = train_history_conditioned_model(static_cfg, seed=args.seed + 111)
+    dynamic_history_model = train_history_conditioned_model(dynamic_cfg, seed=args.seed + 129)
 
-    static_traces, static_metric_table = run_experiments(
+    static_traces, static_metric_table, static_trial_rows = run_experiments(
         static_cfg,
         single_seed=args.seed,
         monte_carlo_trials=args.trials,
         prefix_model=static_prefix_model,
+        history_model=static_history_model,
     )
-    dynamic_traces, dynamic_metric_table = run_experiments(
+    dynamic_traces, dynamic_metric_table, dynamic_trial_rows = run_experiments(
         dynamic_cfg,
         single_seed=args.seed + 1,
         monte_carlo_trials=args.trials,
         prefix_model=dynamic_prefix_model,
+        history_model=dynamic_history_model,
     )
 
     static_single_path = os.path.join(OUTPUT_DIR, "async_chunking_static_single_run.png")
     static_metric_path = os.path.join(OUTPUT_DIR, "async_chunking_static_monte_carlo.png")
     static_csv_path = os.path.join(OUTPUT_DIR, "async_chunking_static_metrics.csv")
+    static_trials_csv_path = os.path.join(OUTPUT_DIR, "async_chunking_static_trials.csv")
     dynamic_single_path = os.path.join(OUTPUT_DIR, "async_chunking_dynamic_single_run.png")
     dynamic_metric_path = os.path.join(OUTPUT_DIR, "async_chunking_dynamic_monte_carlo.png")
     dynamic_csv_path = os.path.join(OUTPUT_DIR, "async_chunking_dynamic_metrics.csv")
+    dynamic_trials_csv_path = os.path.join(OUTPUT_DIR, "async_chunking_dynamic_trials.csv")
     delay_plot_path = os.path.join(OUTPUT_DIR, "async_chunking_delay_sweep.png")
     delay_csv_path = os.path.join(OUTPUT_DIR, "async_chunking_delay_sweep.csv")
 
@@ -792,6 +994,7 @@ def main() -> None:
         moving_goal=False,
     )
     save_metrics_csv(static_metric_table, static_csv_path)
+    save_trial_metrics_csv(static_trial_rows, static_trials_csv_path)
 
     make_single_run_plot(dynamic_traces, dynamic_cfg, dynamic_single_path, REPORT_METHODS)
     make_metric_plot(
@@ -802,6 +1005,7 @@ def main() -> None:
         moving_goal=True,
     )
     save_metrics_csv(dynamic_metric_table, dynamic_csv_path)
+    save_trial_metrics_csv(dynamic_trial_rows, dynamic_trials_csv_path)
 
     delay_rows = run_delay_sweep(
         base_cfg,
@@ -821,20 +1025,32 @@ def main() -> None:
         "static_single": static_single_path,
         "static_metrics": static_metric_path,
         "static_csv": static_csv_path,
+        "static_trials_csv": static_trials_csv_path,
         "dynamic_single": dynamic_single_path,
         "dynamic_metrics": dynamic_metric_path,
         "dynamic_csv": dynamic_csv_path,
+        "dynamic_trials_csv": dynamic_trials_csv_path,
         "delay_sweep": delay_plot_path,
         "delay_csv": delay_csv_path,
     }
-    write_report(static_cfg, dynamic_cfg, static_metric_table, dynamic_metric_table, paths)
+    write_report(
+        static_cfg,
+        dynamic_cfg,
+        static_metric_table,
+        dynamic_metric_table,
+        static_trial_rows,
+        dynamic_trial_rows,
+        paths,
+    )
 
     print(f"\nWrote {static_single_path}")
     print(f"Wrote {static_metric_path}")
     print(f"Wrote {static_csv_path}")
+    print(f"Wrote {static_trials_csv_path}")
     print(f"Wrote {dynamic_single_path}")
     print(f"Wrote {dynamic_metric_path}")
     print(f"Wrote {dynamic_csv_path}")
+    print(f"Wrote {dynamic_trials_csv_path}")
     print(f"Wrote {delay_plot_path}")
     print(f"Wrote {delay_csv_path}")
     print(f"Wrote {os.path.join(DOCS_DIR, 'async_chunking_experiment_report.md')}")

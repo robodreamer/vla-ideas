@@ -40,6 +40,7 @@ The current implementation compares six methods:
   \item \texttt{Naive Async}: overlap planning and execution, but plan from stale state.
   \item \texttt{RTC Hard Stitch}: a deliberately crude negative control that freezes the committed prefix without actual inpainting guidance.
   \item \texttt{Train-Time Prefix}: a toy learned continuation model that predicts a constant postfix action from stale state plus committed prefix.
+  \item \texttt{History + Prefix}: the same idea plus a short recent-action history window, as a proxy for a recurrent or history-aware controller.
   \item \texttt{VLASH}: roll the committed prefix forward and plan from the estimated future execution state.
   \item \texttt{VLASH + Reflex}: VLASH plus a small per-step residual controller.
 \end{enumerate}
@@ -48,6 +49,7 @@ The main result is narrow but useful:
 \begin{itemize}[leftmargin=1.5em]
   \item In the static-goal setting, \texttt{VLASH} is the strongest method on settle time and final error.
   \item The toy \texttt{Train-Time Prefix} baseline closes part of the gap without explicit future rollout, but it is slower and less reliable than \texttt{VLASH}.
+  \item The new \texttt{History + Prefix} baseline does not close the gap further in this toy, which is itself useful evidence that short action history is not enough here.
   \item \texttt{RTC Hard Stitch} fails badly, but that should be read only as evidence that hard prefix freezing is insufficient. It is not a faithful RTC baseline.
   \item In the moving-goal setting, the ranking is mixed. \texttt{VLASH} remains competitive, but the current metrics do not show clean dominance over all baselines.
 \end{itemize}
@@ -62,10 +64,10 @@ Two scenarios are currently reported:
   \item \textbf{Moving goal:} sinusoidal target motion with amplitude \(1.2\) and period \(2.6\) s.
 \end{itemize}
 
-The static-goal evaluation emphasizes settling and endpoint accuracy. The moving-goal evaluation emphasizes tracking quality, specifically the fraction of time inside the tolerance band and the tail mean absolute tracking error.
+The static-goal evaluation emphasizes settling and endpoint accuracy. The moving-goal evaluation emphasizes tracking quality, specifically the fraction of time inside the tolerance band and the tail mean absolute tracking error. The latest script also exports per-trial CSVs for uncertainty-aware analysis and adds standard-error bars to the aggregate plots.
 
 \paragraph{Important limitation.}
-This is structurally close to an oracle-versus-student comparison. \texttt{VLASH} uses an exact rollout of the same nominal dynamics used by the environment, and \texttt{Train-Time Prefix} is trained on labels derived from the same analytic planner. That makes the current result much narrower than a full method benchmark.
+This is structurally close to an oracle-versus-student comparison. \texttt{VLASH} uses an exact rollout of the same nominal dynamics used by the environment, and both \texttt{Train-Time Prefix} and \texttt{History + Prefix} are trained on labels derived from the same analytic planner. That makes the current result much narrower than a full method benchmark.
 
 \section{Static-Goal Results}
 
@@ -91,6 +93,7 @@ Synchronous & 100.0 & 11.09 & 0.164 & 99.4 \\
 Naive Async & 0.0 & --- & 6.469 & 64.3 \\
 RTC Hard Stitch & 0.0 & --- & 22.022 & 55.0 \\
 Train-Time Prefix & 81.2 & 12.24 & 0.649 & 24.8 \\
+History + Prefix & 40.6 & 15.38 & 2.080 & 38.5 \\
 VLASH & 100.0 & 9.15 & 0.054 & 101.5 \\
 VLASH + Reflex & 100.0 & 8.79 & 0.056 & 104.9 \\
 \bottomrule
@@ -98,7 +101,7 @@ VLASH + Reflex & 100.0 & 8.79 & 0.056 & 104.9 \\
 \caption{Static-goal metrics exported by the current script.}
 \end{table}
 
-The static-goal story is reasonably clear. \texttt{Synchronous} reaches the target reliably but pays a substantial wall-clock penalty because it pauses while replanning. \texttt{Naive Async} uses compute more efficiently, but its commands are planned for the wrong physical state and it never settles reliably. The toy \texttt{Train-Time Prefix} baseline partially repairs this by inferring a continuation from the committed prefix. \texttt{VLASH} still wins because it conditions directly on the execution-time state rather than having to infer that state from stale observations alone.
+The static-goal story is reasonably clear. \texttt{Synchronous} reaches the target reliably but pays a substantial wall-clock penalty because it pauses while replanning. \texttt{Naive Async} uses compute more efficiently, but its commands are planned for the wrong physical state and it never settles reliably. The toy \texttt{Train-Time Prefix} baseline partially repairs this by inferring a continuation from the committed prefix. The \texttt{History + Prefix} proxy adds recent action context, but it still underperforms the simpler prefix-only model in this one-dimensional setting. \texttt{VLASH} still wins because it conditions directly on the execution-time state rather than having to infer that state from stale observations alone.
 
 \section{Moving-Goal Results}
 
@@ -124,6 +127,7 @@ Synchronous & 3.2 & 1.781 & 1.617 & 106.4 \\
 Naive Async & 0.7 & 7.925 & 8.059 & 61.2 \\
 RTC Hard Stitch & 0.3 & 18.645 & 29.850 & 53.2 \\
 Train-Time Prefix & 1.6 & 2.602 & 1.065 & 26.0 \\
+History + Prefix & 1.8 & 2.589 & 1.596 & 33.7 \\
 VLASH & 2.8 & 1.798 & 1.340 & 83.3 \\
 VLASH + Reflex & 2.7 & 1.672 & 1.235 & 81.0 \\
 \bottomrule
@@ -131,7 +135,7 @@ VLASH + Reflex & 2.7 & 1.672 & 1.235 & 81.0 \\
 \caption{Moving-goal metrics exported by the current script. Tail MAE denotes tail mean absolute error.}
 \end{table}
 
-This scenario is more ambiguous. \texttt{Naive Async} and \texttt{RTC Hard Stitch} remain poor. \texttt{Train-Time Prefix} dramatically reduces jerk and control effort relative to the stronger planners, but it still lags the moving reference. \texttt{VLASH} and \texttt{VLASH + Reflex} stay competitive on tracking error, yet the current metrics do not justify a blanket claim of dominance over every baseline. The right reading is that future-state alignment remains promising, while the present moving-goal setup still needs better uncertainty-aware evaluation.
+This scenario is more ambiguous. \texttt{Naive Async} and \texttt{RTC Hard Stitch} remain poor. \texttt{Train-Time Prefix} dramatically reduces jerk and control effort relative to the stronger planners, but it still lags the moving reference. \texttt{History + Prefix} offers a small improvement in tracking occupancy over prefix-only conditioning, but not enough to become a stronger overall baseline. \texttt{VLASH} and \texttt{VLASH + Reflex} stay competitive on tracking error, yet the current metrics do not justify a blanket claim of dominance over every baseline. The right reading is that future-state alignment remains promising, while the present moving-goal setup still needs better uncertainty-aware evaluation.
 
 \section{Delay Sweep}
 
