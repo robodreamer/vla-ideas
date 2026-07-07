@@ -1,0 +1,136 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!50!black,
+  citecolor=blue!50!black
+}
+
+\title{Path-Consistent Safety Filtering for Chunked Policies:\\A PACS-Inspired Toy Experiment}
+\author{Working Note for \texttt{path\_consistent\_safety\_filtering}}
+\date{July 7, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note documents a compact toy experiment inspired by PACS, Path-Consistent Safety Filtering for Diffusion Policies. The central question is how a safety filter can slow or brake an action-chunking policy without pushing the robot into out-of-distribution states. The toy compares raw chunk execution, a reactive CBF-like velocity correction, and a PACS-style time-law filter that preserves the geometric path and modifies only scalar progress speed. The result is the expected PACS signature: path-consistent slowdown is slower than raw execution, but it avoids almost all collisions while staying inside the demonstration tube; reactive correction improves safety but often deviates from the demonstrated path.
+\end{abstract}
+
+\section{Motivation}
+
+Diffusion policies and VLA action heads commonly output short action chunks rather than a single control. These chunks encode a short-horizon geometric intent. External safety filters are still needed in dynamic human-robot settings, but a filter that changes instantaneous velocity can integrate into a very different configuration-space path. That creates a distribution shift: the next policy observation may contain robot states and visual geometry that were absent from demonstrations.
+
+PACS proposes a different separation of responsibility:
+\begin{align*}
+  \text{policy proposes geometry:} \quad & q(s), \\
+  \text{safety filter edits timing:} \quad & s(t), \\
+  \text{reactive filter edits geometry:} \quad & q'(s) \neq q(s).
+\end{align*}
+
+This toy isolates that distinction in two dimensions.
+
+\section{References Checked}
+
+Primary references for this exploration were:
+\begin{itemize}[leftmargin=1.5em]
+  \item PACS project page: \url{https://tum-lsy.github.io/pacs/}
+  \item PACS arXiv page: \url{https://arxiv.org/abs/2511.06385}
+  \item ROS 2 safety-filter repository: \url{https://github.com/JulianBalletshofer/pacs-ros2}
+  \item Simulation repository: \url{https://github.com/JakobThumm/robomimic}
+\end{itemize}
+
+Implementation clues used for the toy include the PACS description of path-consistent braking, the ROS 2 README statement that safety is verified at 1 kHz and that Ruckig Pro is used for trajectories from waypoints, and the Panda trajectory configuration fields \texttt{max\_s\_stop}, \texttt{v\_safe}, velocity/acceleration/jerk limits, and \texttt{reachability\_set\_interval\_size}. The simulation repository compares raw OSC, CBF, SSM, and PFL/PACS, with SSM/PFL configured through waypoint/failsafe variants.
+
+\section{Toy Setup}
+
+The script \texttt{run\_pacs\_toy.py} defines a curved 2D path as a proxy for an action chunk converted to waypoints. A circular moving obstacle crosses that path at randomized locations and times. The policy distribution is represented by a narrow tube around the demonstrated path.
+
+Three methods are evaluated:
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{Nominal:} execute the raw path at fixed scalar progress speed.
+  \item \textbf{Reactive CBF-like:} add a sideways repulsive velocity away from the obstacle and weakly recover toward the path. This is not a formal CBF; it is a deliberately simple geometry-changing safety baseline.
+  \item \textbf{PACS time-law:} scan future clearances along the current path. If predicted clearance becomes unsafe, reduce the target scalar speed \(ds/dt\), then update speed with acceleration and jerk limits. The path point is always sampled from the original geometry.
+\end{enumerate}
+
+The PACS-style controller is intentionally expressed as a time-law change:
+\[
+  p(t) = q(s(t)), \qquad 0 \leq \dot{s}(t) \leq \dot{s}_{\max}.
+\]
+When the future occupancy is unsafe, \(\dot{s}\) is reduced toward zero. When the obstacle clears, \(\dot{s}\) returns toward the nominal value. In a real robot stack, a trajectory generator such as Ruckig would solve the jerk-limited multi-DoF profile; the toy uses a small Euler update only to make the mechanism visible.
+
+\section{Metrics}
+
+The Monte Carlo sweep reports:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{success rate:} reaches the end without collision and without excessive OOD time;
+  \item \textbf{collision rate:} minimum obstacle clearance below zero;
+  \item \textbf{OOD fraction:} fraction of rollout outside the demonstration tube;
+  \item \textbf{path error:} distance to the nearest demonstrated path point;
+  \item \textbf{duration:} wall-clock proxy in simulated seconds;
+  \item \textbf{jerk proxy:} second difference of scalar progress speed.
+\end{itemize}
+
+\section{Results}
+
+The latest verified run used 180 randomized obstacle trials:
+\begin{verbatim}
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  path_consistent_safety_filtering/run_pacs_toy.py --trials 180
+\end{verbatim}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrrrr}
+\toprule
+Method & Success & Collision & OOD time & Mean duration & Max path error \\
+\midrule
+nominal & 0.111 & 0.889 & 0.000 & 4.34 s & 0.00075 \\
+reactive CBF-like & 0.644 & 0.294 & 0.154 & 6.46 s & 0.24085 \\
+PACS time-law & 0.889 & 0.006 & 0.000 & 6.12 s & 0.00087 \\
+\bottomrule
+\end{tabular}
+\caption{Monte Carlo metrics for the raw, reactive, and path-consistent safety filters.}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/pacs_toy_rollout.png}
+  \caption{Representative rollout. The PACS-style controller slows along the original path. The reactive baseline deviates laterally from the demonstration tube.}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/pacs_toy_monte_carlo.png}
+  \caption{Monte Carlo summary over randomized dynamic-obstacle crossings.}
+\end{figure}
+
+\section{Interpretation}
+
+The raw policy is fast but unsafe. The reactive filter avoids some collisions, but it often creates lateral detours. In the toy distribution metric, those detours are out of distribution. PACS-style time-law filtering is slower because it waits for the crossing obstacle to clear, but it keeps the robot on the action-chunk path and therefore recovers naturally.
+
+The useful result is not the exact numeric success rate. The useful result is the mechanism: safety can be applied as a change in timing rather than a change in geometry. That directly answers the slowdown question. In this toy, slowdown happens by changing the target \(\dot{s}\) along a fixed path. In the real PACS stack, the analogous operation is a path-consistent failsafe or braking trajectory generated from the current trajectory/waypoints with velocity, acceleration, jerk, and stopping constraints.
+
+\section{Limitations}
+
+This is not a faithful PACS implementation. It omits robot dynamics, joint limits, IK, visual observations, formal reachable sets, link capsules, SSM/PFL kinetic-energy reasoning, and real Ruckig trajectory generation. The reactive baseline is only CBF-like. The OOD score is a handcrafted distance-to-path proxy rather than a learned visual/proprioceptive density.
+
+\section{Next Step}
+
+A better follow-up would use a 2-link or 3-link planar arm. The policy chunk would be joint-space waypoints, while safety would be checked against workspace link capsules. That would test the important distinction between joint-space path consistency and end-effector-only consistency, and would map more directly to PACS occupancy verification.
+
+\end{document}

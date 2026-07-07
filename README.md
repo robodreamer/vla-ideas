@@ -7,11 +7,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/robodreamer/vla-ideas?style=social)](https://github.com/robodreamer/vla-ideas/stargazers)
 
-Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains three compact experiment tracks:
+Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains four compact experiment tracks:
 
 - `recap_pi`: RECAP-style advantage-conditioned navigation demos in 2D and 3D.
 - `async_chunking_compare`: a lightweight simulator for comparing synchronous and asynchronous chunked-control strategies under inference delay.
 - `prefix_rl_chunking`: a toy PPO + action-prefix-loss demo inspired by RL-for-chunked-VLA prefix-stability discussions.
+- `path_consistent_safety_filtering`: a PACS-inspired toy comparing path-consistent braking against reactive CBF-like correction for action chunks.
 
 ## Preview
 
@@ -72,6 +73,13 @@ python prefix_rl_chunking/run_prefix_rl_chunking.py
 python prefix_rl_chunking/run_prefix_rl_pickplace_2d.py
 ```
 
+Run the PACS path-consistent safety toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python path_consistent_safety_filtering/run_pacs_toy.py --trials 180
+```
+
 ## What Gets Generated
 
 The experiment scripts write visual outputs and reports directly into the repo so results stay easy to compare across iterations.
@@ -92,6 +100,11 @@ The experiment scripts write visual outputs and reports directly into the repo s
 
 - PPO/BC comparison metrics and training curves for the 1D and 2D examples.
 - summary plots showing success, safety stops, prefix-copy error, and representative rollouts.
+
+### `path_consistent_safety_filtering/outputs`
+
+- Monte Carlo metrics for raw, reactive CBF-like, and PACS-style time-law controllers.
+- representative trajectory/speed plots showing path-consistent slowdown versus lateral deviation.
 
 ## Current Snapshot
 
@@ -127,6 +140,8 @@ vla-ideas/
 
 ## Reports
 
+- [`path_consistent_safety_filtering/README.md`](path_consistent_safety_filtering/README.md)
+- [`path_consistent_safety_filtering/docs/pacs_toy_report.md`](path_consistent_safety_filtering/docs/pacs_toy_report.md)
 - [`recap_pi/README.md`](recap_pi/README.md)
 - [`recap_pi/docs/rl_tokens_experiment_report.md`](recap_pi/docs/rl_tokens_experiment_report.md)
 - [`recap_pi/docs/recap_concept_writeup.pdf`](recap_pi/docs/recap_concept_writeup.pdf)

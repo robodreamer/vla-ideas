@@ -1,0 +1,41 @@
+{
+  "nominal": {
+    "success_rate": 0.1111111111111111,
+    "collision_rate": 0.8888888888888888,
+    "timeout_rate": 0.0,
+    "ood_rate": 0.0,
+    "mean_duration_s": 4.340000000000001,
+    "mean_min_clearance": -0.0771684895186729,
+    "mean_path_error": 0.0002841263274737027,
+    "max_path_error": 0.000747302177693982,
+    "jerk_proxy": 0.0
+  },
+  "pacs_time_law": {
+    "success_rate": 0.8888888888888888,
+    "collision_rate": 0.005555555555555556,
+    "timeout_rate": 0.10555555555555556,
+    "ood_rate": 0.0,
+    "mean_duration_s": 6.121499999999999,
+    "mean_min_clearance": 0.17439852635826286,
+    "mean_path_error": 0.0002743759768886341,
+    "max_path_error": 0.0008741306171161292,
+    "jerk_proxy": 0.5922801388454971
+  },
+  "reactive_cbf_like": {
+    "success_rate": 0.6444444444444445,
+    "collision_rate": 0.29444444444444445,
+    "timeout_rate": 0.03888888888888889,
+    "ood_rate": 0.1542587040323607,
+    "mean_duration_s": 6.458666666666668,
+    "mean_min_clearance": 0.03216277604156883,
+    "mean_path_error": 0.014602497238035129,
+    "max_path_error": 0.24085226838142468,
+    "jerk_proxy": 3.0401322775150064
+  },
+  "action_chunk_sanity": {
+    "waypoint_count": 12,
+    "nominal_path_points": 200,
+    "slowdown_path_points": 200,
+    "slowdown_max_geometry_error": 0.0007058121232244932
+  }
+}
