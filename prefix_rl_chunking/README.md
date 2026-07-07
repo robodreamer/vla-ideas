@@ -77,6 +77,13 @@ python prefix_rl_chunking/run_prefix_rl_chunking.py --quick
 python prefix_rl_chunking/run_prefix_rl_pickplace_2d.py --quick
 ```
 
+Render the LaTeX report:
+
+```bash
+cd prefix_rl_chunking/docs
+./render_pdf.sh
+```
+
 Outputs are written to `prefix_rl_chunking/outputs/`:
 
 - `prefix_rl_chunking_metrics.csv`
@@ -85,6 +92,13 @@ Outputs are written to `prefix_rl_chunking/outputs/`:
 - `prefix_rl_pickplace_2d_metrics.csv`
 - `prefix_rl_pickplace_2d_training_curves.csv`
 - `prefix_rl_pickplace_2d_summary.png`
+
+The generated writeups live at:
+
+- `prefix_rl_chunking/docs/prefix_rl_chunking_report.md`
+- `prefix_rl_chunking/docs/blog_outcome_mapping.md`
+- `prefix_rl_chunking/docs/prefix_rl_chunking_report.tex`
+- `prefix_rl_chunking/docs/prefix_rl_chunking_report.pdf`
 
 See `docs/blog_outcome_mapping.md` for the explicit speed/reliability/robustness comparison to the motivating article.
 

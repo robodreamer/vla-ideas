@@ -1,0 +1,257 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{longtable}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!50!black,
+  citecolor=blue!50!black
+}
+
+\title{Prefix-Stabilized RL for Chunked VLA Policies:\\Toy Reacher and Pick/Place Experiments}
+\author{Working Note for \texttt{prefix\_rl\_chunking}}
+\date{July 7, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note documents a pair of toy experiments for studying an RL idea that appears in recent VLA manipulation discussions: start from a behavior-cloned chunked policy, improve it with online RL, and add an explicit action-prefix loss so asynchronous chunk conditioning remains stable. The experiments are intentionally small, but they reproduce the qualitative pattern we wanted to check: RL can improve speed and task completion beyond the BC baseline, while prefix regularization sharply reduces prefix-copy error at a modest speed cost.
+\end{abstract}
+
+\section{Executive Summary}
+
+The folder \texttt{prefix\_rl\_chunking} contains two related experiments:
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{1D reacher:} a compact sanity check with one task axis and one inactive joint. It isolates the PPO-versus-prefix-loss effect in the simplest possible setting.
+  \item \textbf{2D pick/place:} a richer toy manipulation task with end-effector dynamics, a graspable object, gripper action, an obstacle, safety-stop proxy, reset jitter, chunked asynchronous replanning, BC initialization, PPO fine-tuning, and optional prefix regularization.
+\end{enumerate}
+
+The main results are:
+\begin{itemize}[leftmargin=1.5em]
+  \item In the 1D reacher, PPO-only is \textbf{1.62x faster} than BC while preserving 100\% success. PPO with prefix loss remains \textbf{1.48x faster} than BC and reduces prefix-copy error by roughly \textbf{74\%} relative to PPO-only.
+  \item In the 2D pick/place task, BC usually grasps the object but times out before reliable placement. PPO turns that partial behavior into successful task completion: \textbf{0\% to 100\% success} for PPO-only and \textbf{0\% to 98.8\% success} for PPO with prefix loss.
+  \item In the 2D task, mean episode length falls from the 22-chunk timeout horizon to about 8.6 chunks, a roughly \textbf{2.5x shorter cycle}.
+  \item PPO with prefix loss keeps nearly the same 2D speed/success while reducing prefix-copy error by roughly \textbf{74\%} relative to PPO-only.
+\end{itemize}
+
+This is not a claim that the toy matches real robot numbers. It is a controlled demonstration that the same outcome categories---speed, reliability, robustness under variation, and prefix stability---can be made visible in a small local experiment.
+
+\section{Motivation}
+
+Behavior cloning (BC) is a natural starting point for VLA manipulation policies. A human or teleoperation system demonstrates the task, and the policy learns to imitate the demonstrated action distribution. This is simple and stable, but it has two important ceilings.
+
+\paragraph{First, BC inherits demonstrator speed and quality.}
+If demonstrations are slow or conservative, the cloned policy tends to be slow or conservative as well. Simply executing the policy faster is not enough: actuator dynamics, gripper timing, object contact, and controller limits can break the assumptions under which the demonstration was collected.
+
+\paragraph{Second, BC has weak information about bad behavior.}
+A successful demonstration says what to do. It does not directly teach the cost of a misgrasp, collision, timeout, or poor recovery. RL adds that missing feedback by optimizing an explicit task reward under the dynamics the policy actually experiences.
+
+The motivating article argues that RL can therefore improve both speed and reliability on top of a BC VLA. It also points out a less obvious issue in asynchronous chunked control: if a policy is conditioned on a committed action prefix, RL rewards only the actions that execute. The prefix slots are not directly rewarded, so the model may stop copying the prefix faithfully. Over time, that breaks the continuity contract between chunks and can create drift or oscillation.
+
+The toy objective is a compact version of the proposed fix:
+\[
+\mathcal{L}
+= \mathcal{L}^{\text{clip}}_{\pi}
++ \lambda_V \mathcal{L}_V
++ \lambda_{\text{pref}} \mathcal{L}_{\text{prefix}}.
+\]
+Here \(\mathcal{L}^{\text{clip}}_{\pi}\) is the PPO clipped policy loss, \(\mathcal{L}_V\) is a value-function regression loss, and \(\mathcal{L}_{\text{prefix}}\) is an MSE loss that asks the predicted chunk to begin by copying the provided prefix.
+
+\section{Step-by-Step Concept Walkthrough}
+
+\subsection{1. A policy predicts chunks, not single actions}
+
+A VLA-style action head often predicts a short horizon of future actions:
+\[
+a_{t:t+H-1} = \pi_\theta(o_t, p_t),
+\]
+where \(o_t\) is the observation and \(p_t\) is an action prefix representing actions already committed by the previous asynchronous inference call.
+
+In the toy scripts, a small MLP replaces the VLA. It outputs a Gaussian distribution over action chunks. The Gaussian noise is a stand-in for the ODE-to-SDE trick used when applying RL to flow-matching or diffusion-style action heads: the deterministic chunk mean is the policy's nominal trajectory, while stochastic sampling gives exploration and tractable log probabilities.
+
+\subsection{2. Behavior cloning gives a conservative starting point}
+
+Before RL, the policy is trained to imitate a hand-coded teacher. The teacher is deliberately conservative:
+\begin{itemize}[leftmargin=1.5em]
+  \item it copies the input prefix into the beginning of the output chunk;
+  \item it moves cautiously near obstacles or contact;
+  \item in the 2D task, it can usually grasp the object but does not reliably finish the placement inside the timeout horizon.
+\end{itemize}
+
+This gives a baseline that has some skill, but leaves room for RL to improve speed and task completion.
+
+\subsection{3. PPO improves the policy using task outcomes}
+
+During rollouts, the policy samples chunks, executes the non-prefix portion, observes rewards, and stores old log probabilities. The update uses the usual PPO clipped ratio:
+\[
+r_t(\theta) = \exp\left(\log \pi_\theta(a_t \mid o_t) - \log \pi_{\text{old}}(a_t \mid o_t)\right),
+\]
+\[
+\mathcal{L}^{\text{clip}}_{\pi}
+= \mathbb{E}\left[
+\max\left(-A_t r_t(\theta),
+-A_t \operatorname{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)
+\right)
+\right].
+\]
+Advantages are estimated with GAE from sparse success/safety rewards plus small toy shaping terms.
+
+\subsection{4. Prefix loss preserves asynchronous continuity}
+
+The prefix loss is applied whether or not those prefix slots directly receive task reward:
+\[
+\mathcal{L}_{\text{prefix}}
+= \left\| \hat{a}_{0:k-1} - p_t \right\|_2^2.
+\]
+This is the core stability mechanism. It keeps the predicted chunk consistent with the actions the robot is already committed to executing while the next inference call is being prepared.
+
+\subsection{5. Evaluation looks for speed, reliability, robustness, and prefix stability}
+
+The toy metrics are chosen to mirror the outcome categories from the motivating article:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Speed:} mean chunks to completion; lower is faster.
+  \item \textbf{Reliability:} success rate and object-goal error.
+  \item \textbf{Robustness:} evaluation under reset jitter, safety-stop rate, and failure/timeout behavior.
+  \item \textbf{Prefix stability:} prefix-copy MSE, especially PPO-only versus PPO with prefix loss.
+\end{itemize}
+
+\section{Experiment 1: 1D Reacher}
+
+The 1D task has a position, velocity, goal delta, and an inactive joint. It is a minimal probe for two questions: can RL make the policy faster than BC, and does prefix loss reduce prefix-copy error?
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/prefix_rl_chunking_summary.png}
+  \caption{1D reacher summary. PPO improves speed relative to BC, while the prefix-loss variant greatly reduces prefix-copy error.}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrrrr}
+\toprule
+Method & Success & Safety stops & Mean chunks & Speed gain vs BC & Prefix MSE \\
+\midrule
+BC reference & 1.000 & 0.000 & 11.33 & 1.00x & 0.1201 \\
+PPO only & 1.000 & 0.000 & 7.00 & 1.62x & 0.1195 \\
+PPO + prefix loss & 1.000 & 0.000 & 7.68 & 1.48x & 0.0306 \\
+\bottomrule
+\end{tabular}
+\caption{Latest verified 1D reacher metrics. Speed gain is computed as BC mean chunks divided by method mean chunks.}
+\end{table}
+
+\paragraph{Interpretation.}
+PPO finds a faster trajectory without sacrificing reliability. The prefix-loss variant gives up a little of the PPO-only speed gain, but it reduces prefix-copy error by roughly 74\%. This is exactly the stability tradeoff the toy is intended to surface.
+
+\section{Experiment 2: 2D Pick/Place}
+
+The 2D task is a more fully fledged manipulation analogy. The state includes end-effector position and velocity, object position, object-relative and goal-relative geometry, gripper state, carried/not-carried state, and the action prefix. The action chunk has three dimensions: \(x\)-acceleration, \(y\)-acceleration, and gripper command.
+
+The environment includes:
+\begin{itemize}[leftmargin=1.5em]
+  \item a graspable object near the lower-left of the workspace;
+  \item a target placement region near the upper-right;
+  \item a rectangular obstacle;
+  \item a simple safety proxy for obstacle contact, workspace bounds, and hard contact near the object;
+  \item reset jitter during evaluation to measure robustness across small pose/object variations.
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/prefix_rl_pickplace_2d_summary.png}
+  \caption{2D pick/place summary. BC usually grasps but times out before reliable placement. PPO converts that partial skill into fast successful placement. Prefix loss keeps prefix-copy error much lower while preserving nearly the same task performance.}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrrrrr}
+\toprule
+Method & Success & Grasp & Safety stops & Mean chunks & Obj. error & Prefix MSE \\
+\midrule
+BC reference & 0.000 & 0.981 & 0.000 & 22.00 & 0.196 & 0.1048 \\
+PPO only & 1.000 & 1.000 & 0.000 & 8.59 & 0.096 & 0.1324 \\
+PPO + prefix loss & 0.988 & 0.988 & 0.000 & 8.68 & 0.078 & 0.0347 \\
+\bottomrule
+\end{tabular}
+\caption{Latest verified 2D pick/place metrics. The BC policy reaches and grasps the object but does not complete placement within the 22-chunk horizon.}
+\end{table}
+
+\subsection{Quantitative Gains}
+
+Relative to BC, PPO-only changes the 2D task from a timeout/partial-skill behavior into a completed task:
+\begin{itemize}[leftmargin=1.5em]
+  \item success improves from 0\% to 100\%;
+  \item mean chunks fall from 22.00 to 8.59, a \(22.00 / 8.59 \approx 2.56\times\) shorter cycle;
+  \item object-goal error falls from 0.196 to 0.096, a 51\% reduction;
+  \item safety stops remain at 0\%.
+\end{itemize}
+
+PPO with prefix loss preserves most of that gain:
+\begin{itemize}[leftmargin=1.5em]
+  \item success reaches 98.8\%;
+  \item mean chunks are 8.68, a \(22.00 / 8.68 \approx 2.54\times\) shorter cycle than BC;
+  \item object-goal error falls to 0.078, a 60\% reduction relative to BC;
+  \item prefix-copy error falls from PPO-only's 0.1324 to 0.0347, a roughly 74\% reduction;
+  \item safety stops remain at 0\%.
+\end{itemize}
+
+\subsection{Qualitative Behavior}
+
+The trajectory plot shows the qualitative difference. The BC controller generally moves toward the object and can close the gripper, but it is too conservative and stalls before consistent placement. RL makes the policy more decisive: the object path reaches the goal region instead of lingering near the transfer path. The prefix-loss version keeps the same high-level behavior while maintaining a much cleaner chunk handoff contract.
+
+\section{Mapping Back to the Blog Outcomes}
+
+The motivating article reports improvements in throughput, task success, cycle duration, and robustness after RL fine-tuning. The toy does not reproduce the same absolute numbers, but it does reproduce the same qualitative outcome categories.
+
+\begin{longtable}{p{0.23\textwidth}p{0.32\textwidth}p{0.35\textwidth}}
+\toprule
+Outcome category & Blog-level claim & Toy observation \\
+\midrule
+Speed / throughput & RL turns faster execution into useful throughput rather than retries. & 1D PPO-only is 1.62x faster than BC. 2D RL reduces the cycle from 22 chunks to about 8.6 chunks. \\
+Reliability & RL improves success rate and reduces failures/timeouts. & 2D success improves from 0\% BC completion to 100\% PPO-only and 98.8\% PPO + prefix loss. \\
+Robustness & RL reduces long-tail failures and improves behavior under variation. & 2D evaluation uses reset jitter; RL completes across small pose/object variations where BC times out. \\
+Safety & Unsafe events should be discouraged by termination/reward. & Safety stops stay at 0\% in the final 2D policies, so speed is not achieved by violating the toy safety proxy. \\
+Prefix stability & Prefix-CFM loss prevents prefix drift under RL. & PPO + prefix loss reduces prefix-copy error by about 74\% relative to PPO-only in both 1D and 2D. \\
+\bottomrule
+\end{longtable}
+
+\section{Limitations}
+
+The toy is intentionally lightweight. The main limitations are:
+\begin{itemize}[leftmargin=1.5em]
+  \item the policy is a small MLP rather than a VLA;
+  \item Gaussian chunk sampling is only a proxy for true flow-matching ODE-to-SDE sampling;
+  \item the environment is not a contact-rich simulator;
+  \item the BC baseline in the 2D task is intentionally weak on final placement, so the success gain is more dramatic than a production comparison;
+  \item rewards include small shaping terms to make local training stable, whereas the motivating article emphasizes sparse and generic rewards on hardware.
+\end{itemize}
+
+Despite those limitations, the artifact is useful because it makes the key mechanisms observable in a few minutes: BC gives a conservative starting point, RL improves task outcomes and speed, and prefix regularization preserves asynchronous chunk continuity.
+
+\section{Reproduction}
+
+Run the experiments with:
+\begin{verbatim}
+python prefix_rl_chunking/run_prefix_rl_chunking.py
+python prefix_rl_chunking/run_prefix_rl_pickplace_2d.py
+\end{verbatim}
+
+The scripts write CSVs and figures to \texttt{prefix\_rl\_chunking/outputs/}. The LaTeX report can be rendered from \texttt{prefix\_rl\_chunking/docs/} with:
+\begin{verbatim}
+./render_pdf.sh
+\end{verbatim}
+
+\end{document}
