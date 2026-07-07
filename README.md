@@ -7,10 +7,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/robodreamer/vla-ideas?style=social)](https://github.com/robodreamer/vla-ideas/stargazers)
 
-Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains two compact experiment tracks:
+Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains three compact experiment tracks:
 
 - `recap_pi`: RECAP-style advantage-conditioned navigation demos in 2D and 3D.
 - `async_chunking_compare`: a lightweight simulator for comparing synchronous and asynchronous chunked-control strategies under inference delay.
+- `prefix_rl_chunking`: a toy PPO + action-prefix-loss demo inspired by RL-for-chunked-VLA prefix-stability discussions.
 
 ## Preview
 
@@ -34,6 +35,10 @@ This repo is organized as a small ideas lab rather than a polished framework. Th
 ### `async_chunking_compare`
 
 `async_chunking_compare` studies delay compensation for chunked action execution. It compares synchronous planning, stale-state async planning, future-state rollouts, and simple prefix/history-conditioned surrogates, then exports figures and trial CSVs for inspection.
+
+### `prefix_rl_chunking`
+
+`prefix_rl_chunking` turns the PPO + prefix-CFM stability idea into a small chunked-control toy. It compares a BC reference, PPO-only improvement, and PPO with an explicit prefix-copy loss, then exports metrics and a summary plot.
 
 ## Quick Start
 
@@ -59,6 +64,13 @@ cd /home/andypark/Projects/playground/vla-ideas
 recap_pi/.venv/bin/python async_chunking_compare/run_async_chunking_compare.py
 ```
 
+Run the prefix-RL chunking toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+python prefix_rl_chunking/run_prefix_rl_chunking.py
+```
+
 ## What Gets Generated
 
 The experiment scripts write visual outputs and reports directly into the repo so results stay easy to compare across iterations.
@@ -74,6 +86,11 @@ The experiment scripts write visual outputs and reports directly into the repo s
 - single-run and Monte Carlo comparison plots.
 - delay-sweep plots.
 - per-trial CSV exports for static and dynamic settings.
+
+### `prefix_rl_chunking/outputs`
+
+- PPO/BC comparison metrics and training curves.
+- a summary plot showing success, safety stops, prefix-copy error, and representative rollouts.
 
 ## Current Snapshot
 
@@ -96,8 +113,12 @@ vla-ideas/
 │   ├── recap_demo_*.py
 │   ├── outputs/
 │   └── docs/
-└── async_chunking_compare/
-    ├── run_async_chunking_compare.py
+├── async_chunking_compare/
+│   ├── run_async_chunking_compare.py
+│   ├── outputs/
+│   └── docs/
+└── prefix_rl_chunking/
+    ├── run_prefix_rl_chunking.py
     ├── outputs/
     └── docs/
 ```
@@ -110,6 +131,8 @@ vla-ideas/
 - [`async_chunking_compare/README.md`](async_chunking_compare/README.md)
 - [`async_chunking_compare/docs/async_chunking_experiment_report.md`](async_chunking_compare/docs/async_chunking_experiment_report.md)
 - [`async_chunking_compare/docs/async_chunking_report.pdf`](async_chunking_compare/docs/async_chunking_report.pdf)
+- [`prefix_rl_chunking/README.md`](prefix_rl_chunking/README.md)
+- [`prefix_rl_chunking/docs/prefix_rl_chunking_report.md`](prefix_rl_chunking/docs/prefix_rl_chunking_report.md)
 
 ## Star History
 
