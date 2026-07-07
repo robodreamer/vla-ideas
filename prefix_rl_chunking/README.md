@@ -86,6 +86,8 @@ Outputs are written to `prefix_rl_chunking/outputs/`:
 - `prefix_rl_pickplace_2d_training_curves.csv`
 - `prefix_rl_pickplace_2d_summary.png`
 
+See `docs/blog_outcome_mapping.md` for the explicit speed/reliability/robustness comparison to the motivating article.
+
 ## Latest verified runs
 
 Using the local Python environment at `/home/andypark/Projects/hmnd-repos/hmnd/hmnd_robot/.pixi/envs/default/bin/python3.11`:
@@ -98,8 +100,8 @@ Using the local Python environment at `/home/andypark/Projects/hmnd-repos/hmnd/h
 
 2D pick/place:
 
-- BC reference: 0% success, 100% grasp, 0% safety stops, 22.00 mean chunks, object-goal error 0.183, prefix MSE 0.0995.
-- PPO only: 100% success, 100% grasp, 0% safety stops, 8.00 mean chunks, object-goal error 0.041, prefix MSE 0.1020.
-- PPO + prefix loss: 100% success, 100% grasp, 0% safety stops, 9.00 mean chunks, object-goal error 0.068, prefix MSE 0.0308.
+- BC reference: 0% success, 98.1% grasp, 0% safety stops, 22.00 mean chunks, object-goal error 0.196, prefix MSE 0.1048.
+- PPO only: 100% success, 100% grasp, 0% safety stops, 8.59 mean chunks, object-goal error 0.096, prefix MSE 0.1324.
+- PPO + prefix loss: 98.8% success, 98.8% grasp, 0% safety stops, 8.68 mean chunks, object-goal error 0.078, prefix MSE 0.0347.
 
-Interpretation: PPO pushes the conservative BC policy to complete the task faster and more reliably. The prefix-loss variant gives up a little speed in these toy runs but keeps prefix-copy error much lower, matching the stability intuition from the reference article.
+Interpretation: PPO pushes the conservative BC policy to complete the task faster and more reliably. In the 2D toy, RL reduces the cycle from the 22-chunk timeout horizon to about 8.6 chunks while moving success from 0% to ~99-100%. The prefix-loss variant keeps prefix-copy error about 74% lower than PPO-only, matching the stability intuition from the reference article.

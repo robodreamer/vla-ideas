@@ -135,6 +135,7 @@ vla-ideas/
 - [`async_chunking_compare/docs/async_chunking_report.pdf`](async_chunking_compare/docs/async_chunking_report.pdf)
 - [`prefix_rl_chunking/README.md`](prefix_rl_chunking/README.md)
 - [`prefix_rl_chunking/docs/prefix_rl_chunking_report.md`](prefix_rl_chunking/docs/prefix_rl_chunking_report.md)
+- [`prefix_rl_chunking/docs/blog_outcome_mapping.md`](prefix_rl_chunking/docs/blog_outcome_mapping.md)
 
 ## Star History
 

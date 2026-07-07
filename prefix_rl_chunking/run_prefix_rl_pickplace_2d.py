@@ -231,7 +231,9 @@ def pretrain_bc(policy, cfg: Config):
 
 def rollout(policy, cfg: Config, deterministic=False):
     n = cfg.eval_episodes if deterministic else cfg.batch_episodes
-    ee, vel, obj, grip, carried = reset_world(n, jitter=not deterministic)
+    # Evaluation keeps deterministic dynamics but uses reset jitter to measure robustness
+    # across small object/robot pose variations rather than a single identical rollout.
+    ee, vel, obj, grip, carried = reset_world(n, jitter=True)
     prefix = torch.zeros(n, cfg.prefix_len, cfg.action_dim, device=DEVICE)
     done = torch.zeros(n, dtype=torch.bool, device=DEVICE)
     success_seen = torch.zeros(n, dtype=torch.bool, device=DEVICE)

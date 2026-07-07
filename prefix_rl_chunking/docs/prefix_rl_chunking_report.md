@@ -31,9 +31,9 @@ Latest verified 2D run:
 
 | method | success | grasp | safety stops | mean chunks | object-goal error | prefix MSE |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| BC reference | 0.000 | 1.000 | 0.000 | 22.00 | 0.183 | 0.0995 |
-| PPO only | 1.000 | 1.000 | 0.000 | 8.00 | 0.041 | 0.1020 |
-| PPO + prefix loss | 1.000 | 1.000 | 0.000 | 9.00 | 0.068 | 0.0308 |
+| BC reference | 0.000 | 0.981 | 0.000 | 22.00 | 0.196 | 0.1048 |
+| PPO only | 1.000 | 1.000 | 0.000 | 8.59 | 0.096 | 0.1324 |
+| PPO + prefix loss | 0.988 | 0.988 | 0.000 | 8.68 | 0.078 | 0.0347 |
 
 ## 1D result snapshot
 
@@ -44,6 +44,14 @@ Latest verified full run:
 | BC reference | 1.000 | 0.000 | 11.33 | 0.1201 |
 | PPO only | 1.000 | 0.000 | 7.00 | 0.1195 |
 | PPO + prefix loss | 1.000 | 0.000 | 7.68 | 0.0306 |
+
+## Blog outcome mapping
+
+The explicit speed/reliability/robustness comparison lives in `docs/blog_outcome_mapping.md`. Headline toy outcomes:
+
+- 1D: PPO-only is 1.62x faster than BC; PPO + prefix loss is 1.48x faster and has ~74% lower prefix-copy error than PPO-only.
+- 2D: RL turns a BC timeout/partial-placement behavior into ~99-100% successful placement, reducing completion length from the 22-chunk timeout horizon to about 8.6 chunks.
+- 2D: PPO + prefix loss preserves nearly the same speed/success while reducing prefix-copy error by ~74% vs PPO-only.
 
 ## Takeaway
 
