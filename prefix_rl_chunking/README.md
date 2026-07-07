@@ -15,7 +15,12 @@ The demo is intentionally small. It is not a faithful implementation of Humanoid
 
 The motivating reference article argues that BC alone caps speed and quality at the demonstrator, while RL can optimize directly against the robot's dynamics and sparse task outcomes. It also highlights a specific stability issue for async action-prefix conditioning: under RL, rewards only apply to executed actions, so the model can stop copying the prefix slots; those off-distribution prefixes then feed back into future chunks and can destabilize training. The proposed fix is to add a masked prefix-CFM regression term to the PPO objective.
 
-This toy mirrors that logic with a 1D reaching task plus an inactive joint:
+The folder now includes two levels of toy examples:
+
+- `run_prefix_rl_chunking.py`: a compact 1D reacher plus inactive-joint drift probe.
+- `run_prefix_rl_pickplace_2d.py`: a richer 2D pick/place environment with end-effector dynamics, object grasping, an obstacle, safety stops, async chunk prefixes, BC initialization, PPO, and optional prefix loss.
+
+Both mirror the same objective pattern:
 
 ```text
 loss = PPO clipped policy loss + value loss + optional prefix-copy MSE
@@ -62,12 +67,14 @@ Use any Python environment with `torch`, `numpy`, and `matplotlib`:
 ```bash
 cd /home/andypark/Projects/repos/vla-ideas
 python prefix_rl_chunking/run_prefix_rl_chunking.py
+python prefix_rl_chunking/run_prefix_rl_pickplace_2d.py
 ```
 
-For a fast smoke test:
+For fast smoke tests:
 
 ```bash
 python prefix_rl_chunking/run_prefix_rl_chunking.py --quick
+python prefix_rl_chunking/run_prefix_rl_pickplace_2d.py --quick
 ```
 
 Outputs are written to `prefix_rl_chunking/outputs/`:
@@ -75,13 +82,24 @@ Outputs are written to `prefix_rl_chunking/outputs/`:
 - `prefix_rl_chunking_metrics.csv`
 - `prefix_rl_chunking_training_curves.csv`
 - `prefix_rl_chunking_summary.png`
+- `prefix_rl_pickplace_2d_metrics.csv`
+- `prefix_rl_pickplace_2d_training_curves.csv`
+- `prefix_rl_pickplace_2d_summary.png`
 
-## Latest verified run
+## Latest verified runs
 
 Using the local Python environment at `/home/andypark/Projects/hmnd-repos/hmnd/hmnd_robot/.pixi/envs/default/bin/python3.11`:
+
+1D reacher:
 
 - BC reference: 100% success, 0% safety stops, 11.33 mean chunks, prefix MSE 0.1201.
 - PPO only: 100% success, 0% safety stops, 7.00 mean chunks, prefix MSE 0.1195.
 - PPO + prefix loss: 100% success, 0% safety stops, 7.68 mean chunks, prefix MSE 0.0306.
 
-Interpretation: PPO pushes the conservative BC policy to finish faster. The prefix-loss variant gives up a little speed in this toy run but keeps the prefix-copy error about 4x lower, matching the blog's stability intuition.
+2D pick/place:
+
+- BC reference: 0% success, 100% grasp, 0% safety stops, 22.00 mean chunks, object-goal error 0.183, prefix MSE 0.0995.
+- PPO only: 100% success, 100% grasp, 0% safety stops, 8.00 mean chunks, object-goal error 0.041, prefix MSE 0.1020.
+- PPO + prefix loss: 100% success, 100% grasp, 0% safety stops, 9.00 mean chunks, object-goal error 0.068, prefix MSE 0.0308.
+
+Interpretation: PPO pushes the conservative BC policy to complete the task faster and more reliably. The prefix-loss variant gives up a little speed in these toy runs but keeps prefix-copy error much lower, matching the stability intuition from the reference article.

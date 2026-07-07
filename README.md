@@ -38,7 +38,7 @@ This repo is organized as a small ideas lab rather than a polished framework. Th
 
 ### `prefix_rl_chunking`
 
-`prefix_rl_chunking` turns the PPO + prefix-CFM stability idea into a small chunked-control toy. It compares a BC reference, PPO-only improvement, and PPO with an explicit prefix-copy loss, then exports metrics and a summary plot.
+`prefix_rl_chunking` turns the PPO + prefix-CFM stability idea into chunked-control toys, including a compact 1D reacher and a richer 2D pick/place environment. It compares a BC reference, PPO-only improvement, and PPO with an explicit prefix-copy loss, then exports metrics and summary plots.
 
 ## Quick Start
 
@@ -69,6 +69,7 @@ Run the prefix-RL chunking toy:
 ```bash
 cd /home/andypark/Projects/repos/vla-ideas
 python prefix_rl_chunking/run_prefix_rl_chunking.py
+python prefix_rl_chunking/run_prefix_rl_pickplace_2d.py
 ```
 
 ## What Gets Generated
@@ -89,8 +90,8 @@ The experiment scripts write visual outputs and reports directly into the repo s
 
 ### `prefix_rl_chunking/outputs`
 
-- PPO/BC comparison metrics and training curves.
-- a summary plot showing success, safety stops, prefix-copy error, and representative rollouts.
+- PPO/BC comparison metrics and training curves for the 1D and 2D examples.
+- summary plots showing success, safety stops, prefix-copy error, and representative rollouts.
 
 ## Current Snapshot
 
@@ -119,6 +120,7 @@ vla-ideas/
 │   └── docs/
 └── prefix_rl_chunking/
     ├── run_prefix_rl_chunking.py
+    ├── run_prefix_rl_pickplace_2d.py
     ├── outputs/
     └── docs/
 ```
