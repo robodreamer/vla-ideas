@@ -7,12 +7,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/robodreamer/vla-ideas?style=social)](https://github.com/robodreamer/vla-ideas/stargazers)
 
-Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains four compact experiment tracks:
+Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains five compact experiment tracks:
 
 - `recap_pi`: RECAP-style advantage-conditioned navigation demos in 2D and 3D.
 - `async_chunking_compare`: a lightweight simulator for comparing synchronous and asynchronous chunked-control strategies under inference delay.
 - `prefix_rl_chunking`: a toy PPO + action-prefix-loss demo inspired by RL-for-chunked-VLA prefix-stability discussions.
 - `path_consistent_safety_filtering`: a PACS-inspired toy comparing path-consistent braking against reactive CBF-like correction for action chunks.
+- `bspline_action_parameterization`: a B-spline Policy-inspired toy comparing dense waypoint chunks against compact continuous B-spline action chunks under speed-up.
 
 ## Preview
 
@@ -40,6 +41,10 @@ This repo is organized as a small ideas lab rather than a polished framework. Th
 ### `prefix_rl_chunking`
 
 `prefix_rl_chunking` turns the PPO + prefix-CFM stability idea into chunked-control toys, including a compact 1D reacher and a richer 2D pick/place environment. It compares a BC reference, PPO-only improvement, and PPO with an explicit prefix-copy loss, then exports metrics and summary plots.
+
+### `bspline_action_parameterization`
+
+`bspline_action_parameterization` explores B-spline action chunks as compact continuous action representations for faster high-rate execution. It compares dense discrete waypoints against fitted cubic B-splines and a simple curvature-aware time law.
 
 ## Quick Start
 
@@ -80,6 +85,13 @@ cd /home/andypark/Projects/repos/vla-ideas
 /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python path_consistent_safety_filtering/run_pacs_toy.py --trials 180
 ```
 
+Run the B-spline action parameterization toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python bspline_action_parameterization/run_bspline_action_toy.py --trials 160
+```
+
 ## What Gets Generated
 
 The experiment scripts write visual outputs and reports directly into the repo so results stay easy to compare across iterations.
@@ -106,6 +118,11 @@ The experiment scripts write visual outputs and reports directly into the repo s
 - Monte Carlo metrics for raw, reactive CBF-like, and PACS-style time-law controllers.
 - representative trajectory/speed plots showing path-consistent slowdown versus lateral deviation.
 
+### `bspline_action_parameterization/outputs`
+
+- Monte Carlo metrics comparing discrete waypoint chunks, fast B-spline chunks, and B-spline chunks with a curvature-aware time law.
+- representative rollout and path-error plots showing jerk reduction and local slowdown under speed-up.
+
 ## Current Snapshot
 
 The existing `recap_pi` docs report these latest verified headline numbers:
@@ -131,15 +148,26 @@ vla-ideas/
 │   ├── run_async_chunking_compare.py
 │   ├── outputs/
 │   └── docs/
-└── prefix_rl_chunking/
-    ├── run_prefix_rl_chunking.py
-    ├── run_prefix_rl_pickplace_2d.py
+├── prefix_rl_chunking/
+│   ├── run_prefix_rl_chunking.py
+│   ├── run_prefix_rl_pickplace_2d.py
+│   ├── outputs/
+│   └── docs/
+├── path_consistent_safety_filtering/
+│   ├── run_pacs_toy.py
+│   ├── outputs/
+│   └── docs/
+└── bspline_action_parameterization/
+    ├── run_bspline_action_toy.py
     ├── outputs/
     └── docs/
 ```
 
 ## Reports
 
+- [`bspline_action_parameterization/README.md`](bspline_action_parameterization/README.md)
+- [`bspline_action_parameterization/docs/bspline_action_toy_report.md`](bspline_action_parameterization/docs/bspline_action_toy_report.md)
+- [`bspline_action_parameterization/docs/bspline_action_report.pdf`](bspline_action_parameterization/docs/bspline_action_report.pdf)
 - [`path_consistent_safety_filtering/README.md`](path_consistent_safety_filtering/README.md)
 - [`path_consistent_safety_filtering/docs/pacs_toy_report.md`](path_consistent_safety_filtering/docs/pacs_toy_report.md)
 - [`recap_pi/README.md`](recap_pi/README.md)

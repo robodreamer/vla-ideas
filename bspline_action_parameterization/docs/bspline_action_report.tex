@@ -1,0 +1,176 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!50!black,
+  citecolor=blue!50!black
+}
+
+\title{B-spline Action Parameterization for Faster Chunked Policies:\\A Toy Benchmark}
+\author{Working Note for \texttt{bspline\_action\_parameterization}}
+\date{July 31, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note documents a compact toy experiment inspired by \emph{B-spline Policy: Accelerating Manipulation Policies via B-spline Action Representations}. The question is whether a chunked VLA or diffusion-policy action head should emit dense discrete waypoints or a compact continuous action curve. The toy compares low-rate discrete action chunks, naive temporal speed-up, dense-waypoint retiming, cubic B-spline speed-up, and B-spline retiming. The result is a useful caveat: B-spline actions strongly reduce command jerk and predicted action dimension, but full-speed execution can still exceed plant limits. Adaptive retiming recovers success for both dense and B-spline chunks; the B-spline version is smoother and more compact, connecting the B-spline idea to the repository's existing async-execution and path-consistent-safety themes.
+\end{abstract}
+
+\section{Motivation}
+
+Many modern robot policies predict an action chunk rather than a single action. If a policy emits a horizon of end-effector or joint commands at a data rate such as 10 Hz, but the robot executes at 100--1000 Hz, the deployment stack must interpolate or hold commands between policy outputs. The B-spline Policy repository proposes changing the action representation itself: instead of predicting only dense action samples, predict a B-spline parameterization that can be decoded into a continuous trajectory and resampled at high control rate.
+
+The conceptual split is:
+\begin{align*}
+  \text{dense chunk:} \quad & A = \{a_0, a_1, \ldots, a_{H-1}\}, \\
+  \text{B-spline chunk:} \quad & \theta = (\mathbf{t}, \mathbf{c}, k), \qquad a(s) = \sum_i c_i B_{i,k}(s; \mathbf{t}).
+\end{align*}
+Here \(\mathbf{t}\) is the knot vector, \(\mathbf{c}\) are control points, \(k\) is the spline degree, and \(B_{i,k}\) are B-spline basis functions. The policy can output \(\theta\); the controller can evaluate \(a(s)\) at whatever temporal resolution is needed.
+
+\section{References Checked}
+
+Primary references for this exploration were:
+\begin{itemize}[leftmargin=1.5em]
+  \item Official repository: \url{https://github.com/B-spline-policy/bspline-policy}
+  \item Project page: \url{https://b-spline-policy.github.io/}
+  \item arXiv page: \url{https://arxiv.org/abs/2607.09648}
+\end{itemize}
+
+Implementation clues used for the toy include the repository's action matrix convention, where a B-spline action has shape \((\texttt{chunk\_size} + 2k, 1 + d_a)\). Column 0 stores the knots and the remaining columns store control points. The repository function \texttt{decode\_bspline\_action} decodes such a matrix through SciPy's \texttt{BSpline}. I smoke-tested that code path locally from repository commit \texttt{61ed5f4}.
+
+\section{Mathematical Setup}
+
+The toy uses a two-dimensional demonstration manifold
+\[
+  q(s) = \begin{bmatrix}
+    2.8s \\
+    0.34\sin(2.4\pi s) + 0.18\sin(6\pi s + 0.35) + 0.22\exp\left(-\frac{(s - 0.78)^2}{0.09^2}\right)
+  \end{bmatrix},
+  \qquad s \in [0,1].
+\]
+A noisy 10 Hz action chunk samples this path:
+\[
+  y_j = q(s_j) + \epsilon_j, \qquad \epsilon_j \sim \mathcal{N}(0, \sigma^2 I),
+\]
+with endpoint noise tapered to zero. The dense baseline linearly interpolates these samples. The B-spline baseline solves a least-squares fit
+\[
+  \min_{\mathbf{c}} \sum_j \left\| y_j - \sum_i c_i B_{i,k}(s_j; \mathbf{t}) \right\|_2^2,
+\]
+using cubic splines \((k=3)\) and 14 control points per axis.
+
+The plant is a point-mass proxy controlled at 200 Hz:
+\begin{align*}
+  u_t &= \mathrm{clip}_{\|u\| \leq u_{\max}}\left(K_p(r_t - x_t) - K_d \dot{x}_t\right), \\
+  \dot{x}_{t+1} &= \mathrm{clip}_{\|v\| \leq v_{\max}}(\dot{x}_t + u_t \Delta t), \\
+  x_{t+1} &= x_t + \dot{x}_{t+1}\Delta t,
+\end{align*}
+where \(r_t\) is the commanded point produced by the discrete or B-spline representation.
+
+For the adaptive variants, geometry is unchanged and only the time law is modified:
+\[
+  r(t) = a(s(t)), \qquad \dot{s}_{\mathrm{target}}(s) = \frac{\dot{s}_0}{1 + \alpha\kappa(s)}.
+\]
+For dense waypoints, \(\kappa(s)\) is estimated from finite differences of the emitted waypoint polyline. For B-splines, \(\kappa(s)\) is computed from the fitted curve derivatives:
+\[
+  \kappa(s) = \frac{|a'_x(s)a''_y(s) - a'_y(s)a''_x(s)|}{\|a'(s)\|_2^3}.
+\]
+This is not part of the original B-spline Policy method; it is a small bridge to the repository's path-consistent-safety experiments, where changing timing is preferable to changing path geometry.
+
+\section{Benchmark Design}
+
+The script \texttt{run\_bspline\_action\_toy.py} evaluates five methods:
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{Discrete chunks, 1x:} noisy 10 Hz waypoints at the original demonstration duration.
+  \item \textbf{Discrete chunks, 3x:} the same waypoint chunk compressed to a 3x shorter duration.
+  \item \textbf{Discrete + curvature time-law, 3x:} the same dense waypoint geometry, retimed using curvature estimated from the waypoint polyline.
+  \item \textbf{B-spline chunks, 3x:} a compact cubic B-spline fitted to the same waypoint chunk and sampled at 200 Hz with the same nominal 3x duration.
+  \item \textbf{B-spline + curvature time-law, 3x:} the same B-spline geometry, retimed using curvature from the fitted spline derivatives.
+\end{enumerate}
+
+A rollout succeeds if the plant reaches the final point and never leaves a narrow tube around the demonstration manifold. Metrics include success rate, OOD/collision rate, command and evaluation duration, maximum path error, command RMS jerk, plant RMS jerk, and predicted/full scalar counts for the action representation.
+
+\section{Results}
+
+The latest verified run used 160 randomized waypoint-noise trials:
+\begin{verbatim}
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  bspline_action_parameterization/run_bspline_action_toy.py --trials 160
+\end{verbatim}
+
+\begin{table}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+Method & Success & OOD/fail & Eval dur. & Max path err. & Cmd jerk & Plant jerk & Pred. scalars & Full scalars \\
+\midrule
+Discrete chunks, 1x & 1.000 & 0.000 & 6.75 s & 0.0268 & 1782.3 & 29.9 & 122 & 122 \\
+Discrete chunks, 3x & 0.000 & 1.000 & 2.75 s & 0.1020 & 8390.3 & 114.3 & 122 & 122 \\
+Discrete + curvature time-law & 1.000 & 0.000 & 4.15 s & 0.0424 & 4214.0 & 73.6 & 122 & 122 \\
+B-spline chunks, 3x & 0.000 & 1.000 & 2.75 s & 0.0997 & 176.0 & 81.0 & 28 & 46 \\
+B-spline + curvature time-law & 1.000 & 0.000 & 4.13 s & 0.0388 & 353.9 & 52.6 & 28 & 46 \\
+\bottomrule
+\end{tabular}}
+\caption{Monte Carlo benchmark summary. Evaluation duration includes a 0.75 s settling window. Predicted scalar count excludes fixed open-uniform knots; full scalar count includes the decodable knot vector.}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/bspline_action_rollout.png}
+  \caption{Representative rollout and distance from the demonstration manifold. Naive 3x execution leaves the safe tube; the adaptive B-spline variant preserves the geometry and slows locally.}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/bspline_action_monte_carlo.png}
+  \caption{Monte Carlo summary over noisy action chunks. The benchmark emphasizes success/OOD behavior, duration, and command jerk.}
+\end{figure}
+
+\section{Connection to Other \texttt{vla-ideas} Experiments}
+
+This toy is complementary to three existing tracks in the repository:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Async chunking:} \texttt{async\_chunking\_compare} studies when the next chunk is planned under inference delay. B-spline action chunks instead ask how a single chunk should be represented once it has been planned. These ideas compose: an async planner could emit B-spline parameters for smoother high-rate execution.
+  \item \textbf{Prefix/RL chunking:} \texttt{prefix\_rl\_chunking} studies whether the prefix of a chunk should remain stable across replans. B-spline control points offer a natural target for prefix constraints: keep early curve spans fixed while optimizing or resampling later spans.
+  \item \textbf{Path-consistent safety filtering:} \texttt{path\_consistent\_safety\_filtering} argues for preserving path geometry and changing timing. The adaptive variant here demonstrates the same separation on a B-spline curve: \(a(s)\) is fixed while \(s(t)\) changes.
+\end{itemize}
+
+A concise way to view the design space is:
+\[
+  \underbrace{\theta}_{\text{chunk representation}} \quad + \quad
+  \underbrace{\pi_{\mathrm{schedule}}}_{\text{when to plan}} \quad + \quad
+  \underbrace{s(t)}_{\text{how to execute safely}}
+\]
+where B-spline Policy focuses on \(\theta\), async chunking focuses on \(\pi_{\mathrm{schedule}}\), and PACS-style filters focus on \(s(t)\).
+
+\section{Interpretation}
+
+The toy supports a conservative interpretation. B-spline parameterization is useful because it provides a compact continuous action object: 28 predicted control-point scalars in this setup, or 46 full decodable scalars if the fixed knot vector is included, versus 122 dense waypoint scalars. Under full-speed decoding, command jerk is much lower than dense waypoint interpolation. However, smooth commands are not enough if the requested time scaling exceeds the plant's feasible tracking envelope. Adaptive retiming recovers success for both dense and B-spline chunks; the B-spline advantage is that the retimed command is smoother and lower-dimensional. The most useful deployment stack may combine B-spline action prediction with explicit timing or safety logic.
+
+\section{Limitations and Follow-ups}
+
+This is not a faithful reproduction of the B-spline Policy paper. It omits image observations, imitation training, diffusion denoising, robot kinematics, contacts, and closed-loop replanning. The B-spline knots are fixed open-uniform knots rather than predicted or adaptively selected, so parameter-count claims distinguish predicted control points from the full decodable representation. The OOD metric is a hand-built distance-to-path tube.
+
+Useful follow-ups would be:
+\begin{enumerate}[leftmargin=1.5em]
+  \item fit B-spline chunks to real or robomimic-style action logs and measure reconstruction versus compression;
+  \item add an async replanning loop that commits the first spline segment and replans later control points;
+  \item move from a point mass to a planar arm so path consistency can be measured in both joint and workspace coordinates.
+\end{enumerate}
+
+\end{document}
