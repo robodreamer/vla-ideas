@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/robodreamer/vla-ideas?style=social)](https://github.com/robodreamer/vla-ideas/stargazers)
 
-Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains six compact experiment tracks:
+Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains seven compact experiment tracks:
 
 - `recap_pi`: RECAP-style advantage-conditioned navigation demos in 2D and 3D.
 - `async_chunking_compare`: a lightweight simulator for comparing synchronous and asynchronous chunked-control strategies under inference delay.
@@ -15,6 +15,7 @@ Toy research prototypes for exploring visual-language-action timing, policy cond
 - `path_consistent_safety_filtering`: a PACS-inspired toy comparing path-consistent braking against reactive CBF-like correction for action chunks.
 - `bspline_action_parameterization`: a B-spline Policy-inspired toy comparing dense waypoint chunks against compact continuous B-spline action chunks under speed-up.
 - `turbo_vla_direct_control`: a TurboVLA-inspired direct V+L→A chunk-policy toy comparing 32 Hz direct fusion against lower-rate LLM-bottleneck-style execution.
+- `explorative_policy_chunks`: an Explorative Modeling/XM-inspired toy showing that best-of-K action chunks, when seeded with candidate diversity, can avoid multimodal BC averaging in one forward pass.
 
 ## Preview
 
@@ -50,6 +51,10 @@ This repo is organized as a small ideas lab rather than a polished framework. Th
 ### `turbo_vla_direct_control`
 
 `turbo_vla_direct_control` explores TurboVLA's practical claim that execution-level manipulation benefits from a compact direct vision+language-to-action path. It trains a tiny bidirectional cross-attention chunk policy and a heavier transformer-core bottleneck proxy, then evaluates how receding-horizon refresh rate changes closed-loop behavior.
+
+### `explorative_policy_chunks`
+
+`explorative_policy_chunks` distills Explorative Modeling/XM into a VLA action-chunk setting. It compares ordinary K=1 behavior cloning against best-of-K candidate chunks on an ambiguous over/under obstacle-routing toy, demonstrating how seeded candidate diversity plus best-of-K credit assignment can preserve committed multimodal futures without iterative inference.
 
 ## Quick Start
 
@@ -104,6 +109,13 @@ cd /home/andypark/Projects/repos/vla-ideas
 /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python turbo_vla_direct_control/run_turbo_vla_toy.py --train-steps 480 --eval-episodes 200
 ```
 
+Run the Explorative Policy chunks toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python explorative_policy_chunks/run_explorative_policy_toy.py --steps 900
+```
+
 ## What Gets Generated
 
 The experiment scripts write visual outputs and reports directly into the repo so results stay easy to compare across iterations.
@@ -140,6 +152,12 @@ The experiment scripts write visual outputs and reports directly into the repo s
 - BC training/latency metrics for a direct V+L→A chunk policy and an LLM-bottleneck proxy.
 - receding-horizon success, distance, jerk, and refresh-rate stress plots.
 - representative rollouts around a central keep-out zone.
+
+### `explorative_policy_chunks/outputs`
+
+- best-of-K metrics comparing K=1 BC against K=2/4/8 Explorative Policy-style chunks with explicit diversity seeding.
+- representative over/under obstacle trajectories showing mode averaging versus committed candidate chunks.
+- training curves and K-sweep plots for success, collision, and oracle reconstruction error.
 
 ## Current Snapshot
 
@@ -179,8 +197,12 @@ vla-ideas/
 │   ├── run_bspline_action_toy.py
 │   ├── outputs/
 │   └── docs/
-└── turbo_vla_direct_control/
-    ├── run_turbo_vla_toy.py
+├── turbo_vla_direct_control/
+│   ├── run_turbo_vla_toy.py
+│   ├── outputs/
+│   └── docs/
+└── explorative_policy_chunks/
+    ├── run_explorative_policy_toy.py
     ├── outputs/
     └── docs/
 ```
@@ -201,6 +223,8 @@ LaTeX reports share one renderer and Docker setup under [`tools/`](tools/). Each
 - [`turbo_vla_direct_control/README.md`](turbo_vla_direct_control/README.md)
 - [`turbo_vla_direct_control/docs/turbo_vla_toy_report.md`](turbo_vla_direct_control/docs/turbo_vla_toy_report.md)
 - [`turbo_vla_direct_control/docs/turbo_vla_direct_control_report.pdf`](turbo_vla_direct_control/docs/turbo_vla_direct_control_report.pdf)
+- [`explorative_policy_chunks/README.md`](explorative_policy_chunks/README.md)
+- [`explorative_policy_chunks/docs/explorative_policy_toy_report.md`](explorative_policy_chunks/docs/explorative_policy_toy_report.md)
 - [`recap_pi/README.md`](recap_pi/README.md)
 - [`recap_pi/docs/rl_tokens_experiment_report.md`](recap_pi/docs/rl_tokens_experiment_report.md)
 - [`recap_pi/docs/recap_concept_writeup.pdf`](recap_pi/docs/recap_concept_writeup.pdf)

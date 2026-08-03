@@ -1,0 +1,86 @@
+{
+  "config": {
+    "seed": 11,
+    "train_size": 4096,
+    "test_size": 1024,
+    "horizon": 32,
+    "obstacle_radius": 0.165,
+    "collision_margin": 0.018,
+    "steps": 900,
+    "batch_size": 256,
+    "lr": 0.0025,
+    "hidden": 96,
+    "train_noise": 0.01,
+    "endpoint_tol": 0.075,
+    "head_bias": 0.24,
+    "diversity_weight": 0.002,
+    "k_values": [
+      1,
+      2,
+      4,
+      8
+    ]
+  },
+  "metrics": [
+    {
+      "k": 1.0,
+      "success_rate": 0.0,
+      "collision_rate": 1.0,
+      "any_collision_free_candidate_rate": 0.0,
+      "final_error_mean": 0.0016777032934948226,
+      "chosen_mse_mean": 0.027302291244268417,
+      "oracle_best_mse_mean": 0.027302291244268417,
+      "both_sides_coverage": 0.0,
+      "oracle_mode_match_rate": 0.4921875,
+      "midpoint_side_separation_mean": 0.0,
+      "chosen_over_rate": 0.623046875,
+      "inference_forwards": 1.0,
+      "candidate_chunks": 1.0
+    },
+    {
+      "k": 2.0,
+      "success_rate": 1.0,
+      "collision_rate": 0.0,
+      "any_collision_free_candidate_rate": 1.0,
+      "final_error_mean": 0.007569767914220224,
+      "chosen_mse_mean": 0.054445281624794006,
+      "oracle_best_mse_mean": 8.901089313440025e-05,
+      "both_sides_coverage": 1.0,
+      "oracle_mode_match_rate": 1.0,
+      "midpoint_side_separation_mean": 0.6765156984329224,
+      "chosen_over_rate": 1.0,
+      "inference_forwards": 1.0,
+      "candidate_chunks": 2.0
+    },
+    {
+      "k": 4.0,
+      "success_rate": 1.0,
+      "collision_rate": 0.0,
+      "any_collision_free_candidate_rate": 1.0,
+      "final_error_mean": 0.001819264767035594,
+      "chosen_mse_mean": 0.05280207470059395,
+      "oracle_best_mse_mean": 7.744289905531332e-05,
+      "both_sides_coverage": 1.0,
+      "oracle_mode_match_rate": 1.0,
+      "midpoint_side_separation_mean": 2.3227462768554688,
+      "chosen_over_rate": 0.8994140625,
+      "inference_forwards": 1.0,
+      "candidate_chunks": 4.0
+    },
+    {
+      "k": 8.0,
+      "success_rate": 1.0,
+      "collision_rate": 0.0,
+      "any_collision_free_candidate_rate": 1.0,
+      "final_error_mean": 0.0019627221261747938,
+      "chosen_mse_mean": 0.05597323924303055,
+      "oracle_best_mse_mean": 7.820995961083099e-05,
+      "both_sides_coverage": 1.0,
+      "oracle_mode_match_rate": 1.0,
+      "midpoint_side_separation_mean": 2.3125014305114746,
+      "chosen_over_rate": 0.1044921875,
+      "inference_forwards": 1.0,
+      "candidate_chunks": 8.0
+    }
+  ]
+}
