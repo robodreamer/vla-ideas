@@ -187,6 +187,12 @@ vla-ideas/
 
 ## Reports
 
+LaTeX reports share one renderer and Docker setup under [`tools/`](tools/). Each idea folder keeps a thin `docs/render_pdf.sh` wrapper, or you can run:
+
+```bash
+./tools/render_latex_pdf.sh path/to/report.tex
+```
+
 - [`bspline_action_parameterization/README.md`](bspline_action_parameterization/README.md)
 - [`bspline_action_parameterization/docs/bspline_action_toy_report.md`](bspline_action_parameterization/docs/bspline_action_toy_report.md)
 - [`bspline_action_parameterization/docs/bspline_action_report.pdf`](bspline_action_parameterization/docs/bspline_action_report.pdf)

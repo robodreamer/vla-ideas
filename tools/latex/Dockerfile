@@ -9,6 +9,6 @@ RUN apt-get update && apt-get install -y \
     lmodern \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /workspace/turbo_vla_direct_control/docs
+WORKDIR /workspace
 
 CMD ["bash"]
