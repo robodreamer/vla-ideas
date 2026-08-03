@@ -1,0 +1,198 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!50!black,
+  citecolor=blue!50!black
+}
+
+\title{TurboVLA Direct Vision--Language--Action Control:\\A Latency-Sensitive Toy Benchmark}
+\author{Working Note for \texttt{turbo\_vla\_direct\_control}}
+\date{August 3, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note documents a compact toy experiment inspired by \emph{TurboVLA: Efficient Vision-Language-Action Model}. TurboVLA's practical claim is not only that a smaller model is cheaper; it is that removing a large language-model bottleneck from the execution-level control loop can enable higher-rate action-chunk refreshes. The toy trains a small direct vision+language-to-action chunk policy and a heavier transformer-core proxy, then evaluates receding-horizon execution under paired disturbances. The final run supports the mechanism without overstating it: the direct 32 Hz policy reaches 93.0\% success, while the same direct policy throttled to an 11 Hz-style refresh drops to 87.0\%, and lower-rate stress tests degrade further. A shuffled-language ablation gets 0.0\% success, confirming that the fixed-marker task uses the instruction token rather than a selected-target visual halo.
+\end{abstract}
+
+\section{Motivation}
+
+Many vision-language-action systems route visual observations and language through a large language-model core before decoding actions. TurboVLA argues that this is unnecessary for execution-level manipulation: the instruction often specifies the task already, and the low-level controller primarily needs fast visual grounding and continuous action chunks. The central design move is therefore
+\[
+  \text{LLM-centric execution: } V \rightarrow L \rightarrow A
+  \qquad \Longrightarrow \qquad
+  \text{direct execution: } (V,L) \rightarrow A.
+\]
+
+The toy in this folder asks a narrow control question: if a compact direct policy can refresh chunks at every 32 Hz control tick, while an LLM-centric path is approximated by lower refresh rates, does stale chunk execution measurably hurt closed-loop behavior? The comparison is intentionally about the refresh-rate mechanism; it is not a reproduction of real LLM inference latency.
+
+\section{Reference Claim}
+
+Primary reference:
+\begin{itemize}[leftmargin=1.5em]
+  \item TurboVLA arXiv page: \url{https://arxiv.org/abs/2607.27205}
+  \item TurboVLA PDF: \url{https://arxiv.org/pdf/2607.27205}
+\end{itemize}
+
+The paper reports a compact direct VLA policy with separate visual and language encoders, lightweight bidirectional cross-attention, and an ACT-style continuous action-chunk decoder. Reported headline numbers include roughly 0.2B parameters, 31.2 ms policy latency, about 32 Hz action updates, and under 1 GB inference VRAM on an RTX 4090. Those hardware numbers are not reproduced here; this note uses a toy refresh-rate ablation to test the control implication.
+
+\section{Toy Architecture}
+
+The script \texttt{run\_turbo\_vla\_toy.py} implements two learned behavior-cloned policies.
+
+\paragraph{Direct V+L policy.}
+A small convolutional visual encoder maps a rendered scene to visual tokens. A language embedding maps one of four goal instructions to a text token. Stacked bidirectional cross-attention alternates
+\begin{align*}
+  L' &= \mathrm{CrossAttn}(Q=L, K=V, V=V), \\
+  V' &= \mathrm{CrossAttn}(Q=V, K=L', V=L'),
+\end{align*}
+followed by a transformer decoder with learned horizon queries. The decoder emits a continuous velocity chunk
+\[
+  \hat{A}_{0:H-1} \in \mathbb{R}^{H \times 2}.
+\]
+This is the toy analogue of TurboVLA's direct low-level V+L\(\rightarrow\)A path.
+
+\paragraph{LLM-bottleneck proxy.}
+The baseline is not a real LLM. It is a larger transformer-core proxy that concatenates visual and language tokens and processes them through a heavier shared sequence model before predicting the whole chunk. In evaluation it is assigned an 11 Hz-style chunk-refresh schedule to represent a slower execution path. The most controlled evidence remains the same-model comparison between \texttt{direct\_32hz} and \texttt{direct\_throttled\_11hz}.
+
+Both policies are trained with behavior cloning using an L1 action-chunk objective,
+\[
+  \mathcal{L}_{\mathrm{BC}} = \frac{1}{H}\sum_{t=0}^{H-1}\left\|\hat{a}_t-a_t^{\star}\right\|_1.
+\]
+
+\section{Environment and Evaluation}
+
+The environment is a synthetic two-dimensional language-conditioned reach/drag task. The observation contains:
+\begin{itemize}[leftmargin=1.5em]
+  \item the cursor/object location,
+  \item a central keep-out obstacle,
+  \item four fixed possible goal markers, represented as separate simple channels.
+\end{itemize}
+The instruction token selects which marker is the real target. There is no selected-goal halo, so the selected target is not visually highlighted; however, because marker positions are fixed and channelized, this is an instruction-use sanity check rather than a full randomized visual-grounding benchmark. The expert chunk follows a smooth vector field: attraction to the selected goal plus radial/tangential obstacle avoidance.
+
+At test time, all policies use identical starts and pre-generated disturbance traces. Occasional lateral gusts perturb the object; high-rate control can replan immediately, while low-rate chunk execution keeps consuming stale actions for several ticks. A rollout succeeds if it ends within the goal radius and avoids the obstacle.
+
+The evaluated conditions are:
+\begin{enumerate}[leftmargin=1.5em]
+  \item \texttt{direct\_32hz}: direct policy refreshed every control step.
+  \item \texttt{direct\_throttled\_11hz}: same direct policy refreshed every three steps.
+  \item \texttt{llm\_bottleneck\_11hz}: heavier proxy refreshed every three steps.
+  \item \texttt{direct\_stress\_6hz}: same direct policy refreshed every five steps.
+  \item \texttt{direct\_stress\_4hz}: same direct policy refreshed every eight steps.
+  \item \texttt{direct\_shuffled\_language}: direct 32 Hz policy with the wrong instruction token.
+\end{enumerate}
+
+\section{Relation to Existing Repository Ideas}
+
+This toy is meant to sit next to the repository's other chunked-control sketches rather than replace them:
+\begin{itemize}[leftmargin=1.5em]
+  \item \texttt{async\_chunking\_compare}: shares the stale-state/stale-chunk question, but ties it to a TurboVLA-style direct V+L\(\rightarrow\)A architecture.
+  \item \texttt{path\_consistent\_safety\_filtering}: treats obstacle entry as a path/safety failure, not merely a final-goal miss.
+  \item \texttt{bspline\_action\_parameterization}: keeps attention on continuous action chunks and jerk/smoothness metrics.
+  \item \texttt{prefix\_rl\_chunking}: complements chunk-stability work by stressing receding-horizon refresh behavior under disturbances.
+\end{itemize}
+
+\section{Results}
+
+The latest full run used:
+\begin{verbatim}
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  turbo_vla_direct_control/run_turbo_vla_toy.py
+\end{verbatim}
+
+\paragraph{Metric definitions.}
+Success means the final state is within the selected-goal radius and the rollout never enters the obstacle. Collision rate is the fraction of rollouts entering the central keep-out disk. Final distance is Euclidean distance to the selected goal at termination. Obstacle margin is minimum distance to the obstacle boundary; negative values mean penetration. Jerk is the second finite difference of emitted velocity actions and is used only as a small smoothness proxy.
+
+Training snapshot:
+\begin{itemize}[leftmargin=1.5em]
+  \item direct V+L policy parameters: 258,154
+  \item LLM-bottleneck proxy parameters: 1,560,944
+  \item direct final BC L1: 0.0042
+  \item bottleneck final BC L1: 0.0022
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrrrrr}
+\toprule
+Policy & Refresh & Success & Collisions & Steps & Final dist. & Jerk \\
+\midrule
+\texttt{direct\_32hz} & 1 & 93.0\% & 7.0\% & 14.7 & 0.037 & 0.0072 \\
+\texttt{direct\_throttled\_11hz} & 3 & 87.0\% & 11.5\% & 15.0 & 0.041 & 0.0075 \\
+\texttt{llm\_bottleneck\_11hz} & 3 & 90.5\% & 9.5\% & 15.2 & 0.039 & 0.0081 \\
+\texttt{direct\_stress\_6hz} & 5 & 84.0\% & 12.0\% & 15.7 & 0.045 & 0.0064 \\
+\texttt{direct\_stress\_4hz} & 8 & 75.0\% & 18.5\% & 17.8 & 0.050 & 0.0057 \\
+\texttt{direct\_shuffled\_language} & 1 & 0.0\% & 55.0\% & 34.0 & 0.870 & 0.0125 \\
+\bottomrule
+\end{tabular}
+\caption{Closed-loop results on 200 paired evaluation episodes.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+Policy & Success delta & Final-distance delta & Collision delta \\
+\midrule
+\texttt{direct\_throttled\_11hz} & -6.0 pp [-9.5, -3.0] & +0.004 [+0.001, +0.008] & +4.5 pp \\
+\texttt{llm\_bottleneck\_11hz} & -2.5 pp [-5.0, +0.0] & +0.002 [-0.000, +0.004] & +2.5 pp \\
+\texttt{direct\_stress\_6hz} & -9.0 pp [-13.5, -5.5] & +0.008 [+0.004, +0.013] & +5.0 pp \\
+\texttt{direct\_stress\_4hz} & -18.0 pp [-23.5, -12.5] & +0.013 [+0.008, +0.020] & +11.5 pp \\
+\texttt{direct\_shuffled\_language} & -93.0 pp [-96.5, -89.0] & +0.833 [+0.805, +0.862] & +48.0 pp \\
+\bottomrule
+\end{tabular}
+\caption{Episode-paired deltas against \texttt{direct\_32hz}. Brackets show 95\% bootstrap intervals.}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{../outputs/turbo_vla_latency_metrics.png}
+\caption{Success, obstacle-collision, goal-error, and action-jerk metrics for the refresh-rate ablation.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../outputs/turbo_vla_paired_deltas.png}
+\caption{Episode-paired degradation against \texttt{direct\_32hz}; intervals are bootstrap 95\% confidence intervals.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\textwidth]{../outputs/turbo_vla_example_rollouts.png}
+\caption{Representative rollouts around the central keep-out region. The `x' marker is the start and the star is the selected target.}
+\end{figure}
+
+\section{Interpretation}
+
+The toy supports the intended control mechanism in a bounded way. The same direct policy degrades when it is forced to refresh chunks less often, and degradation grows under more aggressive low-rate stress tests. The shuffled-language ablation shows that the instruction token is used, but the fixed marker layout means this is not a full language-grounding benchmark; a stronger future version would randomize goal identities and positions per episode.
+
+The result should still be read as a toy benchmark, not as a TurboVLA reproduction. It does not use DINO, BERT, LIBERO, RoboTwin, real robot data, or an actual LLM baseline. It also does not verify the paper's 31.2 ms / 0.9 GB RTX 4090 hardware claims. What it does show is the practical implication that motivated adding TurboVLA to this ideas repository: execution-level policies can benefit from direct compact V+L\(\rightarrow\)A chunk prediction because frequent refreshes reduce stale-action failures under disturbances.
+
+\section{Generated Artifacts}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \texttt{outputs/turbo\_vla\_metrics.json}
+  \item \texttt{outputs/turbo\_vla\_trials.csv}
+  \item \texttt{outputs/turbo\_vla\_latency\_metrics.png}
+  \item \texttt{outputs/turbo\_vla\_paired\_deltas.png}
+  \item \texttt{outputs/turbo\_vla\_example\_rollouts.png}
+  \item \texttt{docs/turbo\_vla\_toy\_report.md}
+\end{itemize}
+
+\end{document}

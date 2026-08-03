@@ -1,0 +1,214 @@
+{
+  "config": {
+    "seed": 7,
+    "train_steps": 480,
+    "batch_size": 192,
+    "eval_episodes": 200,
+    "horizon": 12,
+    "image_size": 16,
+    "control_hz": 32.0,
+    "max_speed": 0.052,
+    "disturbance_std": 0.018,
+    "max_episode_steps": 34,
+    "success_radius": 0.075,
+    "obstacle_radius": 0.245,
+    "obstacle_clearance": 0.315,
+    "gust_std": 0.065,
+    "device": "cuda"
+  },
+  "train": {
+    "direct": {
+      "train_l1": 0.004213469102978706,
+      "train_seconds": 7.78804709110409,
+      "params": 258154
+    },
+    "llm_bottleneck": {
+      "train_l1": 0.0022399004083126783,
+      "train_seconds": 10.868016208522022,
+      "params": 1560944
+    }
+  },
+  "latency": {
+    "direct_ms": 1.2975337708161936,
+    "llm_bottleneck_ms": 0.785352796730068,
+    "ratio": 0.6052657852874642
+  },
+  "summary": [
+    {
+      "policy": "direct_32hz",
+      "refresh_every_steps": 1,
+      "success_rate": 0.93,
+      "mean_steps": 14.735,
+      "mean_final_dist": 0.03672365336213261,
+      "mean_min_dist": 0.03672365336213261,
+      "collision_rate": 0.07,
+      "mean_obstacle_margin": 0.052737798914313315,
+      "mean_jerk": 0.007231579275103286,
+      "episodes": 200,
+      "language_mode": "correct"
+    },
+    {
+      "policy": "direct_throttled_11hz",
+      "refresh_every_steps": 3,
+      "success_rate": 0.87,
+      "mean_steps": 14.975,
+      "mean_final_dist": 0.04082487276988104,
+      "mean_min_dist": 0.03846606935607269,
+      "collision_rate": 0.115,
+      "mean_obstacle_margin": 0.048643574267625805,
+      "mean_jerk": 0.007503034838009626,
+      "episodes": 200,
+      "language_mode": "correct"
+    },
+    {
+      "policy": "llm_bottleneck_11hz",
+      "refresh_every_steps": 3,
+      "success_rate": 0.895,
+      "mean_steps": 15.285,
+      "mean_final_dist": 0.03932346519897692,
+      "mean_min_dist": 0.03932346519897692,
+      "collision_rate": 0.105,
+      "mean_obstacle_margin": 0.052328300923109056,
+      "mean_jerk": 0.008246885493863374,
+      "episodes": 200,
+      "language_mode": "correct"
+    },
+    {
+      "policy": "direct_stress_6hz",
+      "refresh_every_steps": 5,
+      "success_rate": 0.84,
+      "mean_steps": 15.665,
+      "mean_final_dist": 0.04460865045897663,
+      "mean_min_dist": 0.03967360268346965,
+      "collision_rate": 0.12,
+      "mean_obstacle_margin": 0.04924298033118248,
+      "mean_jerk": 0.006439718812471256,
+      "episodes": 200,
+      "language_mode": "correct"
+    },
+    {
+      "policy": "direct_stress_4hz",
+      "refresh_every_steps": 8,
+      "success_rate": 0.75,
+      "mean_steps": 17.805,
+      "mean_final_dist": 0.04988185341469944,
+      "mean_min_dist": 0.04052197349257767,
+      "collision_rate": 0.185,
+      "mean_obstacle_margin": 0.042677325978875164,
+      "mean_jerk": 0.0056833047763211655,
+      "episodes": 200,
+      "language_mode": "correct"
+    },
+    {
+      "policy": "direct_shuffled_language",
+      "refresh_every_steps": 1,
+      "success_rate": 0.0,
+      "mean_steps": 34.0,
+      "mean_final_dist": 0.8700037896633148,
+      "mean_min_dist": 0.5616330190002918,
+      "collision_rate": 0.55,
+      "mean_obstacle_margin": -0.06506856941734443,
+      "mean_jerk": 0.012506436589173973,
+      "episodes": 200,
+      "language_mode": "shuffled"
+    }
+  ],
+  "paired_deltas": [
+    {
+      "policy": "direct_throttled_11hz",
+      "episodes": 200,
+      "success_delta_vs_direct_32hz": -0.05999999865889549,
+      "success_delta_ci95": [
+        -0.09512499887496233,
+        -0.029999999329447746
+      ],
+      "final_dist_delta_vs_direct_32hz": 0.004101219587028027,
+      "final_dist_delta_ci95": [
+        0.0007047569495625796,
+        0.008065562229603529
+      ],
+      "collision_delta_vs_direct_32hz": 0.04500000178813934,
+      "collision_delta_ci95": [
+        0.019999999552965164,
+        0.07500000298023224
+      ]
+    },
+    {
+      "policy": "llm_bottleneck_11hz",
+      "episodes": 200,
+      "success_delta_vs_direct_32hz": -0.03500000014901161,
+      "success_delta_ci95": [
+        -0.06499999761581421,
+        -0.014874999667517954
+      ],
+      "final_dist_delta_vs_direct_32hz": 0.002599812112748623,
+      "final_dist_delta_ci95": [
+        0.00030306973712868057,
+        0.004728858824819326
+      ],
+      "collision_delta_vs_direct_32hz": 0.03500000014901161,
+      "collision_delta_ci95": [
+        0.009999999776482582,
+        0.06499999761581421
+      ]
+    },
+    {
+      "policy": "direct_stress_6hz",
+      "episodes": 200,
+      "success_delta_vs_direct_32hz": -0.09000000357627869,
+      "success_delta_ci95": [
+        -0.13500000536441803,
+        -0.054999999701976776
+      ],
+      "final_dist_delta_vs_direct_32hz": 0.007884996943175793,
+      "final_dist_delta_ci95": [
+        0.0037097559252288193,
+        0.012564243166707454
+      ],
+      "collision_delta_vs_direct_32hz": 0.05000000074505806,
+      "collision_delta_ci95": [
+        0.02500000037252903,
+        0.08012499827891577
+      ]
+    },
+    {
+      "policy": "direct_stress_4hz",
+      "episodes": 200,
+      "success_delta_vs_direct_32hz": -0.18000000715255737,
+      "success_delta_ci95": [
+        -0.23499999940395355,
+        -0.125
+      ],
+      "final_dist_delta_vs_direct_32hz": 0.01315819937735796,
+      "final_dist_delta_ci95": [
+        0.007602022448554635,
+        0.019683000771328805
+      ],
+      "collision_delta_vs_direct_32hz": 0.11500000208616257,
+      "collision_delta_ci95": [
+        0.07487500291317702,
+        0.1599999964237213
+      ]
+    },
+    {
+      "policy": "direct_shuffled_language",
+      "episodes": 200,
+      "success_delta_vs_direct_32hz": -0.9300000071525574,
+      "success_delta_ci95": [
+        -0.9649999737739563,
+        -0.8899999856948853
+      ],
+      "final_dist_delta_vs_direct_32hz": 0.833280086517334,
+      "final_dist_delta_ci95": [
+        0.8054219245910644,
+        0.862062756717205
+      ],
+      "collision_delta_vs_direct_32hz": 0.47999998927116394,
+      "collision_delta_ci95": [
+        0.39500001072883606,
+        0.5600000023841858
+      ]
+    }
+  ],
+  "eval_notes": "paired starts/noise across policies; selected-goal visual halo removed; shuffled-language ablation uses wrong instruction token"
+}

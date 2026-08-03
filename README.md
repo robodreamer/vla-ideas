@@ -7,13 +7,14 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/robodreamer/vla-ideas?style=social)](https://github.com/robodreamer/vla-ideas/stargazers)
 
-Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains five compact experiment tracks:
+Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains six compact experiment tracks:
 
 - `recap_pi`: RECAP-style advantage-conditioned navigation demos in 2D and 3D.
 - `async_chunking_compare`: a lightweight simulator for comparing synchronous and asynchronous chunked-control strategies under inference delay.
 - `prefix_rl_chunking`: a toy PPO + action-prefix-loss demo inspired by RL-for-chunked-VLA prefix-stability discussions.
 - `path_consistent_safety_filtering`: a PACS-inspired toy comparing path-consistent braking against reactive CBF-like correction for action chunks.
 - `bspline_action_parameterization`: a B-spline Policy-inspired toy comparing dense waypoint chunks against compact continuous B-spline action chunks under speed-up.
+- `turbo_vla_direct_control`: a TurboVLA-inspired direct V+L→A chunk-policy toy comparing 32 Hz direct fusion against lower-rate LLM-bottleneck-style execution.
 
 ## Preview
 
@@ -45,6 +46,10 @@ This repo is organized as a small ideas lab rather than a polished framework. Th
 ### `bspline_action_parameterization`
 
 `bspline_action_parameterization` explores B-spline action chunks as compact continuous action representations for faster high-rate execution. It compares dense discrete waypoints against fitted cubic B-splines and a simple curvature-aware time law.
+
+### `turbo_vla_direct_control`
+
+`turbo_vla_direct_control` explores TurboVLA's practical claim that execution-level manipulation benefits from a compact direct vision+language-to-action path. It trains a tiny bidirectional cross-attention chunk policy and a heavier transformer-core bottleneck proxy, then evaluates how receding-horizon refresh rate changes closed-loop behavior.
 
 ## Quick Start
 
@@ -92,6 +97,13 @@ cd /home/andypark/Projects/repos/vla-ideas
 /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python bspline_action_parameterization/run_bspline_action_toy.py --trials 160
 ```
 
+Run the TurboVLA direct-control toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python turbo_vla_direct_control/run_turbo_vla_toy.py --train-steps 480 --eval-episodes 200
+```
+
 ## What Gets Generated
 
 The experiment scripts write visual outputs and reports directly into the repo so results stay easy to compare across iterations.
@@ -122,6 +134,12 @@ The experiment scripts write visual outputs and reports directly into the repo s
 
 - Monte Carlo metrics comparing discrete waypoint chunks, fast B-spline chunks, and B-spline chunks with a curvature-aware time law.
 - representative rollout and path-error plots showing jerk reduction and local slowdown under speed-up.
+
+### `turbo_vla_direct_control/outputs`
+
+- BC training/latency metrics for a direct V+L→A chunk policy and an LLM-bottleneck proxy.
+- receding-horizon success, distance, jerk, and refresh-rate stress plots.
+- representative rollouts around a central keep-out zone.
 
 ## Current Snapshot
 
@@ -157,8 +175,12 @@ vla-ideas/
 │   ├── run_pacs_toy.py
 │   ├── outputs/
 │   └── docs/
-└── bspline_action_parameterization/
-    ├── run_bspline_action_toy.py
+├── bspline_action_parameterization/
+│   ├── run_bspline_action_toy.py
+│   ├── outputs/
+│   └── docs/
+└── turbo_vla_direct_control/
+    ├── run_turbo_vla_toy.py
     ├── outputs/
     └── docs/
 ```
@@ -170,6 +192,9 @@ vla-ideas/
 - [`bspline_action_parameterization/docs/bspline_action_report.pdf`](bspline_action_parameterization/docs/bspline_action_report.pdf)
 - [`path_consistent_safety_filtering/README.md`](path_consistent_safety_filtering/README.md)
 - [`path_consistent_safety_filtering/docs/pacs_toy_report.md`](path_consistent_safety_filtering/docs/pacs_toy_report.md)
+- [`turbo_vla_direct_control/README.md`](turbo_vla_direct_control/README.md)
+- [`turbo_vla_direct_control/docs/turbo_vla_toy_report.md`](turbo_vla_direct_control/docs/turbo_vla_toy_report.md)
+- [`turbo_vla_direct_control/docs/turbo_vla_direct_control_report.pdf`](turbo_vla_direct_control/docs/turbo_vla_direct_control_report.pdf)
 - [`recap_pi/README.md`](recap_pi/README.md)
 - [`recap_pi/docs/rl_tokens_experiment_report.md`](recap_pi/docs/rl_tokens_experiment_report.md)
 - [`recap_pi/docs/recap_concept_writeup.pdf`](recap_pi/docs/recap_concept_writeup.pdf)
