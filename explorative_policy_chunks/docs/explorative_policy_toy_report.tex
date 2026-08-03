@@ -1,0 +1,189 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!50!black,
+  citecolor=blue!50!black
+}
+
+\title{Explorative Policy Chunks:\\A Best-of-K Toy for Multimodal Action Futures}
+\author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
+\date{August 3, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note documents a compact toy experiment inspired by Explorative Modeling / XM. The narrow VLA question is whether an action-chunk policy can avoid the classic behavior-cloning failure where mean-squared-error training averages several valid futures into one invalid trajectory. A point robot must route around a circular keep-out zone while demonstrations go either above or below the obstacle. With the route mode hidden from the policy context, a K=1 behavior-cloning chunk policy averages through the obstacle and gets 0.0\% success. A multi-candidate K>1 chunk policy trained with best-of-K credit assignment, small route-bias initialization, and a weak anti-collapse term preserves over/under candidates in one forward pass; K=2, 4, and 8 all get 100.0\% task success in the latest run. The result is intentionally modest: it demonstrates the candidate-preservation mechanism once diversity is seeded, not a full reproduction of XM or proof that best-of-K alone discovers modes from symmetric initialization.
+\end{abstract}
+
+\section{Motivation}
+
+Action-chunk policies often face ambiguous demonstrations. For the same observation and language instruction, several future action chunks may be valid: go around an obstacle on the left or right, grasp an object from either side, or choose among equivalent contact sequences. Ordinary one-shot behavior cloning with an MSE objective is poorly matched to this setting because it trains one prediction toward the conditional mean,
+\[
+  \hat{A}_{0:H-1} \approx \mathbb{E}\left[A^{\star}_{0:H-1}\mid c\right],
+\]
+which can be invalid even when every individual demonstration is safe.
+
+Explorative Modeling reframes the problem as candidate generation: emit multiple futures, assign credit to the candidate closest to the demonstrated future, and keep generation amortized so inference need not run an iterative diffusion-like search. The toy here isolates that mechanism for a VLA-style action chunk.
+
+\section{References Checked}
+
+Primary references for this exploration were:
+\begin{itemize}[leftmargin=1.5em]
+  \item Project page: \url{https://explorative-modeling.github.io/}
+  \item Code repository: \url{https://github.com/alexiglad/XM}
+\end{itemize}
+
+The XM repository describes Forward XM as exploring K candidate outputs and backpropagating only through the closest candidate. It also identifies K=1 as the no-exploration baseline. This toy keeps that best-of-K credit assignment, but amortizes candidates as K action heads in a tiny chunk policy rather than reproducing the full image/video/world-model setup.
+
+\section{Toy Setup}
+
+The environment is a two-dimensional point robot. Each episode has context
+\[
+  c = (y_{\mathrm{start}}, y_{\mathrm{goal}}, y_{\mathrm{obs}}, r_{\mathrm{obs}}),
+\]
+where the robot starts at x=0, must end at x=1, and must avoid a circular keep-out zone centered near x=0.5. Demonstrations are generated from two equally valid hidden modes:
+\[
+  m \in \{-1,+1\},
+\]
+corresponding to routes below or above the obstacle. The mode is deliberately not part of the policy context.
+
+For timestep \(t \in [0,1]\), the expert trajectory is a straight start-to-goal vertical interpolation plus a sinusoidal obstacle-clearance bump:
+\[
+  y(t) = (1-t)y_{\mathrm{start}} + t y_{\mathrm{goal}}
+       + \sin(\pi t)\left(y_{\mathrm{obs}} + m\,\Delta\right) + \epsilon(t),
+\]
+with endpoints clamped to the requested start and goal. Thus both modes are safe demonstrations, but their conditional mean passes through the obstacle.
+
+\section{Policies and Objective}
+
+The chunk policy is a small multilayer perceptron that maps context to K candidate paths,
+\[
+  f_{\theta}(c) = \{\hat{A}^{(1)},\ldots,\hat{A}^{(K)}\},
+  \qquad \hat{A}^{(k)} \in \mathbb{R}^{H\times 2}.
+\]
+
+The training objective uses best-of-K reconstruction:
+\[
+  \mathcal{L}_{\mathrm{BoK}}(\theta)
+  = \mathbb{E}_{(c,A^{\star})}
+    \left[\min_{k\in\{1,\ldots,K\}}\frac{1}{H}\sum_{t=0}^{H-1}
+    \left\|\hat{a}^{(k)}_t - a^{\star}_t\right\|_2^2\right].
+\]
+For K=1, this reduces to ordinary MSE behavior cloning.
+
+\paragraph{Diversity seeding.}
+The implementation includes small head-specific sinusoidal y-biases and a weak anti-collapse regularizer. This is important: the toy does not claim best-of-K alone will always discover distinct modes from a perfectly symmetric deterministic initialization. The claim is narrower and more useful for this ideas repository: once a model has a source of candidate asymmetry, best-of-K credit assignment can preserve distinct futures instead of averaging them away.
+
+\section{Evaluation Metrics}
+
+At evaluation time all K candidates are emitted in one model forward pass. A simple geometric critic chooses the lowest-cost candidate using obstacle penetration, endpoint error, and smoothness. The critic is intentionally cheap and does not know the hidden demonstrator mode.
+
+The reported metrics separate several questions:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Success / collision:} whether the selected chunk reaches the goal without entering the keep-out disk.
+  \item \textbf{Any safe candidate:} whether at least one candidate is collision-free before critic selection.
+  \item \textbf{Oracle best MSE:} whether one emitted candidate matches the held-out hidden route; this is the main mode-preservation diagnostic.
+  \item \textbf{Chosen MSE:} MSE of the critic-selected chunk against the arbitrary held-out demo route. This can be worse than K=1 because the hidden route is not observable and the selected safe route may be the other valid side.
+  \item \textbf{Both-side coverage:} whether the candidate set contains at least one above-obstacle and one below-obstacle chunk.
+\end{itemize}
+
+\section{Results}
+
+The latest verified run used:
+\begin{verbatim}
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  explorative_policy_chunks/run_explorative_policy_toy.py --steps 900
+\end{verbatim}
+
+\begin{table}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+Method & Success & Collision & Any safe cand. & Oracle best MSE & Chosen MSE & Both-side cov. & Side sep. & Forwards \\
+\midrule
+BC K=1 & 0.0\% & 100.0\% & 0.0\% & 0.02730 & 0.02730 & 0.0\% & 0.000 & 1 \\
+XM K=2 & 100.0\% & 0.0\% & 100.0\% & 0.00009 & 0.05445 & 100.0\% & 0.677 & 1 \\
+XM K=4 & 100.0\% & 0.0\% & 100.0\% & 0.00008 & 0.05280 & 100.0\% & 2.323 & 1 \\
+XM K=8 & 100.0\% & 0.0\% & 100.0\% & 0.00008 & 0.05597 & 100.0\% & 2.313 & 1 \\
+\bottomrule
+\end{tabular}}
+\caption{Held-out evaluation over 1024 contexts. K=1 averages the two valid modes and collides. K>1 preserves at least one safe committed future and one candidate close to the hidden route.}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{../outputs/exploration_k_sweep.png}
+\caption{K sweep over success, collision, and oracle reconstruction error. The sharp K=1 to K=2 change is the central toy result.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../outputs/representative_trajectories.png}
+\caption{Representative ambiguous context. The K=1 behavior-cloned path averages through the obstacle, while K=4 emits committed candidate chunks around the obstacle.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../outputs/training_curves.png}
+\caption{Pure best-of-K reconstruction loss recorded during training. The logged value excludes the small anti-collapse regularizer.}
+\end{figure}
+
+\section{Interpretation}
+
+The useful distilled idea is not ``use XM as-is for everything,'' nor that best-of-K removes the need to seed diversity. It is that for VLA action chunks, best-of-K credit assignment plus a source of candidate asymmetry can keep several plausible futures alive without paying iterative inference at deployment time. In this toy, K=1 blurs the two route modes into an unsafe mean. K=2 is already enough for the two-mode environment: one candidate can specialize above and one below. Larger K values are a candidate budget, not a guarantee that every head becomes meaningful; K=4 and K=8 often contain redundant or outlier heads in addition to useful over/under candidates.
+
+The toy critic should also be interpreted carefully. It demonstrates that the emitted candidate set contains feasible committed futures and that a cheap selector can choose one. It does not recover the hidden demonstrator's arbitrary route choice, and it does not stand in for full task planning, language grounding, or physical robot constraints.
+
+\section{Relation to Other \texttt{vla-ideas} Experiments}
+
+This report complements the repository's existing chunking and control toys:
+\begin{itemize}[leftmargin=1.5em]
+  \item \texttt{async\_chunking\_compare} and \texttt{turbo\_vla\_direct\_control} focus on when chunks are refreshed under latency; this toy focuses on representing multiple plausible chunks in one forward pass.
+  \item \texttt{path\_consistent\_safety\_filtering} studies constraint repair for a committed path; this toy studies producing several committed paths before repair or selection.
+  \item \texttt{bspline\_action\_parameterization} asks how a single chunk should be parameterized; the best-of-K idea is orthogonal and could emit several compact B-spline chunks.
+\end{itemize}
+
+\section{Generated Artifacts}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \texttt{run\_explorative\_policy\_toy.py}
+  \item \texttt{outputs/metrics.json}
+  \item \texttt{outputs/metrics.csv}
+  \item \texttt{outputs/exploration\_k\_sweep.png}
+  \item \texttt{outputs/representative\_trajectories.png}
+  \item \texttt{outputs/training\_curves.png}
+  \item \texttt{docs/explorative\_policy\_toy\_report.md}
+  \item \texttt{docs/explorative\_policy\_toy\_report.tex}
+  \item \texttt{docs/explorative\_policy\_toy\_report.pdf}
+\end{itemize}
+
+\section{Limitations and Follow-ups}
+
+This is not a faithful reproduction of the full XM codebase or paper results. It omits images, language, video, world modeling, manipulation data, diffusion comparisons, and real robot constraints. The hidden route mode is deliberately unobservable, which makes chosen-demo MSE a poor deployment metric but a useful warning about evaluating ambiguous demonstrations. The toy also relies on route-bias initialization and a small anti-collapse term; without those, a tiny deterministic multi-head model can collapse toward the averaged solution.
+
+Useful follow-ups would be:
+\begin{enumerate}[leftmargin=1.5em]
+  \item replace fixed head biases with a learned latent or stochastic candidate sampler;
+  \item add a downstream projection or safety filter that refines each candidate before selection;
+  \item test a task where the observation partially resolves which mode is preferable, so candidate selection can depend on visual or language context;
+  \item compare against a small diffusion-style iterative sampler to quantify the one-forward-pass tradeoff directly.
+\end{enumerate}
+
+\end{document}

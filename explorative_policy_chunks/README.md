@@ -25,9 +25,11 @@ Outputs are written to `explorative_policy_chunks/outputs/`:
 - `representative_trajectories.png`
 - `training_curves.png`
 
-The generated writeup lives at:
+The generated writeups live at:
 
 - `explorative_policy_chunks/docs/explorative_policy_toy_report.md`
+- `explorative_policy_chunks/docs/explorative_policy_toy_report.tex`
+- `explorative_policy_chunks/docs/explorative_policy_toy_report.pdf`
 
 ## Notes
 

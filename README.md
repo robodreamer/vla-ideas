@@ -225,6 +225,7 @@ LaTeX reports share one renderer and Docker setup under [`tools/`](tools/). Each
 - [`turbo_vla_direct_control/docs/turbo_vla_direct_control_report.pdf`](turbo_vla_direct_control/docs/turbo_vla_direct_control_report.pdf)
 - [`explorative_policy_chunks/README.md`](explorative_policy_chunks/README.md)
 - [`explorative_policy_chunks/docs/explorative_policy_toy_report.md`](explorative_policy_chunks/docs/explorative_policy_toy_report.md)
+- [`explorative_policy_chunks/docs/explorative_policy_toy_report.pdf`](explorative_policy_chunks/docs/explorative_policy_toy_report.pdf)
 - [`recap_pi/README.md`](recap_pi/README.md)
 - [`recap_pi/docs/rl_tokens_experiment_report.md`](recap_pi/docs/rl_tokens_experiment_report.md)
 - [`recap_pi/docs/recap_concept_writeup.pdf`](recap_pi/docs/recap_concept_writeup.pdf)
