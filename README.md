@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/robodreamer/vla-ideas?style=social)](https://github.com/robodreamer/vla-ideas/stargazers)
 
-Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains seven compact experiment tracks:
+Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains seven compact experiment tracks plus a lightweight research-notes index:
 
 - `recap_pi`: RECAP-style advantage-conditioned navigation demos in 2D and 3D.
 - `async_chunking_compare`: a lightweight simulator for comparing synchronous and asynchronous chunked-control strategies under inference delay.
@@ -16,6 +16,7 @@ Toy research prototypes for exploring visual-language-action timing, policy cond
 - `bspline_action_parameterization`: a B-spline Policy-inspired toy comparing dense waypoint chunks against compact continuous B-spline action chunks under speed-up.
 - `turbo_vla_direct_control`: a TurboVLA-inspired direct V+L→A chunk-policy toy comparing 32 Hz direct fusion against lower-rate LLM-bottleneck-style execution.
 - `explorative_policy_chunks`: an Explorative Modeling/XM-inspired toy showing that best-of-K action chunks, when seeded with candidate diversity, can avoid multimodal BC averaging in one forward pass.
+- `notes`: source-grounded research notes and a reference index for ideas that may become experiments.
 
 ## Preview
 
@@ -55,6 +56,12 @@ This repo is organized as a small ideas lab rather than a polished framework. Th
 ### `explorative_policy_chunks`
 
 `explorative_policy_chunks` distills Explorative Modeling/XM into a VLA action-chunk setting. It compares ordinary K=1 behavior cloning against best-of-K candidate chunks on an ambiguous over/under obstacle-routing toy, demonstrating how seeded candidate diversity plus best-of-K credit assignment can preserve committed multimodal futures without iterative inference.
+
+## Research Notes
+
+[`notes/`](notes/README.md) is the repository knowledge base for VLA and embodied-AI references. Notes preserve source links, evidence level, key claims, limitations, and concrete experiment hooks without turning every useful article into a prototype.
+
+- [X Square Robot embodied-AI stack note](notes/2026-08-05-x-square-embodied-ai-stack.md)
 
 ## Quick Start
 
@@ -173,6 +180,9 @@ The existing `recap_pi` docs report these latest verified headline numbers:
 ```text
 vla-ideas/
 ├── README.md
+├── notes/                         # indexed VLA / embodied-AI research notes
+│   ├── README.md
+│   └── YYYY-MM-DD-*.md
 ├── recap_pi/
 │   ├── pyproject.toml
 │   ├── recap_demo_complex_2d.py
