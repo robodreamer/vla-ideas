@@ -48,8 +48,9 @@ See the generated report for the full table and interpretation.
 
 - [generated experiment report](outputs/openvla_oft_systems_report.md)
 - [LaTeX report source](docs/openvla_oft_systems_toy_report.tex)
+- [generated PDF](docs/openvla_oft_systems_toy_report.pdf)
 
-The shared LaTeX renderer could not be run in this environment (no local TeX and Docker access is denied), so no PDF is retained or linked for this track. `docs/render_pdf.sh` remains a wrapper for the repository renderer when it is available.
+`docs/render_pdf.sh` remains a wrapper for the repository LaTeX renderer when it is available.
 
 ## Mapping to the source recipe
 
