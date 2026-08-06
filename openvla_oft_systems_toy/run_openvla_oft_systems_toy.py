@@ -181,10 +181,16 @@ def report(rows: list[dict], args: argparse.Namespace) -> None:
              "| --- | ---: | ---: | ---: | ---: | ---: | ---: |"]
     for r in rows:
         lines.append(f"| {r['method']} | {r['simulated_decision_latency_ms']:.0f} | {r['output_action_rate_hz']:.1f} | {r['mean_tracking_error']:.3f} | {r['final_tracking_error']:.3f} | {100*r['success_rate']:.1f}% | {r['smoothness_jerk']:.1f} |")
-    lines += ["", "## Interpretation", "",
+    lines += ["", "## Visualizations", "",
+              "- `outputs/openvla_oft_systems_summary.png` shows one matched delayed-observation rollout and the aggregate latency/rate/success trade-off.",
+              "- The action-output rate counts parallel actions generated but later discarded after early refresh.",
+              "", "## Interpretation", "",
               "The serial-like condition has the lowest generated-action availability. A full parallel chunk restores plant-rate availability, but its stale suffixes leave its terminal-window success below `parallel_refresh_4`. In this run, refreshing after four actions produces the highest success (33.3%), while refreshing after two actions produces the lowest mean tracking error (0.311) but the same 28.1% terminal-window success as the open-loop parallel condition. The result is a local trade-off: more refreshes limit stale actions, but also repeatedly re-anchor to delayed feedback and add command boundaries.",
-              "", "## Scope boundary", "",
-              "These results describe only the configured analytical toy. They do not reproduce, validate, or compare against OpenVLA-OFT; they do not measure device latency or action-generation throughput; and they do not support a general optimum for chunk horizon or refresh cadence. Primary-source OFT coverage and the distinction between authors' reported results and this toy are in [`notes/2026-08-06-openvla-oft.md`](../../notes/2026-08-06-openvla-oft.md)."]
+              "", "## Limitations and follow-ups", "",
+              "These results describe only the configured analytical toy. They do not reproduce, validate, or compare against OpenVLA-OFT; they do not measure device latency or action-generation throughput; and they do not support a general optimum for chunk horizon or refresh cadence. Primary-source OFT coverage and the distinction between authors' reported results and this toy are in [`notes/2026-08-06-openvla-oft.md`](../../notes/2026-08-06-openvla-oft.md).",
+              "", "## Outputs", "",
+              "- `outputs/openvla_oft_systems_metrics.csv`",
+              "- `outputs/openvla_oft_systems_summary.png`"]
     (OUT / "openvla_oft_systems_report.md").write_text("\n".join(lines) + "\n")
 
 

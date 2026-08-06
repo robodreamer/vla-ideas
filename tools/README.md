@@ -1,5 +1,9 @@
 # Shared tooling
 
+## Report scaffold
+
+Start every new experiment report from [`templates/vla_experiment_report.tex`](templates/vla_experiment_report.tex), then adapt it to the experiment. Do not create custom report scaffolds; the template preserves the shared report structure used by `path_consistent_safety_filtering`, `bspline_action_parameterization`, and `turbo_vla_direct_control`.
+
 ## LaTeX report rendering
 
 Use the shared renderer for every idea report:

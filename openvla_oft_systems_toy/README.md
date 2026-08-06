@@ -4,7 +4,7 @@ This folder explores one systems implication of **OpenVLA-OFT: Fine-Tuning Visio
 
 The source recipe combines parallel decoding, action chunking, continuous actions, and L1 regression. This toy asks a narrower control question: when observations are delayed, how do serial action availability, parallel chunks, and chunk-refresh cadence affect a tracking controller? It is not an OpenVLA-OFT reproduction; the controller is analytical, latency is configured, and no learned OpenVLA action head is used.
 
-## What is implemented
+## What was tested
 
 `run_openvla_oft_systems_toy.py` is intentionally narrow. It does **not** implement OpenVLA weights, image or language inputs, LoRA, L1 training, LIBERO, ALOHA, robot dynamics, or hardware timing. It isolates the output-interface/timing distinction:
 
@@ -32,11 +32,17 @@ cd /home/andypark/Projects/repos/vla-ideas
 /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python openvla_oft_systems_toy/run_openvla_oft_systems_toy.py --seed 17 --trials 96
 ```
 
-Generated files live in `openvla_oft_systems_toy/outputs/`:
+Outputs are written to `openvla_oft_systems_toy/outputs/`:
 
 - `openvla_oft_systems_metrics.csv`
 - `openvla_oft_systems_summary.png`
 - `openvla_oft_systems_report.md`
+
+Reports are generated at:
+
+- [generated experiment report](outputs/openvla_oft_systems_report.md)
+- [LaTeX report source](docs/openvla_oft_systems_toy_report.tex)
+- [generated PDF](docs/openvla_oft_systems_toy_report.pdf)
 
 ## Latest generated headline
 
@@ -44,13 +50,11 @@ The deterministic 96-trial run has its highest terminal-window success with `par
 
 See the generated report for the full table and interpretation.
 
-## Reports
+The checked-in PDF is linked above and is intentionally retained unless the shared LaTeX renderer succeeds in the current environment. Render with the standard wrapper when available:
 
-- [generated experiment report](outputs/openvla_oft_systems_report.md)
-- [LaTeX report source](docs/openvla_oft_systems_toy_report.tex)
-- [generated PDF](docs/openvla_oft_systems_toy_report.pdf)
-
-`docs/render_pdf.sh` remains a wrapper for the repository LaTeX renderer when it is available.
+```bash
+./openvla_oft_systems_toy/docs/render_pdf.sh
+```
 
 ## Mapping to the source recipe
 

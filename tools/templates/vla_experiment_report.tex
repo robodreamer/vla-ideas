@@ -1,0 +1,102 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!50!black,
+  citecolor=blue!50!black
+}
+
+\title{[Experiment Name]:\\[A Short, Specific Toy-Benchmark Subtitle]}
+\author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
+\date{[Month DD, YYYY]}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note documents [the experiment]. State the narrow question, the local result, and the boundary: this is [a toy / an evaluation], not [a reproduction or a claim beyond the evidence].
+\end{abstract}
+
+\section{Motivation}
+
+[Explain the control or VLA question and why the experiment isolates it.]
+
+\section{References Checked}
+
+Primary references for this exploration were:
+\begin{itemize}[leftmargin=1.5em]
+  \item [primary paper or project] \cite{primary};
+  \item [official project page] \cite{project};
+  \item [official implementation] \cite{code}.
+\end{itemize}
+
+[Separate authors' reported results from the local measurement.]
+
+\section{Toy Setup}
+
+[Describe the script, state/action/task setup, and the deliberately omitted method pieces.]
+
+\section{Metrics}
+
+The experiment reports:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{[metric]:} [definition and units];
+  \item \textbf{[metric]:} [definition and units].
+\end{itemize}
+
+\section{Results}
+
+The latest generated result used [N] trials:
+\begin{verbatim}
+[exact command used to generate the committed artifacts]
+\end{verbatim}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+Method & Metric 1 & Metric 2 & Success \\
+\midrule
+[method] & [value] & [value] & [value] \\
+\bottomrule
+\end{tabular}
+\caption{[What the table aggregates, trial count, seed, and any accounting caveat.]}
+\label{tab:results}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/[figure].png}
+  \caption{[What the locally generated figure shows and any metric caveat.]}
+  \label{fig:summary}
+\end{figure}
+
+\section{Interpretation}
+
+[State the bounded local interpretation.]
+
+\section{Limitations and Follow-ups}
+
+[List the important omissions, then concrete next measurements.]
+
+\begin{thebibliography}{9}
+\bibitem{primary} [Authors]. \emph{[Title]}. [Venue/year]. \url{[URL]}
+\bibitem{project} [Project page]. \url{[URL]}
+\bibitem{code} [Official repository]. \url{[URL]}
+\end{thebibliography}
+
+\end{document}

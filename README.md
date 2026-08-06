@@ -259,6 +259,7 @@ LaTeX reports share one renderer and Docker setup under [`tools/`](tools/). Each
 - [`openvla_oft_systems_toy/README.md`](openvla_oft_systems_toy/README.md)
 - [`openvla_oft_systems_toy/outputs/openvla_oft_systems_report.md`](openvla_oft_systems_toy/outputs/openvla_oft_systems_report.md)
 - [`openvla_oft_systems_toy/docs/openvla_oft_systems_toy_report.tex`](openvla_oft_systems_toy/docs/openvla_oft_systems_toy_report.tex)
+- [`openvla_oft_systems_toy/docs/openvla_oft_systems_toy_report.pdf`](openvla_oft_systems_toy/docs/openvla_oft_systems_toy_report.pdf)
 - [`explorative_policy_chunks/README.md`](explorative_policy_chunks/README.md)
 - [`explorative_policy_chunks/docs/explorative_policy_toy_report.md`](explorative_policy_chunks/docs/explorative_policy_toy_report.md)
 - [`explorative_policy_chunks/docs/explorative_policy_toy_report.pdf`](explorative_policy_chunks/docs/explorative_policy_toy_report.pdf)
