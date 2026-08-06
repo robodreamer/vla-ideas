@@ -5,7 +5,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
 \usepackage{microtype}
-\usepackage{amsmath,amssymb}
+\usepackage{amsmath, amssymb}
 \usepackage{booktabs}
 \usepackage{xcolor}
 \usepackage{hyperref}
@@ -13,55 +13,80 @@
 \usepackage{graphicx}
 \usepackage{float}
 
-\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!50!black,
+  citecolor=blue!50!black
+}
 
-\title{OpenVLA-OFT-Inspired Output Timing:\A Delayed-Observation Systems Toy}
-\author{VLA Ideas}
+\title{Parallel Continuous Action Chunks under Delayed Feedback:\\An OpenVLA-OFT-Inspired Systems Toy}
+\author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
 \date{August 6, 2026}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-This report separates three layers that are easy to conflate. First, OpenVLA-OFT is a published VLA fine-tuning recipe with parallel action-chunk prediction, continuous actions, and an L1 regression objective. Second, the artifact in this directory is a deliberately non-reproductive, analytical 2D control toy. Third, the numerical table below was generated locally by its deterministic simulator (seed 17; 96 trials per method). The toy supports a narrow systems observation: parallel chunks make actions available more quickly than a serial-like generator in the configured timing model, but delayed observations make chunk duration and refresh cadence a non-monotonic control trade-off. It does not evaluate OpenVLA-OFT, real hardware latency, or the paper's benchmark results.
+This note documents a compact deterministic toy experiment informed by OpenVLA-OFT. The source recipe combines parallel action decoding, action chunking, continuous actions, and L1 regression. The local experiment asks a narrower systems question: under delayed observations, how do serial-like action availability, parallel continuous chunks, and refresh cadence affect 2D tracking? A configured parallel chunk makes more actions available than the serial-like condition, but an open-loop suffix becomes stale. Refreshing halfway through the chunk gives the highest terminal-window success in this setup, while more frequent refresh gives the lowest mean tracking error but not the best terminal metric. This is an explanatory control result, not a reproduction or evaluation of OpenVLA-OFT.
 \end{abstract}
 
-\section{Claim Boundary and Sources}
+\section{Motivation}
 
-\paragraph{Primary-source claims.}
-Kim, Finn, and Liang describe OpenVLA-OFT as an optimized fine-tuning approach that uses parallel action decoding, action chunking, continuous actions, and L1 regression \cite{oftpaper,oftsite,oftcode}. Their paper reports a 76.5\% to 97.1\% average LIBERO success change for OpenVLA-OFT and a 26$\times$ action-generation throughput increase; the project page summarizes 25--50$\times$ faster inference and 97.1\% average LIBERO success \cite{oftpaper,oftsite}. These are authors' reported benchmark and hardware results, not measurements in this repository.
+Action chunking changes more than the number of action values a policy emits. A parallel chunk can make a future sequence available at once, but the latter part of that sequence was produced from an observation that may already be stale. In a closed-loop controller, the choice of when to replace the unfinished suffix can therefore trade action availability against stale-feedback error and command discontinuities.
 
-\paragraph{This toy.}
-The local controller is not a learned OpenVLA action head. It analytically produces clipped, continuous 2D velocity commands from delayed state and a moving goal. Its target rule is only an L1-regression \emph{proxy} in the sense that it makes a continuous-output target explicit; no L1 training occurs. The simulator contains no OpenVLA weights, images, language grounding, LoRA, LIBERO or ALOHA data, robot, diffusion model, or real inference measurements. Thus ``serial'' and ``parallel'' below name output-interface/timing models, not paper baselines.
+OpenVLA-OFT provides a source-grounded motivation for considering this output-side design. Kim, Finn, and Liang describe optimized VLA fine-tuning with parallel decoding, continuous action chunks, and L1 regression \cite{oftpaper,oftsite,oftcode}. This toy does not implement that training recipe. Instead, it isolates the timing question with an analytical continuous controller, so the serial-like versus parallel interface and the refresh schedule are visible without attributing a local result to the published method.
 
-\paragraph{Locally generated results.}
-All numbers in Tables~\ref{tab:results} and the figure are from \texttt{run\_openvla\_oft\_systems\_toy.py --seed 17 --trials 96}. The CSV and PNG it wrote are inputs to this report; the reported latency values are simulator parameters.
+\section{References Checked}
 
-\section{Method and Timing Model}
-
-The plant is a two-dimensional point mass with a 40~ms control tick over a 7.2~s rollout. The bounded target follows a deterministic phase-shifted sinusoidal path. At every ninth tick, a seeded Gaussian velocity gust (standard deviation 0.045 per axis) perturbs the state. Observations are delayed by 160~ms (four control ticks). Each trial uses a deterministic seed, with method-specific seed offsets; 96 independently seeded trials are aggregated per method.
-
-The desired continuous action is a clipped proportional--derivative velocity command,
-\[
- a_t = \operatorname{clip}\!\left(2.4(g_t-p_t)-0.48v_t, -1.15, 1.15\right),
-\]
-and the parallel generator imagines an eight-action chunk from the delayed observation. The executed state differs from that imagined rollout because of the delayed feedback and gusts.
-
-\paragraph{Definitions.}
+Primary references for this exploration were:
 \begin{itemize}[leftmargin=1.5em]
-  \item \textbf{Decision latency} is the configured simulated time before a new decision is available: 55~ms for one serial action and 60~ms for an eight-action parallel chunk. It is not wall-clock profiling.
-  \item \textbf{Chunk horizon} is eight 40~ms actions (320~ms) emitted by a parallel decision.
-  \item \textbf{Refresh interval} is the number of executed actions before replacing a parallel chunk. Open loop refreshes after eight actions; refresh-4 and refresh-2 replace it after four and two actions respectively. Replacing early discards the unused suffix.
-  \item \textbf{Action-output throughput} is generated action values divided by simulated rollout duration. It intentionally counts discarded suffixes, so it measures output work/availability rather than the plant's fixed 25~Hz execution tick.
+  \item Kim, Finn, and Liang, \emph{Fine-Tuning Vision-Language-Action Models: Optimizing Speed and Success} \cite{oftpaper};
+  \item the OpenVLA-OFT project page \cite{oftsite};
+  \item the official OpenVLA-OFT repository \cite{oftcode}.
 \end{itemize}
 
-The serial-like condition attempts one delayed-observation action when its synthetic decoder is idle, holding its previous command while busy. The three parallel conditions each predict eight continuous actions in one 60~ms decision, then differ only in refresh interval. This is a timing thought experiment, not a fair model-capacity comparison.
+The paper reports an increase from 76.5\% to 97.1\% average LIBERO success and a 26$\times$ action-generation throughput increase; the project page summarizes 25--50$\times$ faster inference and 97.1\% average LIBERO success \cite{oftpaper,oftsite}. Those are authors' reported benchmark and hardware results. They are not measured or reproduced here.
+
+\section{Toy Setup}
+
+The script \texttt{run\_openvla\_oft\_systems\_toy.py} simulates a two-dimensional point mass for 7.2~s at a 40~ms control tick. It tracks a bounded moving target from observations delayed by 160~ms. Every ninth tick, a seeded Gaussian velocity gust with standard deviation 0.045 per axis perturbs the state. The target phase, start state, and gust sequence are deterministic for a trial seed.
+
+The desired continuous velocity is a clipped proportional--derivative rule,
+\[
+  a_t =
+  \operatorname{clip}\!\left(2.4(g_t-p_t)-0.48v_t,\,-1.15,\,1.15\right).
+\]
+The parallel generator rolls this rule forward from the delayed observation to produce an eight-action chunk. The simulated plant then diverges from that imagined rollout because of delayed feedback and gusts.
+
+Four timing conditions are evaluated:
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{Serial autoregressive-like:} one continuous action is available after a configured 55~ms decision delay, and the preceding action is held while the synthetic decoder is busy.
+  \item \textbf{Parallel open loop:} eight continuous actions are available after a configured 60~ms decision delay and are consumed before replanning.
+  \item \textbf{Parallel refresh-4:} the same parallel chunk is replaced after four executed actions.
+  \item \textbf{Parallel refresh-2:} the same parallel chunk is replaced after two executed actions.
+\end{enumerate}
+
+The reported action-output throughput counts all generated actions. It therefore counts discarded suffixes when a parallel chunk is replaced early; it measures simulated output work/availability, not useful actions or the fixed 25~Hz plant tick.
 
 \section{Metrics}
 
-Mean tracking error is the time-average Euclidean distance from plant position to moving target. Final tracking error is the final-tick distance. Terminal-window success is one when the mean tracking error over the last 20 ticks is below 0.16, then averaged across trials. The jerk proxy is the time-average norm of the second finite difference of the emitted action sequence (after division by the 40~ms tick). It is a descriptive discontinuity/smoothness measure, not a physical actuator limit.
+The Monte Carlo sweep reports:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{simulated decision latency:} the configured time before an action or chunk is available, not wall-clock profiling;
+  \item \textbf{action-output throughput:} generated action values per simulated rollout second;
+  \item \textbf{mean and final tracking error:} Euclidean distance to the moving target, averaged over time or evaluated at the final tick;
+  \item \textbf{terminal-window success:} one when the final 20-tick mean tracking error is below 0.16;
+  \item \textbf{jerk proxy:} the time-average norm of the second finite difference of emitted commands. This is a descriptive smoothness measure, not an actuator limit.
+\end{itemize}
 
-\section{Deterministic 96-Trial Result}
+\section{Results}
+
+The latest generated result used 96 deterministic trials per method:
+\begin{verbatim}
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  openvla_oft_systems_toy/run_openvla_oft_systems_toy.py --seed 17 --trials 96
+\end{verbatim}
 
 \begin{table}[H]
 \centering
@@ -77,39 +102,33 @@ Parallel, refresh 4 & 60 & 50.0 & 0.316 & 0.245 & 33.3\% & 18.96 \\
 Parallel, refresh 2 & 60 & 100.0 & 0.311 & 0.249 & 28.1\% & 19.99 \\
 \bottomrule
 \end{tabular}
-\caption{Aggregate local results from 96 deterministic trials per method, seed 17. Rates and latencies are simulation definitions, not device benchmarks.}
+\caption{Aggregate local results from 96 deterministic trials per method, seed 17. Latency and output rate are simulation definitions; the output rate includes discarded suffixes after early refresh.}
 \label{tab:results}
 \end{table}
 
 \begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{../outputs/openvla_oft_systems_summary.png}
-\caption{Locally generated matched rollout (left) and aggregate timing/rate/success summary (right). The right-panel rate counts parallel actions generated but later discarded after early refresh.}
-\label{fig:summary}
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/openvla_oft_systems_summary.png}
+  \caption{Locally generated matched rollout (left) and aggregate timing/rate/success summary (right). The action-output rate counts parallel actions generated but later discarded after early refresh.}
+  \label{fig:summary}
 \end{figure}
 
-\section{Interpretation: Why Refresh Is Non-Monotonic}
+\section{Interpretation}
 
-The configured serial generator has the lowest action availability (12.5~Hz) because it serializes decisions and holds commands during its 55~ms synthetic delay. A full parallel chunk roughly restores plant-rate action availability (25.6~Hz) but obtains the weakest terminal-window success (28.1\%) among the parallel variants: an eight-step suffix is increasingly inappropriate as delayed state and gusts diverge from its imagined trajectory.
+The serial-like condition has the lowest action availability because it serializes decisions and holds commands during its configured delay. A full parallel chunk restores plant-rate availability but has the weakest terminal-window success among the parallel conditions: an eight-step suffix becomes increasingly unsuitable as the delayed state and gusts diverge from its imagined rollout.
 
-Refreshing halfway through the chunk is the best success condition here (33.3\%) and improves mean error to 0.316. Refreshing every two steps produces the smallest mean error (0.311) but success falls back to 28.1\% and the jerk proxy rises relative to open loop. This is the non-monotonic trade-off: frequent refresh limits stale-chunk exposure and increases simulated generated-action throughput, yet it repeatedly re-anchors a controller to a four-tick-old observation and introduces more command boundaries. Mean tracking, terminal-window occupancy, and smoothness need not optimize at the same refresh cadence. The small absolute differences and fixed toy dynamics mean this is an explanatory result, not evidence of a universal optimum or of an OpenVLA-OFT mechanism.
+Refreshing halfway through the chunk has the highest success in this run (33.3\%) and improves mean error to 0.316. Refreshing every two actions has the smallest mean error (0.311), but success returns to 28.1\% and the jerk proxy rises relative to open loop. This is the local trade-off: frequent refresh reduces stale-chunk exposure and increases generated-output work, yet it repeatedly re-anchors the controller to four-tick-old feedback and creates more command boundaries. Mean tracking, terminal-window occupancy, and smoothness need not select the same refresh cadence.
 
-\section{Limitations}
+\section{Limitations and Follow-ups}
 
-\begin{itemize}[leftmargin=1.5em]
-  \item The analytical controller, target rule, plant, and chunk rollout share a simple design; there is no learned representation, perception, language conditioning, or distributional generalization test.
-  \item Latency is configured rather than measured, is deterministic rather than queued or jittered, and the output-rate accounting favors early refresh by counting discarded actions.
-  \item Four methods are not capacity-matched and there is no faithful autoregressive VLA, OpenVLA-OFT checkpoint, or paper baseline.
-  \item The terminal-window threshold and one moving-target task are arbitrary toy choices. No confidence intervals, hardware power costs, safety constraints, or real-time deadline-miss policy are reported.
-\end{itemize}
+This is not a faithful OpenVLA-OFT implementation. It omits OpenVLA weights, image observations, language grounding, LoRA, L1 optimization, LIBERO/ALOHA data, robot dynamics, real inference timing, and a capacity-matched autoregressive VLA. The controller, plant, target, and chunk rollout share an intentionally simple analytical design. The delays are configured rather than measured, the output-rate accounting favors early refresh by counting discarded actions, and the terminal threshold is an arbitrary toy metric.
 
-\section{Concrete Next Experiments}
-
+The numerical differences should therefore be read as an explanatory result rather than evidence for a universal refresh optimum or an OpenVLA-OFT mechanism. Useful follow-ups would be:
 \begin{enumerate}[leftmargin=1.5em]
-  \item Add paired per-trial exports and bootstrap intervals for refresh-4 versus refresh-2, then sweep observation delay, chunk horizon, and gust magnitude.
-  \item Replace fixed synthetic latency with sampled model/service latency, queueing, deadlines, and an explicit late-chunk fallback; separately account for useful versus discarded outputs and compute cost.
-  \item Introduce model mismatch between chunk imagination and plant, then compare refresh with a state-predictive or latency-compensating controller.
-  \item Move to a higher-dimensional constrained task with a learned continuous chunk policy, randomized observations/instructions, and a capacity-matched serial baseline; only then connect the systems findings to a real VLA evaluation.
+  \item add paired per-trial exports and bootstrap intervals while sweeping observation delay, chunk horizon, and gust magnitude;
+  \item replace fixed synthetic latency with sampled model/service latency, queueing, deadlines, and a late-chunk fallback, while accounting separately for useful and discarded actions;
+  \item add model mismatch between chunk imagination and plant, then compare ordinary refresh with a state-predictive or latency-compensating controller;
+  \item move to a constrained higher-dimensional task with a learned continuous chunk policy, randomized observations/instructions, and a capacity-matched serial baseline.
 \end{enumerate}
 
 \begin{thebibliography}{9}

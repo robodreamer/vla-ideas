@@ -15,7 +15,7 @@ Toy research prototypes for exploring visual-language-action timing, policy cond
 - `path_consistent_safety_filtering`: a PACS-inspired toy comparing path-consistent braking against reactive CBF-like correction for action chunks.
 - `bspline_action_parameterization`: a B-spline Policy-inspired toy comparing dense waypoint chunks against compact continuous B-spline action chunks under speed-up.
 - `turbo_vla_direct_control`: a TurboVLA-inspired direct V+L→A chunk-policy toy comparing 32 Hz direct fusion against lower-rate LLM-bottleneck-style execution.
-- `openvla_oft_systems_toy`: an OFT-inspired systems toy comparing serial action generation with parallel continuous chunks and closed-loop refresh under delayed observations.
+- `openvla_oft_systems_toy`: an OpenVLA-OFT-inspired systems toy comparing serial-like action availability with parallel continuous chunks and closed-loop refresh under delayed observations.
 - `explorative_policy_chunks`: an Explorative Modeling/XM-inspired toy showing that best-of-K action chunks, when seeded with candidate diversity, can avoid multimodal BC averaging in one forward pass.
 - `notes`: source-grounded research notes and a reference index for ideas that may become experiments.
 
@@ -56,7 +56,7 @@ This repo is organized as a small ideas lab rather than a polished framework. Th
 
 ### `openvla_oft_systems_toy`
 
-`openvla_oft_systems_toy` isolates a systems-level implication of the OpenVLA-OFT recipe: parallel continuous action chunks can improve action availability relative to serial decoding, while delayed feedback makes open-loop chunks and refresh cadence consequential. It is deterministic and analytical, not a reproduction of OpenVLA-OFT or its reported results.
+`openvla_oft_systems_toy` explores the output-interface/timing side of OpenVLA-OFT: parallel continuous chunks make actions available differently from a serial-like generator, while delayed feedback makes chunk horizon and refresh cadence consequential. It is a deterministic analytical toy, not a reproduction of OpenVLA-OFT or its reported results.
 
 ### `explorative_policy_chunks`
 
@@ -126,7 +126,7 @@ Run the OFT-inspired systems toy:
 
 ```bash
 cd /home/andypark/Projects/repos/vla-ideas
-/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python openvla_oft_systems_toy/run_openvla_oft_systems_toy.py --seed 17 --trials 48
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python openvla_oft_systems_toy/run_openvla_oft_systems_toy.py --seed 17 --trials 96
 ```
 
 Run the Explorative Policy chunks toy:
@@ -175,9 +175,9 @@ The experiment scripts write visual outputs and reports directly into the repo s
 
 ### `openvla_oft_systems_toy/outputs`
 
-- aggregate CSV for latency, action rate, tracking, success, and jerk proxy;
+- aggregate CSV for configured latency, action-output rate, tracking, success, and jerk proxy;
 - a matched-rollout and trade-off plot;
-- a concise generated report with the scope boundary and interpretation.
+- a generated experiment report with metric definitions, results, interpretation, and scope boundary.
 
 ### `explorative_policy_chunks/outputs`
 
@@ -259,7 +259,6 @@ LaTeX reports share one renderer and Docker setup under [`tools/`](tools/). Each
 - [`openvla_oft_systems_toy/README.md`](openvla_oft_systems_toy/README.md)
 - [`openvla_oft_systems_toy/outputs/openvla_oft_systems_report.md`](openvla_oft_systems_toy/outputs/openvla_oft_systems_report.md)
 - [`openvla_oft_systems_toy/docs/openvla_oft_systems_toy_report.tex`](openvla_oft_systems_toy/docs/openvla_oft_systems_toy_report.tex)
-- [`openvla_oft_systems_toy/docs/openvla_oft_systems_toy_report.pdf`](openvla_oft_systems_toy/docs/openvla_oft_systems_toy_report.pdf)
 - [`explorative_policy_chunks/README.md`](explorative_policy_chunks/README.md)
 - [`explorative_policy_chunks/docs/explorative_policy_toy_report.md`](explorative_policy_chunks/docs/explorative_policy_toy_report.md)
 - [`explorative_policy_chunks/docs/explorative_policy_toy_report.pdf`](explorative_policy_chunks/docs/explorative_policy_toy_report.pdf)
