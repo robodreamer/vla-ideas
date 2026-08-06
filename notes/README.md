@@ -14,6 +14,7 @@ This folder is a compact, repository-native knowledge base for VLA and embodied-
 
 | Date | Note | Themes | Evidence |
 | --- | --- | --- | --- |
+| 2026-08-06 | [OpenVLA-OFT optimized fine-tuning](2026-08-06-openvla-oft.md) | parallel decoding, action chunking, continuous actions, L1 regression, latency/refresh trade-offs | primary paper + project + code |
 | 2026-08-05 | [X Square Robot embodied-AI stack](2026-08-05-x-square-embodied-ai-stack.md) | data quality, robot-free demonstrations, event world models, semantic action tokens, cross-embodiment transfer, recovery | vendor-sponsored overview + company materials |
 
 ## How agents should use this

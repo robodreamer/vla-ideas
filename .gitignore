@@ -2,6 +2,8 @@
 .venv/
 .mplconfig/
 **/.mplconfig/
+openvla_oft_systems_toy/outputs/*.csv
+openvla_oft_systems_toy/outputs/*.png
 __pycache__/
 *.pyc
 *.aux

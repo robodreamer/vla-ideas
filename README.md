@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/robodreamer/vla-ideas?style=social)](https://github.com/robodreamer/vla-ideas/stargazers)
 
-Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains seven compact experiment tracks plus a lightweight research-notes index:
+Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains eight compact experiment tracks plus a lightweight research-notes index:
 
 - `recap_pi`: RECAP-style advantage-conditioned navigation demos in 2D and 3D.
 - `async_chunking_compare`: a lightweight simulator for comparing synchronous and asynchronous chunked-control strategies under inference delay.
@@ -15,6 +15,7 @@ Toy research prototypes for exploring visual-language-action timing, policy cond
 - `path_consistent_safety_filtering`: a PACS-inspired toy comparing path-consistent braking against reactive CBF-like correction for action chunks.
 - `bspline_action_parameterization`: a B-spline Policy-inspired toy comparing dense waypoint chunks against compact continuous B-spline action chunks under speed-up.
 - `turbo_vla_direct_control`: a TurboVLA-inspired direct V+L→A chunk-policy toy comparing 32 Hz direct fusion against lower-rate LLM-bottleneck-style execution.
+- `openvla_oft_systems_toy`: an OFT-inspired systems toy comparing serial action generation with parallel continuous chunks and closed-loop refresh under delayed observations.
 - `explorative_policy_chunks`: an Explorative Modeling/XM-inspired toy showing that best-of-K action chunks, when seeded with candidate diversity, can avoid multimodal BC averaging in one forward pass.
 - `notes`: source-grounded research notes and a reference index for ideas that may become experiments.
 
@@ -53,6 +54,10 @@ This repo is organized as a small ideas lab rather than a polished framework. Th
 
 `turbo_vla_direct_control` explores TurboVLA's practical claim that execution-level manipulation benefits from a compact direct vision+language-to-action path. It trains a tiny bidirectional cross-attention chunk policy and a heavier transformer-core bottleneck proxy, then evaluates how receding-horizon refresh rate changes closed-loop behavior.
 
+### `openvla_oft_systems_toy`
+
+`openvla_oft_systems_toy` isolates a systems-level implication of the OpenVLA-OFT recipe: parallel continuous action chunks can improve action availability relative to serial decoding, while delayed feedback makes open-loop chunks and refresh cadence consequential. It is deterministic and analytical, not a reproduction of OpenVLA-OFT or its reported results.
+
 ### `explorative_policy_chunks`
 
 `explorative_policy_chunks` distills Explorative Modeling/XM into a VLA action-chunk setting. It compares ordinary K=1 behavior cloning against best-of-K candidate chunks on an ambiguous over/under obstacle-routing toy, demonstrating how seeded candidate diversity plus best-of-K credit assignment can preserve committed multimodal futures without iterative inference.
@@ -62,6 +67,7 @@ This repo is organized as a small ideas lab rather than a polished framework. Th
 [`notes/`](notes/README.md) is the repository knowledge base for VLA and embodied-AI references. Notes preserve source links, evidence level, key claims, limitations, and concrete experiment hooks without turning every useful article into a prototype.
 
 - [X Square Robot embodied-AI stack note](notes/2026-08-05-x-square-embodied-ai-stack.md)
+- [OpenVLA-OFT primary-source note](notes/2026-08-06-openvla-oft.md)
 
 ## Quick Start
 
@@ -116,6 +122,13 @@ cd /home/andypark/Projects/repos/vla-ideas
 /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python turbo_vla_direct_control/run_turbo_vla_toy.py --train-steps 480 --eval-episodes 200
 ```
 
+Run the OFT-inspired systems toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python openvla_oft_systems_toy/run_openvla_oft_systems_toy.py --seed 17 --trials 48
+```
+
 Run the Explorative Policy chunks toy:
 
 ```bash
@@ -159,6 +172,12 @@ The experiment scripts write visual outputs and reports directly into the repo s
 - BC training/latency metrics for a direct V+L→A chunk policy and an LLM-bottleneck proxy.
 - receding-horizon success, distance, jerk, and refresh-rate stress plots.
 - representative rollouts around a central keep-out zone.
+
+### `openvla_oft_systems_toy/outputs`
+
+- aggregate CSV for latency, action rate, tracking, success, and jerk proxy;
+- a matched-rollout and trade-off plot;
+- a concise generated report with the scope boundary and interpretation.
 
 ### `explorative_policy_chunks/outputs`
 
@@ -211,6 +230,10 @@ vla-ideas/
 │   ├── run_turbo_vla_toy.py
 │   ├── outputs/
 │   └── docs/
+├── openvla_oft_systems_toy/
+│   ├── run_openvla_oft_systems_toy.py
+│   ├── outputs/
+│   └── docs/
 └── explorative_policy_chunks/
     ├── run_explorative_policy_toy.py
     ├── outputs/
@@ -233,6 +256,10 @@ LaTeX reports share one renderer and Docker setup under [`tools/`](tools/). Each
 - [`turbo_vla_direct_control/README.md`](turbo_vla_direct_control/README.md)
 - [`turbo_vla_direct_control/docs/turbo_vla_toy_report.md`](turbo_vla_direct_control/docs/turbo_vla_toy_report.md)
 - [`turbo_vla_direct_control/docs/turbo_vla_direct_control_report.pdf`](turbo_vla_direct_control/docs/turbo_vla_direct_control_report.pdf)
+- [`openvla_oft_systems_toy/README.md`](openvla_oft_systems_toy/README.md)
+- [`openvla_oft_systems_toy/outputs/openvla_oft_systems_report.md`](openvla_oft_systems_toy/outputs/openvla_oft_systems_report.md)
+- [`openvla_oft_systems_toy/docs/openvla_oft_systems_toy_report.tex`](openvla_oft_systems_toy/docs/openvla_oft_systems_toy_report.tex)
+- [`openvla_oft_systems_toy/docs/openvla_oft_systems_toy_report.pdf`](openvla_oft_systems_toy/docs/openvla_oft_systems_toy_report.pdf)
 - [`explorative_policy_chunks/README.md`](explorative_policy_chunks/README.md)
 - [`explorative_policy_chunks/docs/explorative_policy_toy_report.md`](explorative_policy_chunks/docs/explorative_policy_toy_report.md)
 - [`explorative_policy_chunks/docs/explorative_policy_toy_report.pdf`](explorative_policy_chunks/docs/explorative_policy_toy_report.pdf)
