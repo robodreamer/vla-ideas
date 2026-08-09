@@ -1,0 +1,209 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!50!black,
+  citecolor=blue!50!black
+}
+
+\title{Anticipatory Context Chunking:\\A FutureRTC-Inspired Delay-Compensation Toy}
+\author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
+\date{August 9, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note tests a narrow claim motivated by FutureRTC: under asynchronous action-chunk execution, predicting the full execution-time context should outperform compensating only the robot state. A frozen analytical chunk policy tracks a maneuvering target while its inputs are delayed. On 80 paired trials per method and delay, learned state correction reduces held-out proprioceptive RMSE from 0.161 to 0.014 but cannot recover success at large delays because the environment latent remains stale. At delay 10, transport plus learned latent innovation reaches 68.8\% success, and an additional frozen-policy consistency objective reaches 81.2\%, versus 0\% for state-only methods and 97.5\% for oracle fresh context. This is a synthetic mechanism test, not a reproduction of FutureRTC or a VLA benchmark.
+\end{abstract}
+
+\section{Motivation}
+
+Action chunking lets a policy amortize expensive inference over several control steps. In asynchronous execution, the next chunk is computed while the current chunk is still running. The chunk therefore arrives at its handoff conditioned on an observation and proprioceptive state captured several control steps earlier. Rolling the robot state through already committed actions addresses only one part of this prediction--execution misalignment: target motion, camera-relative geometry, contact, occlusion, and other policy-relevant visual context can also change during the delay.
+
+FutureRTC addresses this by leaving the base VLA frozen and placing an anticipatory adapter before it. The method rolls the stale proprioceptive state forward, corrects residual model error, transports stale visual features with an action-derived motion prior, synthesizes latent innovations that transport cannot explain, and optionally trains the predicted context to reproduce the frozen policy's action output \cite{paper,project,code}. The local experiment asks whether that decomposition produces its intended qualitative signature in the smallest setting where it can fail.
+
+\section{References Checked}
+
+Primary sources were:
+\begin{itemize}[leftmargin=1.5em]
+  \item Jiang et al., \emph{FutureRTC: Real-Time Robot Execution with Anticipatory-Conditioned Action Chunking} \cite{paper};
+  \item the official project page and reported simulation/real-world results \cite{project};
+  \item the official implementation, including separate LIBERO and Kinetix branches \cite{code}.
+\end{itemize}
+
+The official LIBERO implementation uses a learned state residual corrector and a motion-prior visual-latent predictor with transport and gated innovation. It trains the observation module first with reconstruction losses and then optionally with a frozen-policy consistency loss. The Kinetix branch obtains the robot portion through exact forward simulation and learns the future environment latent. The experiment below follows that broad factorization but uses none of the authors' weights, data, environments, or model architecture.
+
+\section{Toy Setup}
+
+A point robot with state $s_t=[p_t,v_t]\in\mathbb{R}^4$ tracks a target in two dimensions. The environment latent
+\[
+z_t=[g_t,\dot g_t,c_t,w_t]\in\mathbb{R}^8
+\]
+contains target position and velocity, a rotating maneuver cue $c_t$, and a stochastic decaying wind vector $w_t$. A fixed analytical policy maps $(s_t,z_t)$ to a bounded acceleration:
+\[
+u_t = u_{\max}\tanh\!\left(\frac{k_p(g_t+\tau\dot g_t-p_t)+k_d(\dot g_t-v_t)+k_c c_t-k_w w_t}{u_{\max}}\right).
+\]
+The same policy is rolled through a nominal model to produce 12-action chunks at a 60~ms control step. The true robot differs from the nominal rollout through drag, actuator gain, wind coupling, and noise. Target acceleration follows the rotating cue, so constant-velocity transport is useful but incomplete.
+
+At every chunk handoff, the policy receives context delayed by $d\in\{0,2,4,6,8,10\}$ control steps. The $d$ actions executed since the stale context was captured are known. Three small two-layer MLPs are trained from synthetic on-policy-like transition samples: a state residual corrector, a latent innovation predictor, and a latent predictor with an additional frozen-policy action-consistency term. The full run uses 12,000 training samples, 2,500 validation samples, and 650 update steps per model.
+
+\subsection{Compared methods}
+
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{Oracle fresh:} true state and latent at the handoff.
+  \item \textbf{Naive stale:} the stale state and stale latent.
+  \item \textbf{State rollout:} nominal integration through committed actions, with the stale latent unchanged.
+  \item \textbf{State correction:} learned residual correction of the nominal rollout, with the stale latent unchanged.
+  \item \textbf{Transport only:} corrected state plus constant-velocity target transport, frozen maneuver cue, and decayed wind.
+  \item \textbf{Transport + innovation:} learned latent residual after analytic transport.
+  \item \textbf{Policy consistency:} the same innovation predictor with a frozen-policy first-action consistency loss.
+\end{enumerate}
+
+\section{Metrics}
+
+Each method is evaluated on 80 paired stochastic trials per delay. The metrics are:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{success:} tail tracking RMSE below 0.72 and final target error below 0.90;
+  \item \textbf{tracking RMSE:} root-mean-square robot--target distance over the episode;
+  \item \textbf{proprioceptive context error:} state-estimate $\ell_2$ error at handoffs;
+  \item \textbf{latent context RMSE:} environment-latent error at handoffs;
+  \item \textbf{handoff policy error:} first-action difference from oracle-fresh conditioning;
+  \item \textbf{action jump:} difference between the preceding executed action and the first action of the new chunk.
+\end{itemize}
+
+Before training or Monte Carlo evaluation, the script also runs seven deterministic sanity checks: state rollout must improve over stale state; exact residual correction and innovation must recover their targets; transport must retain a nonzero environment error; full context must match the oracle action; and stale/state-only actions must remain different from the oracle.
+
+\section{Results}
+
+The generated artifacts use:
+\begin{verbatim}
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  anticipatory_context_chunking/run_anticipatory_context_chunking.py \
+  --seed 17 --trials 80 --train-samples 12000 \
+  --val-samples 2500 --train-steps 650
+\end{verbatim}
+
+\subsection{Delay robustness}
+
+\begin{table}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrr}
+\toprule
+Method & $d=0$ & $d=2$ & $d=4$ & $d=6$ & $d=8$ & $d=10$ \\
+\midrule
+Oracle fresh & 96.2\% & 92.5\% & 93.8\% & 93.8\% & 97.5\% & 97.5\% \\
+Naive stale & 96.2\% & 2.5\% & 0.0\% & 0.0\% & 0.0\% & 0.0\% \\
+State rollout & 96.2\% & 60.0\% & 3.8\% & 0.0\% & 0.0\% & 0.0\% \\
+State correction & 96.2\% & 57.5\% & 3.8\% & 0.0\% & 0.0\% & 0.0\% \\
+Transport only & 96.2\% & 16.2\% & 0.0\% & 0.0\% & 0.0\% & 0.0\% \\
+Transport + innovation & 96.2\% & 95.0\% & 88.8\% & 86.2\% & 76.2\% & 68.8\% \\
++ policy consistency & 96.2\% & 92.5\% & 90.0\% & 91.2\% & 83.8\% & \textbf{81.2\%} \\
+\bottomrule
+\end{tabular}}
+\caption{Success rate over 80 paired trials per method and delay. Delay zero is identical across methods because all paths bypass the adapter and use fresh context.}
+\label{tab:success}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/delay_sweep.png}
+  \caption{Mean and standard error across the delay sweep. The observation-prediction variants remain close to oracle tracking and policy behavior after state-only and transport-only methods collapse.}
+  \label{fig:sweep}
+\end{figure}
+
+\subsection{Large-delay detail}
+
+\begin{table}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrr}
+\toprule
+Method & Success & Tracking RMSE & Proprio error & Latent RMSE & Policy error \\
+\midrule
+Oracle fresh & 97.5\% & 1.052 & 0.000 & 0.000 & 0.000 \\
+Naive stale & 0.0\% & 3.530 & 2.864 & 0.454 & 2.949 \\
+State rollout & 0.0\% & 1.523 & 0.231 & 0.454 & 1.787 \\
+State correction & 0.0\% & 1.508 & 0.038 & 0.454 & 1.588 \\
+Transport only & 0.0\% & 1.628 & 0.039 & 0.340 & 1.308 \\
+Transport + innovation & 68.8\% & 1.075 & 0.040 & 0.091 & 0.212 \\
++ policy consistency & \textbf{81.2\%} & \textbf{1.065} & 0.040 & 0.092 & 0.215 \\
+\bottomrule
+\end{tabular}}
+\caption{Delay-10 aggregates. State correction accurately estimates the robot while leaving the task/environment latent stale. Learned innovation is the dominant closed-loop improvement.}
+\label{tab:d10}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/single_rollout.png}
+  \caption{Representative paired rollout at the maximum tested delay. Vertical lines in the error panel mark chunk boundaries.}
+  \label{fig:rollout}
+\end{figure}
+
+\subsection{Held-out predictor ablation}
+
+On held-out transitions, nominal state rollout has proprioceptive RMSE 0.161; learned correction reduces it to 0.014. Transport-only latent prediction has RMSE 0.216 and frozen-policy first-action RMSE 0.546. Learned innovation reduces those to 0.074 and 0.074. The policy-consistency variant has latent RMSE 0.074 and action RMSE 0.073. Its reconstruction advantage is small, but its delay-10 closed-loop success is 12.5 percentage points higher than reconstruction-only innovation.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{../outputs/predictor_ablation.png}
+  \caption{Held-out latent reconstruction and first-action consistency. The learned innovation accounts for most of the improvement; policy consistency makes a smaller action-oriented refinement.}
+  \label{fig:ablation}
+\end{figure}
+
+\section{Interpretation}
+
+The toy supports the idea's central mechanism. State rollout removes much of the geometric error caused by robot motion, and the learned corrector makes the execution-time state estimate accurate. Nevertheless, state-only methods fail at delays four and above because the frozen policy still sees outdated target dynamics and wind context. Transport reduces latent error but cannot represent maneuver-cue rotation, cue-driven target acceleration, or stochastic innovation. A partially wrong future latent can even be more harmful than a consistently stale one, as seen by transport-only performance at delay two.
+
+Learned innovation is the main recovery mechanism. It reduces held-out latent and policy errors by roughly an order of magnitude relative to transport and maintains useful success throughout the delay sweep. Policy consistency changes held-out reconstruction only slightly but improves success at delays 6, 8, and 10, consistent with the idea that the best latent under pixel/feature error is not necessarily the latent that preserves policy behavior.
+
+The result does not establish that FutureRTC will transfer unchanged to a real VLA. It does establish that the repository's existing state-only async toys omit a meaningful failure mode and that a full-context predictor is worth exploring further.
+
+\section{Mapping and Limitations}
+
+\begin{table}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lll}
+\toprule
+Toy component & FutureRTC analogue & Simplification \\
+\midrule
+Committed-action integration & rolled-forward execution-time state & 2D point dynamics \\
+Learned state residual & state correction module & small synthetic MLP \\
+Target/wind transport & motion-aware latent transport & vector features, no token warp \\
+Learned latent residual & gated visual innovation & no images or occlusion \\
+Frozen-policy action loss & policy consistency loss & first action, analytical policy \\
+Delay sweep & asynchronous inference delay & no wall-clock serving stack \\
+\bottomrule
+\end{tabular}}
+\caption{Mechanism mapping.}
+\label{tab:mapping}
+\end{table}
+
+Important omissions include images, language, a VLA backbone, flow matching, token grids, occlusion/disocclusion, contact, multi-DoF kinematics, and real inference latency. Synthetic train and test distributions are closely matched, the low-dimensional latent is directly supervised, and success thresholds are local definitions.
+
+A useful next experiment would replace the vector latent with a small image/token grid containing a moving camera/arm mask and independently moving objects. It should measure whether explicit warping plus residual synthesis outperforms a generic future-feature MLP under occlusion and distribution shift, and should add uncertainty-aware fallback when predicted context is less reliable than stale or transported context.
+
+\begin{thebibliography}{9}
+\bibitem{paper} H. Jiang, Y. Zou, B. Liang, B. Liu, F. Meng, and S. Liu. \emph{FutureRTC: Real-Time Robot Execution with Anticipatory-Conditioned Action Chunking}. arXiv:2607.24008, 2026. \url{https://arxiv.org/abs/2607.24008}
+\bibitem{project} FutureRTC project page. \url{https://jianghaiscu.github.io/FutureRTC_proj/}
+\bibitem{code} JianghaiSCU/FutureRTC official implementation. \url{https://github.com/JianghaiSCU/FutureRTC}
+\end{thebibliography}
+
+\end{document}

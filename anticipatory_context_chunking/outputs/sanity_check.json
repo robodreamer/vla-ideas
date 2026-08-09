@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "checks": {
+    "state_rollout_beats_stale_state": true,
+    "exact_state_correction_zero_error": true,
+    "transport_has_nonzero_env_error": true,
+    "innovation_zero_env_error": true,
+    "full_context_matches_oracle_action": true,
+    "state_only_still_differs_from_oracle_action": true,
+    "stale_action_differs_from_oracle_action": true
+  },
+  "errors": {
+    "stale_state_l2": 0.24522398577492177,
+    "nominal_rollout_l2": 0.11280870315505076,
+    "transport_latent_l2": 0.3738065335344228,
+    "state_only_action_l2": 0.7315715393489156,
+    "full_action_l2": 0.0
+  }
+}

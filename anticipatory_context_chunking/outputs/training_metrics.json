@@ -1,0 +1,43 @@
+{
+  "state_corrector": {
+    "last_train_loss": 0.007598715368658304,
+    "val_rmse": 0.014137828722596169,
+    "val_mae": 0.00853013340383768
+  },
+  "innovation_predictor": {
+    "last_train_loss": 0.28296196460723877,
+    "val_rmse": 0.07367227226495743,
+    "val_mae": 0.04419952258467674
+  },
+  "policy_consistency_predictor": {
+    "last_train_loss": 0.27564844489097595,
+    "last_reconstruction_loss": 0.2749013900756836,
+    "last_policy_loss": 0.00024902107543312013,
+    "val_rmse": 0.07354907691478729,
+    "val_mae": 0.04411487281322479,
+    "policy_weight": 3.0
+  },
+  "held_out_ablation": {
+    "obs_transport": {
+      "latent_rmse": 0.2158156931400299,
+      "target_position_rmse": 0.06593608856201172,
+      "policy_action_rmse": 0.5459649562835693
+    },
+    "obs_innovation": {
+      "latent_rmse": 0.07367227226495743,
+      "target_position_rmse": 0.006604401394724846,
+      "policy_action_rmse": 0.07383611053228378
+    },
+    "policy_consistency": {
+      "latent_rmse": 0.07354907691478729,
+      "target_position_rmse": 0.0064269802533090115,
+      "policy_action_rmse": 0.07288172841072083
+    },
+    "state_rollout": {
+      "proprio_rmse": 0.16089968383312225
+    },
+    "state_correction": {
+      "proprio_rmse": 0.014137828722596169
+    }
+  }
+}
