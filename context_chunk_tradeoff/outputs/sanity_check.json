@@ -1,0 +1,14 @@
+{
+  "c1_persistent_mode_accuracy": 0.5777439024390243,
+  "c16_persistent_mode_accuracy": 1.0,
+  "c1_is_meaningful": true,
+  "long_context_improves_persistent_mode_inference": true,
+  "horizon_1_restricted_recovery_steps": 13.637755102040817,
+  "horizon_16_restricted_recovery_steps": 13.78888888888889,
+  "fixed_schedule_h1_lower_recovery": true,
+  "fixed_schedule_recovery_gap_h16_minus_h1": 0.15113378684807266,
+  "recovery_search_starts_after_post_event_peak": true,
+  "events_without_error_rise_are_excluded": true,
+  "next_event_censors_recovery_window": true,
+  "passed": true
+}

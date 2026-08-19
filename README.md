@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/robodreamer/vla-ideas?style=social)](https://github.com/robodreamer/vla-ideas/stargazers)
 
-Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains nine compact experiment tracks plus a lightweight research-notes index:
+Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains ten compact experiment tracks plus a lightweight research-notes index:
 
 - `recap_pi`: RECAP-style advantage-conditioned navigation demos in 2D and 3D.
 - `async_chunking_compare`: a lightweight simulator for comparing synchronous and asynchronous chunked-control strategies under inference delay.
@@ -18,6 +18,7 @@ Toy research prototypes for exploring visual-language-action timing, policy cond
 - `openvla_oft_systems_toy`: an OpenVLA-OFT-inspired systems toy comparing serial-like action availability with parallel continuous chunks and closed-loop refresh under delayed observations.
 - `explorative_policy_chunks`: an Explorative Modeling/XM-inspired toy showing that best-of-K action chunks, when seeded with candidate diversity, can avoid multimodal BC averaging in one forward pass.
 - `anticipatory_context_chunking`: a FutureRTC-inspired toy comparing stale context, state-only compensation, latent transport, learned innovation, and policy-consistency training under asynchronous handoff delay.
+- `context_chunk_tradeoff`: a hidden-temporal-mode toy that sweeps observation-history context against open-loop chunk horizon under paired disturbances and mode switches.
 - `notes`: source-grounded research notes and a reference index for ideas that may become experiments.
 
 ## Preview
@@ -66,6 +67,10 @@ This repo is organized as a small ideas lab rather than a polished framework. Th
 ### `anticipatory_context_chunking`
 
 `anticipatory_context_chunking` tests the FutureRTC claim that asynchronous chunk handoffs need execution-time observation/environment context, not only a rolled-forward robot state. A frozen synthetic chunk policy is evaluated with stale context, state rollout/correction, analytic latent transport, learned innovation, and a frozen-policy consistency loss across inference delays.
+
+### `context_chunk_tradeoff`
+
+`context_chunk_tradeoff` isolates a complementary execution trade-off: history helps a controller infer a hidden persistent target-motion mode from noisy observations, while action-chunk horizon controls policy refresh after surprises. In the supported C16 comparison, H1 recovers faster than H16; this is not generalized across every context setting. The toy emits a deterministic sanity check plus a paired 2D context/horizon Monte Carlo map and is not a VLA-paper reproduction.
 
 ## Research Notes
 
@@ -148,6 +153,13 @@ cd /home/andypark/Projects/repos/vla-ideas
 /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python anticipatory_context_chunking/run_anticipatory_context_chunking.py --seed 17 --trials 80 --train-samples 12000 --val-samples 2500 --train-steps 650
 ```
 
+Run the context-versus-chunking toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python context_chunk_tradeoff/run_context_chunk_tradeoff.py --trials 120 --seed 17
+```
+
 ## What Gets Generated
 
 The experiment scripts write visual outputs and reports directly into the repo so results stay easy to compare across iterations.
@@ -203,6 +215,12 @@ The experiment scripts write visual outputs and reports directly into the repo s
 - held-out state/latent predictor ablations and deterministic mechanism sanity checks.
 - delay-sweep, representative-rollout, and predictor-ablation plots.
 
+### `context_chunk_tradeoff/outputs`
+
+- deterministic mechanism checks and paired per-trial/aggregate CSV and JSON metrics for the full context-by-horizon sweep;
+- heatmaps for success, tracking error, recovery delay, and planning-call proxy;
+- a reliability/error trade-off plot and a matched reactive-versus-open-loop rollout.
+
 ## Current Snapshot
 
 The existing `recap_pi` docs report these latest verified headline numbers:
@@ -256,8 +274,12 @@ vla-ideas/
 │   ├── run_explorative_policy_toy.py
 │   ├── outputs/
 │   └── docs/
-└── anticipatory_context_chunking/
-    ├── run_anticipatory_context_chunking.py
+├── anticipatory_context_chunking/
+│   ├── run_anticipatory_context_chunking.py
+│   ├── outputs/
+│   └── docs/
+└── context_chunk_tradeoff/
+    ├── run_context_chunk_tradeoff.py
     ├── outputs/
     └── docs/
 ```
@@ -288,6 +310,10 @@ LaTeX reports share one renderer and Docker setup under [`tools/`](tools/). Each
 - [`anticipatory_context_chunking/README.md`](anticipatory_context_chunking/README.md)
 - [`anticipatory_context_chunking/docs/anticipatory_context_chunking_report.md`](anticipatory_context_chunking/docs/anticipatory_context_chunking_report.md)
 - [`anticipatory_context_chunking/docs/anticipatory_context_chunking_report.pdf`](anticipatory_context_chunking/docs/anticipatory_context_chunking_report.pdf)
+- [`context_chunk_tradeoff/README.md`](context_chunk_tradeoff/README.md)
+- [`context_chunk_tradeoff/docs/context_chunk_tradeoff_report.md`](context_chunk_tradeoff/docs/context_chunk_tradeoff_report.md)
+- [`context_chunk_tradeoff/docs/context_chunk_tradeoff_report.tex`](context_chunk_tradeoff/docs/context_chunk_tradeoff_report.tex)
+- [`context_chunk_tradeoff/docs/context_chunk_tradeoff_report.pdf`](context_chunk_tradeoff/docs/context_chunk_tradeoff_report.pdf)
 - [`recap_pi/README.md`](recap_pi/README.md)
 - [`recap_pi/docs/rl_tokens_experiment_report.md`](recap_pi/docs/rl_tokens_experiment_report.md)
 - [`recap_pi/docs/recap_concept_writeup.pdf`](recap_pi/docs/recap_concept_writeup.pdf)
