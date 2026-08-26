@@ -1,0 +1,158 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!50!black,
+  citecolor=blue!50!black
+}
+
+\title{BC Distribution-Shift Mysteries:\\When Better Offline Fitting Makes Worse Closed-Loop Policies}
+\author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
+\date{August 26, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note builds a low-dimensional behavioral-cloning diagnostic inspired by Seohong Park's ``Behavioral cloning mystery'' write-up. A 48-policy ridge-BC sweep crosses action horizon, previous-action history, feature scaling, and basis capacity. In 96 paired evaluation episodes, an H8 no-history policy reaches 42.7\% success versus 21.9\% for H1 and 25.0\% for history-conditioned H1. The history-conditioned policy has the best held-out action MSE, yet much worse goal distance and state divergence than H8. For H8 policies, three feature scalings have validation losses within 2.5\%, while success ranges from 42.7\% to 65.6\%. This is a deliberately constructed mechanism toy, not a reproduction of the source simulator, a VLA, or a real-robot result.
+\end{abstract}
+
+\section{Motivation}
+
+Behavioral cloning minimizes an offline prediction loss under the demonstration distribution, but its policy is judged under the state distribution induced by its own actions. Small errors can move a rollout away from expert support, where two models with similar validation loss may extrapolate differently. The source write-up highlights practitioner-observed puzzles around overtraining, open-loop action chunks, observation history, policy size, and feature scaling \cite{park-blog}. Related work identifies causal confusion from predictive but non-causal inputs \cite{dehaan2019} and emphasizes that distribution coverage can dominate value-learning details in offline reinforcement learning \cite{park2024}.
+
+This toy asks two narrow questions. First, can longer action chunks outperform one-step control when each policy query introduces a small handoff error? Second, can feature scaling and history produce similar or better held-out expert-state action prediction while degrading closed-loop behavior after perturbations?
+
+\section{Toy Setup}
+
+\subsection{Exact sanity check}
+
+A one-dimensional scripted controller incurs a fixed $0.01$ query-boundary error. Over 20 execution steps, H1 queries 20 times, while H5 queries four times. This isolates the query-compounding mechanism without training or randomness.
+
+\subsection{Learned two-dimensional benchmark}
+
+The main benchmark follows one of two smooth routes around a central circular obstacle. Ninety training episodes and 30 validation episodes contain smooth, temporally correlated demonstrator actions. Each policy is trained with ridge regression and emits an H-step two-dimensional action chunk.
+
+The full sweep contains 48 policies:
+\begin{itemize}[leftmargin=1.5em]
+  \item horizon $H\in\{1,4,8,16\}$;
+  \item previous-action history in $\{0,4\}$;
+  \item feature scaling in \{state focus, balanced, clock focus\};
+  \item linear or quadratic polynomial basis.
+\end{itemize}
+
+The observation includes state-relative coordinates and clock features. On narrow expert trajectories, clock and position are strongly correlated and predict similar actions. State-relative features respond to rollout error; clock features do not. History exposes previous actions, which are predictive in the demonstration data but can become a shortcut under induced state shift. During evaluation, each policy query receives a small seeded handoff shock, and two fixed-time state perturbations move the rollout away from the expert tube.
+
+\section{Metrics}
+
+The experiment reports:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{validation action MSE:} supervised chunk error on held-out expert states;
+  \item \textbf{success:} collision-free termination within the goal tolerance;
+  \item \textbf{goal distance:} final Euclidean distance to the goal;
+  \item \textbf{tracking RMSE and maximum state divergence:} deviation from the nominal route;
+  \item \textbf{OOD fraction:} fraction of policy states outside the configured expert-support radius;
+  \item \textbf{on-policy oracle MSE:} error against the scripted oracle on policy-induced states;
+  \item \textbf{smoothness:} mean squared difference between consecutive actions;
+  \item \textbf{query count:} policy invocations per 72-step rollout.
+\end{itemize}
+
+\section{Results}
+
+The generated artifacts used:
+\begin{verbatim}
+cd /home/andypark/Projects/repos/vla-ideas
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  bc_distribution_shift_mysteries/run_bc_distribution_shift_mysteries.py \
+  --seed 17 --eval-episodes 96
+\end{verbatim}
+
+\begin{table}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrr}
+\toprule
+Policy & Val. MSE & Success & Goal dist. & Track RMSE & Max div. & Smoothness & Queries \\
+\midrule
+H1, no history, state, quadratic & 0.000872 & 21.9\% & 0.399 & 0.237 & 0.437 & 0.01305 & 72 \\
+H1, history 4, state, quadratic & \textbf{0.000266} & 25.0\% & 0.582 & 0.336 & 0.684 & 0.01420 & 72 \\
+H8, no history, state, quadratic & 0.000729 & \textbf{42.7\%} & \textbf{0.217} & \textbf{0.202} & \textbf{0.322} & \textbf{0.00480} & 9 \\
+\bottomrule
+\end{tabular}}
+\caption{Selected results over 96 paired evaluation episodes per model. The best held-out expert-state action fit is not the best closed-loop policy.}
+\label{tab:chunk-history}
+\end{table}
+
+H8 improves success by 20.8 percentage points over H1 and 17.7 points over history-conditioned H1. The history policy's validation MSE is 69\% lower than H8, but its final goal distance is 168\% larger, its tracking RMSE is 66\% larger, and its maximum state divergence is 113\% larger. Its on-policy oracle MSE is also 0.385 versus 0.091 for H8. Thus the offline loss ranks the history shortcut favorably while the rollout metrics do not.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrrrr}
+\toprule
+H8 scaling & Val. MSE & Success & Goal dist. & Track RMSE & On-policy MSE \\
+\midrule
+State focus & 0.000729 & 42.7\% & 0.217 & 0.202 & 0.0912 \\
+Balanced & 0.000714 & \textbf{65.6\%} & \textbf{0.127} & \textbf{0.185} & \textbf{0.0548} \\
+Clock focus & 0.000712 & 44.8\% & 0.174 & 0.204 & 0.0779 \\
+\bottomrule
+\end{tabular}
+\caption{Quadratic H8 policies without action history. Validation losses differ by less than 2.5\%, while success spans 22.9 percentage points.}
+\label{tab:scaling}
+\end{table}
+
+The exact sanity check also passes: H1 makes 20 queries and accumulates 0.20 final error; H5 makes four queries and accumulates 0.04 final error under the scripted boundary-error mechanism.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/mystery_summary.png}
+  \caption{Selected offline and closed-loop metrics. Lower validation loss does not imply lower policy-induced error or higher success.}
+  \label{fig:summary}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/sweep_horizon_scaling.png}
+  \caption{Quadratic-basis horizon, history, and feature-scaling sweep. Success and validation MSE need not move together.}
+  \label{fig:sweep}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.82\textwidth]{../outputs/validation_vs_rollout.png}
+  \caption{All 48 models. Held-out expert-state action MSE is an incomplete closed-loop selection metric.}
+  \label{fig:scatter}
+\end{figure}
+
+\section{Interpretation}
+
+The local evidence reproduces two bounded BC mysteries. First, reducing query frequency with an open-loop chunk can improve reliability when policy invocation itself introduces a small error and the learned chunk stays coherent. This is not a claim that open-loop execution always beats feedback: longer chunks also delay replanning after unmodeled disturbances. Second, scaling correlated features changes which in-distribution explanation ridge regression prefers. Those explanations have nearly identical expert-state loss but respond differently when the policy leaves the demonstration tube.
+
+History is useful only when it supplies stable causal state. Here, previous expert actions form an attractive shortcut: they improve validation fit, yet the autoregressive closed loop feeds the policy its own imperfect actions. That construction mirrors the causal-confusion mechanism rather than proving that observation history is generally harmful.
+
+\section{Limitations and Follow-ups}
+
+The environment is low-dimensional, demonstrations are scripted, features are deliberately constructed, and perturbations are synthetic. The model is ridge regression rather than a flow policy or transformer. Query shocks stand in for handoff, inference, or sampling errors without modeling their real causes. The on-policy oracle is available only because the simulator exposes the true controller. Capacity is represented by linear versus quadratic bases; the experiment does not reproduce billion-parameter policy scaling or beneficial overfitting.
+
+Useful follow-ups are to vary demonstration count and training duration separately, replace the scripted clock shortcut with learned visual features, use contact-rich dynamics, evaluate receding-horizon partial chunk execution, and compare behavioral cloning with DAgger-style on-policy data aggregation.
+
+\begin{thebibliography}{9}
+\bibitem{park-blog} S. Park. \emph{Behavioral cloning mystery}. August 2026. \url{https://seohong.me/blog/behavioral-cloning-mystery/}
+\bibitem{dehaan2019} P. de Haan, D. Jayaraman, and S. Levine. \emph{Causal Confusion in Imitation Learning}. NeurIPS, 2019. \url{https://arxiv.org/abs/1905.11979}
+\bibitem{park2024} S. Park, K. Frans, S. Levine, and A. Kumar. \emph{Is Value Learning Really the Main Bottleneck in Offline RL?} NeurIPS, 2024. \url{https://arxiv.org/abs/2406.09329}
+\end{thebibliography}
+
+\end{document}

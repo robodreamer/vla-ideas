@@ -1,0 +1,21 @@
+{
+  "description": "Exact 1D query-boundary compounding check",
+  "rows": [
+    {
+      "horizon": 1,
+      "queries": 20,
+      "final_error": 0.20000000000000062,
+      "smoothness": 0.0
+    },
+    {
+      "horizon": 5,
+      "queries": 4,
+      "final_error": 0.04000000000000048,
+      "smoothness": 3.684210526315791e-05
+    }
+  ],
+  "checks": {
+    "chunk_has_fewer_queries": true,
+    "chunk_has_lower_final_error": true
+  }
+}

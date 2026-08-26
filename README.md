@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/robodreamer/vla-ideas?style=social)](https://github.com/robodreamer/vla-ideas/stargazers)
 
-Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains ten compact experiment tracks plus a lightweight research-notes index:
+Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains eleven compact experiment tracks plus a lightweight research-notes index:
 
 - `recap_pi`: RECAP-style advantage-conditioned navigation demos in 2D and 3D.
 - `async_chunking_compare`: a lightweight simulator for comparing synchronous and asynchronous chunked-control strategies under inference delay.
@@ -19,6 +19,7 @@ Toy research prototypes for exploring visual-language-action timing, policy cond
 - `explorative_policy_chunks`: an Explorative Modeling/XM-inspired toy showing that best-of-K action chunks, when seeded with candidate diversity, can avoid multimodal BC averaging in one forward pass.
 - `anticipatory_context_chunking`: a FutureRTC-inspired toy comparing stale context, state-only compensation, latent transport, learned innovation, and policy-consistency training under asynchronous handoff delay.
 - `context_chunk_tradeoff`: a hidden-temporal-mode toy that sweeps observation-history context against open-loop chunk horizon under paired disturbances and mode switches.
+- `bc_distribution_shift_mysteries`: a BC diagnostic sweeping chunk horizon, previous-action history, feature scaling, and basis capacity while comparing expert-state validation loss against closed-loop success and state divergence.
 - `notes`: source-grounded research notes and a reference index for ideas that may become experiments.
 
 ## Preview
@@ -71,6 +72,10 @@ This repo is organized as a small ideas lab rather than a polished framework. Th
 ### `context_chunk_tradeoff`
 
 `context_chunk_tradeoff` isolates a complementary execution trade-off: history helps a controller infer a hidden persistent target-motion mode from noisy observations, while action-chunk horizon controls policy refresh after surprises. In the supported C16 comparison, H1 recovers faster than H16; this is not generalized across every context setting. The toy emits a deterministic sanity check plus a paired 2D context/horizon Monte Carlo map and is not a VLA-paper reproduction.
+
+### `bc_distribution_shift_mysteries`
+
+`bc_distribution_shift_mysteries` distills the Behavioral Cloning Mystery write-up into an exact query-boundary sanity check and a trained 2D obstacle-avoidance benchmark. A 48-policy ridge-BC sweep shows how open-loop chunk horizon, previous-action shortcuts, correlated feature scaling, and basis capacity can leave expert-state validation MSE misaligned with closed-loop success, tracking error, and policy-induced state divergence.
 
 ## Research Notes
 
@@ -160,6 +165,13 @@ cd /home/andypark/Projects/repos/vla-ideas
 /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python context_chunk_tradeoff/run_context_chunk_tradeoff.py --trials 120 --seed 17
 ```
 
+Run the BC distribution-shift mysteries toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python bc_distribution_shift_mysteries/run_bc_distribution_shift_mysteries.py --seed 17 --eval-episodes 96
+```
+
 ## What Gets Generated
 
 The experiment scripts write visual outputs and reports directly into the repo so results stay easy to compare across iterations.
@@ -220,6 +232,13 @@ The experiment scripts write visual outputs and reports directly into the repo s
 - deterministic mechanism checks and paired per-trial/aggregate CSV and JSON metrics for the full context-by-horizon sweep;
 - heatmaps for success, tracking error, recovery delay, and planning-call proxy;
 - a reliability/error trade-off plot and a matched reactive-versus-open-loop rollout.
+
+### `bc_distribution_shift_mysteries/outputs`
+
+- exact query-boundary sanity-check metrics plus aggregate and per-trial CSV/JSON for 48 ridge-BC policies;
+- chunk/history/scaling sweep plots and validation-loss-versus-rollout comparisons;
+- representative rollouts showing how correlated feature scalings extrapolate after perturbations;
+- a generated LaTeX experiment report and rendered PDF.
 
 ## Current Snapshot
 
