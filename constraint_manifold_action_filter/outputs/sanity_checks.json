@@ -1,0 +1,36 @@
+{
+  "tangent_projection": {
+    "passed": true,
+    "Jc_u_abs": 0.0
+  },
+  "joint_halfspace_projection": {
+    "passed": true,
+    "max_residual": 2.7755575615628914e-16
+  },
+  "naive_ambient_correction_can_break_equality": {
+    "passed": true,
+    "Jc_u_abs": 0.137193109783024
+  },
+  "finite_step_drift_is_second_order": {
+    "passed": true,
+    "dt_drift": 0.002776628904128442,
+    "half_dt_drift": 0.000694157226031944,
+    "ratio": 4.000000000000959
+  },
+  "gauss_newton_retraction": {
+    "passed": true,
+    "residual": 9.234835118832052e-13,
+    "iterations": 2
+  },
+  "local_infeasibility_detected": {
+    "passed": true,
+    "example": "z_x >= 0.8 and z_x <= -0.8"
+  },
+  "rank_degenerate_retraction_fails_cleanly": {
+    "passed": true,
+    "example": "orientation vector [a,b]=[0,0] gives rank-zero Jc"
+  },
+  "all_passed": {
+    "passed": true
+  }
+}

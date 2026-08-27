@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/robodreamer/vla-ideas?style=social)](https://github.com/robodreamer/vla-ideas/stargazers)
 
-Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains eleven compact experiment tracks plus a lightweight research-notes index:
+Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains thirteen compact experiment tracks plus a lightweight research-notes index:
 
 - `recap_pi`: RECAP-style advantage-conditioned navigation demos in 2D and 3D.
 - `async_chunking_compare`: a lightweight simulator for comparing synchronous and asynchronous chunked-control strategies under inference delay.
@@ -20,6 +20,8 @@ Toy research prototypes for exploring visual-language-action timing, policy cond
 - `anticipatory_context_chunking`: a FutureRTC-inspired toy comparing stale context, state-only compensation, latent transport, learned innovation, and policy-consistency training under asynchronous handoff delay.
 - `context_chunk_tradeoff`: a hidden-temporal-mode toy that sweeps observation-history context against open-loop chunk horizon under paired disturbances and mode switches.
 - `bc_distribution_shift_mysteries`: a BC diagnostic sweeping chunk horizon, previous-action history, feature scaling, and basis capacity while comparing expert-state validation loss against closed-loop success and state divergence.
+- `demo_prompted_policy`: an S1-inspired toy comparing task-label, replay, phase, full-demo alignment, and latent-intent mechanisms when one demonstration prompts execution under scene and embodiment shift.
+- `constraint_manifold_action_filter`: a PR-MPPI-inspired toy filtering aggressive learned action chunks with equality-tangent/inequality-half-space projection and finite-step retraction.
 - `notes`: source-grounded research notes and a reference index for ideas that may become experiments.
 
 ## Preview
@@ -76,6 +78,14 @@ This repo is organized as a small ideas lab rather than a polished framework. Th
 ### `bc_distribution_shift_mysteries`
 
 `bc_distribution_shift_mysteries` distills the Behavioral Cloning Mystery write-up into an exact query-boundary sanity check and a trained 2D obstacle-avoidance benchmark. A 48-policy ridge-BC sweep shows how open-loop chunk horizon, previous-action shortcuts, correlated feature scaling, and basis capacity can leave expert-state validation MSE misaligned with closed-loop success, tracking error, and policy-induced state divergence.
+
+### `demo_prompted_policy`
+
+`demo_prompted_policy` treats one trajectory as an inference-time task prompt. It compares a fixed language/task prior, mapped replay, phase retrieval, soft whole-demonstration alignment, and a hand-engineered latent interaction sequence while sweeping scene transforms, mirrored action mappings, prompt corruption, perturbations, and long horizons.
+
+### `constraint_manifold_action_filter`
+
+`constraint_manifold_action_filter` wraps aggressive behavior-cloned tray-motion chunks in explicit execution geometry. It compares soft penalties, one-step correction, rollout-time equality/inequality projection, and projection plus nonlinear retraction, exposing both finite-step equality drift and locally infeasible hard constraints.
 
 ## Research Notes
 
@@ -172,6 +182,20 @@ cd /home/andypark/Projects/repos/vla-ideas
 /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python bc_distribution_shift_mysteries/run_bc_distribution_shift_mysteries.py --seed 17 --eval-episodes 96
 ```
 
+Run the S1-inspired demonstration-prompted policy toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python demo_prompted_policy/run_demo_prompted_policy.py --seed 23 --trials-per-cell 6
+```
+
+Run the PR-MPPI-inspired constraint-manifold filter toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+PYTHONWARNINGS=error /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python constraint_manifold_action_filter/run_constraint_manifold_action_filter.py --seed 23 --trials 120 --train-samples 7000 --test-samples 1400
+```
+
 ## What Gets Generated
 
 The experiment scripts write visual outputs and reports directly into the repo so results stay easy to compare across iterations.
@@ -240,6 +264,20 @@ The experiment scripts write visual outputs and reports directly into the repo s
 - representative rollouts showing how correlated feature scalings extrapolate after perturbations;
 - a generated LaTeX experiment report and rendered PDF.
 
+### `demo_prompted_policy/outputs`
+
+- paired per-rollout and aggregate metrics for five demonstration-use mechanisms;
+- robustness sweeps over scene shift, mirrored action mappings, prompt corruption, and horizon;
+- a deterministic intent-extraction/motor-mapping sanity check and representative rollout;
+- a generated LaTeX experiment report and rendered PDF.
+
+### `constraint_manifold_action_filter/outputs`
+
+- paired trial and aggregate metrics for penalty, correction, projection, and projection+retraction filters;
+- deterministic tangent, half-space, drift, retraction, infeasibility, and degeneracy checks;
+- summary and representative residual/margin/intervention plots;
+- a generated LaTeX experiment report and rendered PDF.
+
 ## Current Snapshot
 
 The existing `recap_pi` docs report these latest verified headline numbers:
@@ -297,8 +335,16 @@ vla-ideas/
 │   ├── run_anticipatory_context_chunking.py
 │   ├── outputs/
 │   └── docs/
-└── context_chunk_tradeoff/
-    ├── run_context_chunk_tradeoff.py
+├── context_chunk_tradeoff/
+│   ├── run_context_chunk_tradeoff.py
+│   ├── outputs/
+│   └── docs/
+├── demo_prompted_policy/
+│   ├── run_demo_prompted_policy.py
+│   ├── outputs/
+│   └── docs/
+└── constraint_manifold_action_filter/
+    ├── run_constraint_manifold_action_filter.py
     ├── outputs/
     └── docs/
 ```
@@ -333,6 +379,10 @@ LaTeX reports share one renderer and Docker setup under [`tools/`](tools/). Each
 - [`context_chunk_tradeoff/docs/context_chunk_tradeoff_report.md`](context_chunk_tradeoff/docs/context_chunk_tradeoff_report.md)
 - [`context_chunk_tradeoff/docs/context_chunk_tradeoff_report.tex`](context_chunk_tradeoff/docs/context_chunk_tradeoff_report.tex)
 - [`context_chunk_tradeoff/docs/context_chunk_tradeoff_report.pdf`](context_chunk_tradeoff/docs/context_chunk_tradeoff_report.pdf)
+- [`demo_prompted_policy/README.md`](demo_prompted_policy/README.md)
+- [`demo_prompted_policy/docs/demo_prompted_policy_report.pdf`](demo_prompted_policy/docs/demo_prompted_policy_report.pdf)
+- [`constraint_manifold_action_filter/README.md`](constraint_manifold_action_filter/README.md)
+- [`constraint_manifold_action_filter/docs/constraint_manifold_action_filter_report.pdf`](constraint_manifold_action_filter/docs/constraint_manifold_action_filter_report.pdf)
 - [`recap_pi/README.md`](recap_pi/README.md)
 - [`recap_pi/docs/rl_tokens_experiment_report.md`](recap_pi/docs/rl_tokens_experiment_report.md)
 - [`recap_pi/docs/recap_concept_writeup.pdf`](recap_pi/docs/recap_concept_writeup.pdf)

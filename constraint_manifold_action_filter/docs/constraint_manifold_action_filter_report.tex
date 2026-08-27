@@ -1,0 +1,100 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black}
+\title{Constraint-Manifold Action Filtering:\\A PR-MPPI-Inspired Learned-Chunk Toy}
+\author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
+\date{August 27, 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+This note studies an execution-time safety layer for aggressive behavior-cloned action chunks. A low-dimensional tray task compares soft penalties, one-step ambient correction, rollout-time equality/inequality projection, and projection followed by equality-manifold retraction. In 120 paired trials, rollout projection eliminates measured inequality violation but finite integration leaves equality drift; retraction reduces the p95 equality residual to $9.69\times10^{-11}$ and yields 63.3\% full success. The experiment isolates PR-MPPI's geometric mechanism but does not reproduce MPPI sampling or the reported robot results.
+\end{abstract}
+
+\section{Motivation}
+PR-MPPI addresses manipulation constraints that should hold throughout motion rather than only appear as soft costs \cite{prmppi}. At every rollout step, velocity is projected into the equality tangent and inequality half-spaces. The selected finite step is then retracted onto the equality manifold because first-order tangent feasibility still leaves second-order integration drift.
+
+For learned policies, the same mechanism can be viewed as an execution layer: a VLA or BC policy proposes an action chunk, while explicit geometry restricts which motions are evaluated and executed. This toy asks what that layer accomplishes independently of a full MPPI implementation.
+
+\section{Toy Geometry}
+The state is $q=[x,y,a,b]$. The tray orientation vector obeys
+\begin{equation}
+c(q)=a^2+b^2-1=0,
+\end{equation}
+with tangent condition $J_c(q)u=0$. Sampled points along the tray obey obstacle-clearance constraints $h_i(q)\ge0$ and workspace bounds. With shifted margins $\bar h_i=h_i-h_{\rm safe}$, actions satisfy
+\begin{equation}
+J_{h_i}(q)u\ge-\gamma\bar h_i(q).
+\end{equation}
+
+The projected reduced action is the Euclidean projection of the BC proposal onto all half-spaces inside a three-dimensional basis for the equality tangent. A deterministic Dykstra iteration is used for this compact CPU toy. Retraction applies Gauss--Newton iterations to $q+\Delta t u$ until $\lVert c(q^+)\rVert$ reaches tolerance.
+
+\section{Proposal Model and Methods}
+An Extra Trees behavior clone is trained on 7,000 nominal state/action samples and evaluated on 1,400 held-out samples. Its held-out action RMSE is 0.0889. Seven-step chunks are stressed with seeded action gain, shortcut bias, correlated noise, and radial orientation error.
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Penalty only}: proposal-level soft corrections, no hard execution filter.
+  \item \textbf{One-step correction}: tangent projection and one ambient sequential inequality sweep only for the first chunk action.
+  \item \textbf{Rollout projection}: every action is projected in the current predicted state before propagation.
+  \item \textbf{Projection + retraction}: rollout projection plus equality retraction after each finite step.
+\end{itemize}
+
+\section{Results}
+Artifacts were generated with:
+\begin{verbatim}
+PYTHONWARNINGS=error \
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  constraint_manifold_action_filter/run_constraint_manifold_action_filter.py \
+  --seed 23 --trials 120 --train-samples 7000 --test-samples 1400
+\end{verbatim}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrrrrr}
+\toprule
+Method & Success & Collision & Eq. p95 & Ineq. viol. & Min margin & Deadlock \\
+\midrule
+Penalty only & 0.0\% & 36.7\% & $2.59\times10^{-1}$ & 0.0491 & 0.0147 & 0.0\% \\
+One-step correction & 0.0\% & 33.3\% & $2.56\times10^{-1}$ & 0.0408 & 0.0264 & 0.0\% \\
+Rollout projection & 0.0\% & \textbf{0.0\%} & $2.23\times10^{-1}$ & \textbf{0.0000} & 0.0995 & 11.7\% \\
+Projection + retraction & \textbf{63.3\%} & \textbf{0.0\%} & $\mathbf{9.69\times10^{-11}}$ & \textbf{0.0000} & \textbf{0.1001} & 9.2\% \\
+\bottomrule
+\end{tabular}
+\caption{Aggregate paired Monte Carlo metrics over 120 trials. Full success requires goal completion, no collision, and the equality tolerance.}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../outputs/monte_carlo_summary.png}
+\caption{Projection removes measured inequality violation; retraction is needed to remove finite-step equality drift.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../outputs/representative_rollout.png}
+\caption{A paired aggressive/OOD trial showing tray paths, equality residual, minimum margin, and intervention magnitude.}
+\end{figure}
+
+\section{Deterministic Checks}
+The sanity suite verifies tangent projection, joint half-space projection, equality damage from naive ambient correction, $\mathcal{O}(\Delta t^2)$ finite-step drift, Gauss--Newton retraction, contradictory-half-space infeasibility, and clean failure under a rank-zero equality Jacobian. Halving $\Delta t$ reduces measured drift by a factor of four; retraction reaches $9.23\times10^{-13}$ residual in two iterations.
+
+\section{Interpretation}
+The local result separates three jobs. Penalties influence proposals but do not guarantee geometry. Projection changes every predicted action so obstacle/workspace margins remain nonnegative. Retraction solves a different problem: restoring the nonlinear equality after finite integration. The OOD failures also expose the method's boundary---hard local constraints can leave no admissible progress direction.
+
+\section{Limitations and Follow-ups}
+This is not MPPI: there are no sampled candidates, exponential weights, or nominal-horizon averaging/refiltering. The proposal is coordinate BC rather than a VLA. Constraint functions and object geometry are exact. Dykstra projection replaces the paper's active-set/CUDA implementation. The stop fallback handles local infeasibility but does not resolve it. Follow-ups should add MPPI candidate selection, slack/hierarchical constraints, learned constraint uncertainty, and image-conditioned chunks.
+
+\begin{thebibliography}{9}
+\bibitem{prmppi} Sanghyun Kim et al. \emph{Projection-Retraction MPPI: Exact Constraint-Manifold Control for Manipulators}. arXiv:2608.07573, 2026. \url{https://arxiv.org/abs/2608.07573}
+\bibitem{project} PR-MPPI project page. \url{https://rcilab.khu.ac.kr/prmppi/}
+\end{thebibliography}
+\end{document}
