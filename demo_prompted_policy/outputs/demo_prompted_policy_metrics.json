@@ -1,0 +1,718 @@
+{
+  "experiment": {
+    "seed": 23,
+    "trials_per_cell": 6,
+    "shift_levels": [
+      0,
+      1,
+      2
+    ],
+    "mirrored": [
+      false,
+      true
+    ],
+    "corruption_levels": [
+      0.0,
+      0.18,
+      0.35
+    ],
+    "horizons": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "scenario_count": 432,
+    "paired_rollout_count": 2160
+  },
+  "sanity_check": {
+    "passed": true,
+    "true_sequence": [
+      0,
+      4,
+      1,
+      2,
+      5,
+      3
+    ],
+    "inferred_sequence": [
+      0,
+      4,
+      1,
+      2,
+      5,
+      3
+    ],
+    "extraction_exact": true,
+    "aware_mirror_action_error": 0.0,
+    "unaware_mirror_action_error": 0.16,
+    "first_latent_target_error": 0.0
+  },
+  "overall": {
+    "language_prior": {
+      "episodes": 432,
+      "success_rate": 0.0,
+      "assisted_completion_rate": 0.0,
+      "mean_progress": 0.27314814814814814,
+      "tracking_rmse": 1.1010210090884667,
+      "tracking_progress": 0.2339921651572457,
+      "mean_interventions": 2.0,
+      "recovery_rate": 0.3217391304347826,
+      "wrong_contacts": 7.828703703703703,
+      "smoothness": 0.027743066579626864,
+      "command_jerk": 0.038266678631707865,
+      "mean_steps": 214.0,
+      "robust_success_rate": 0.0
+    },
+    "nearest_demo_replay": {
+      "episodes": 432,
+      "success_rate": 0.02546296296296296,
+      "assisted_completion_rate": 0.02546296296296296,
+      "mean_progress": 0.1046167695473251,
+      "tracking_rmse": 4.987425514037428,
+      "tracking_progress": 0.07753948879793657,
+      "mean_interventions": 1.9490740740740742,
+      "recovery_rate": 0.43902439024390244,
+      "wrong_contacts": 2.150462962962963,
+      "smoothness": 0.024413606860853053,
+      "command_jerk": 0.033599446792643144,
+      "mean_steps": 212.09722222222223,
+      "robust_success_rate": 0.008928571428571428
+    },
+    "phase_retrieval": {
+      "episodes": 432,
+      "success_rate": 0.041666666666666664,
+      "assisted_completion_rate": 0.05787037037037037,
+      "mean_progress": 0.19727366255144035,
+      "tracking_rmse": 1.0482822856595406,
+      "tracking_progress": 0.14650403448602975,
+      "mean_interventions": 1.9050925925925926,
+      "recovery_rate": 0.38562091503267976,
+      "wrong_contacts": 4.018518518518518,
+      "smoothness": 0.03437725900514407,
+      "command_jerk": 0.04902202885235004,
+      "mean_steps": 210.1712962962963,
+      "robust_success_rate": 0.03273809523809524
+    },
+    "full_demo_attention": {
+      "episodes": 432,
+      "success_rate": 0.0023148148148148147,
+      "assisted_completion_rate": 0.0023148148148148147,
+      "mean_progress": 0.044045781893004114,
+      "tracking_rmse": 1.1071677864772964,
+      "tracking_progress": 0.040835308942156034,
+      "mean_interventions": 1.9953703703703705,
+      "recovery_rate": 0.08,
+      "wrong_contacts": 2.7939814814814814,
+      "smoothness": 0.03468899960298853,
+      "command_jerk": 0.05127087846549145,
+      "mean_steps": 213.8125,
+      "robust_success_rate": 0.002976190476190476
+    },
+    "latent_intent": {
+      "episodes": 432,
+      "success_rate": 1.0,
+      "assisted_completion_rate": 1.0,
+      "mean_progress": 1.0,
+      "tracking_rmse": 0.884144273530566,
+      "tracking_progress": 0.431113732686151,
+      "mean_interventions": 0.0,
+      "recovery_rate": 1.0,
+      "wrong_contacts": 6.175925925925926,
+      "smoothness": 0.03937545555672179,
+      "command_jerk": 0.045222853285886516,
+      "mean_steps": 96.34953703703704,
+      "robust_success_rate": 1.0
+    }
+  },
+  "by_factor": {
+    "shift_level": {
+      "language_prior": {
+        "0": {
+          "episodes": 144,
+          "success_rate": 0.0,
+          "mean_progress": 0.29282407407407407,
+          "tracking_rmse": 1.0911056451464909,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.3411764705882353,
+          "smoothness": 0.027923750229385782
+        },
+        "1": {
+          "episodes": 144,
+          "success_rate": 0.0,
+          "mean_progress": 0.26176697530864196,
+          "tracking_rmse": 1.104366288264722,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.2702702702702703,
+          "smoothness": 0.02764694600208912
+        },
+        "2": {
+          "episodes": 144,
+          "success_rate": 0.0,
+          "mean_progress": 0.2648533950617284,
+          "tracking_rmse": 1.1075910938541869,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.352112676056338,
+          "smoothness": 0.027658503507405705
+        }
+      },
+      "nearest_demo_replay": {
+        "0": {
+          "episodes": 144,
+          "success_rate": 0.05555555555555555,
+          "mean_progress": 0.14853395061728394,
+          "tracking_rmse": 4.959758337510648,
+          "mean_interventions": 1.8888888888888888,
+          "recovery_rate": 0.5384615384615384,
+          "smoothness": 0.024253752238414805
+        },
+        "1": {
+          "episodes": 144,
+          "success_rate": 0.013888888888888888,
+          "mean_progress": 0.10088734567901235,
+          "tracking_rmse": 4.990291059679716,
+          "mean_interventions": 1.9722222222222223,
+          "recovery_rate": 0.3103448275862069,
+          "smoothness": 0.024340717476791975
+        },
+        "2": {
+          "episodes": 144,
+          "success_rate": 0.006944444444444444,
+          "mean_progress": 0.06442901234567902,
+          "tracking_rmse": 5.01222714492192,
+          "mean_interventions": 1.9861111111111112,
+          "recovery_rate": 0.42857142857142855,
+          "smoothness": 0.024646350867352382
+        }
+      },
+      "phase_retrieval": {
+        "0": {
+          "episodes": 144,
+          "success_rate": 0.09722222222222222,
+          "mean_progress": 0.265625,
+          "tracking_rmse": 1.0480434665259932,
+          "mean_interventions": 1.8055555555555556,
+          "recovery_rate": 0.5135135135135135,
+          "smoothness": 0.03699606760439814
+        },
+        "1": {
+          "episodes": 144,
+          "success_rate": 0.027777777777777776,
+          "mean_progress": 0.17380401234567902,
+          "tracking_rmse": 1.0401269822015244,
+          "mean_interventions": 1.9305555555555556,
+          "recovery_rate": 0.30952380952380953,
+          "smoothness": 0.03434289589070352
+        },
+        "2": {
+          "episodes": 144,
+          "success_rate": 0.0,
+          "mean_progress": 0.15239197530864199,
+          "tracking_rmse": 1.0566764082511046,
+          "mean_interventions": 1.9791666666666667,
+          "recovery_rate": 0.21621621621621623,
+          "smoothness": 0.03179281352033056
+        }
+      },
+      "full_demo_attention": {
+        "0": {
+          "episodes": 144,
+          "success_rate": 0.006944444444444444,
+          "mean_progress": 0.052662037037037035,
+          "tracking_rmse": 1.1064559618598555,
+          "mean_interventions": 1.9861111111111112,
+          "recovery_rate": 0.15384615384615385,
+          "smoothness": 0.034611793893238776
+        },
+        "1": {
+          "episodes": 144,
+          "success_rate": 0.0,
+          "mean_progress": 0.02970679012345679,
+          "tracking_rmse": 1.1008137329845928,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.0,
+          "smoothness": 0.03609109687634079
+        },
+        "2": {
+          "episodes": 144,
+          "success_rate": 0.0,
+          "mean_progress": 0.04976851851851852,
+          "tracking_rmse": 1.1142336645874413,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.0,
+          "smoothness": 0.033364108039386026
+        }
+      },
+      "latent_intent": {
+        "0": {
+          "episodes": 144,
+          "success_rate": 1.0,
+          "mean_progress": 1.0,
+          "tracking_rmse": 0.8587057510193992,
+          "mean_interventions": 0.0,
+          "recovery_rate": 1.0,
+          "smoothness": 0.03984787974073677
+        },
+        "1": {
+          "episodes": 144,
+          "success_rate": 1.0,
+          "mean_progress": 1.0,
+          "tracking_rmse": 0.8827019997906871,
+          "mean_interventions": 0.0,
+          "recovery_rate": 1.0,
+          "smoothness": 0.0392817115132308
+        },
+        "2": {
+          "episodes": 144,
+          "success_rate": 1.0,
+          "mean_progress": 1.0,
+          "tracking_rmse": 0.911025069781612,
+          "mean_interventions": 0.0,
+          "recovery_rate": 1.0,
+          "smoothness": 0.03899677541619781
+        }
+      }
+    },
+    "mirrored": {
+      "language_prior": {
+        "False": {
+          "episodes": 216,
+          "success_rate": 0.0,
+          "mean_progress": 0.25913065843621397,
+          "tracking_rmse": 1.1233261499543217,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.32038834951456313,
+          "smoothness": 0.027592741307909882
+        },
+        "True": {
+          "episodes": 216,
+          "success_rate": 0.0,
+          "mean_progress": 0.28716563786008226,
+          "tracking_rmse": 1.0787158682226112,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.3228346456692913,
+          "smoothness": 0.027893391851343846
+        }
+      },
+      "nearest_demo_replay": {
+        "False": {
+          "episodes": 216,
+          "success_rate": 0.05092592592592592,
+          "mean_progress": 0.18441358024691357,
+          "tracking_rmse": 0.9064463532914318,
+          "mean_interventions": 1.8981481481481481,
+          "recovery_rate": 0.4931506849315068,
+          "smoothness": 0.03549107710254864
+        },
+        "True": {
+          "episodes": 216,
+          "success_rate": 0.0,
+          "mean_progress": 0.024819958847736624,
+          "tracking_rmse": 9.068404674783423,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.0,
+          "smoothness": 0.013336136619157475
+        }
+      },
+      "phase_retrieval": {
+        "False": {
+          "episodes": 216,
+          "success_rate": 0.037037037037037035,
+          "mean_progress": 0.20023148148148148,
+          "tracking_rmse": 1.0408520852482757,
+          "mean_interventions": 1.912037037037037,
+          "recovery_rate": 0.35064935064935066,
+          "smoothness": 0.03441844999883326
+        },
+        "True": {
+          "episodes": 216,
+          "success_rate": 0.046296296296296294,
+          "mean_progress": 0.19431584362139917,
+          "tracking_rmse": 1.0557124860708056,
+          "mean_interventions": 1.8981481481481481,
+          "recovery_rate": 0.42105263157894735,
+          "smoothness": 0.03433606801145489
+        }
+      },
+      "full_demo_attention": {
+        "False": {
+          "episodes": 216,
+          "success_rate": 0.0,
+          "mean_progress": 0.04501028806584362,
+          "tracking_rmse": 1.1147448163089682,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.0,
+          "smoothness": 0.03487913481930988
+        },
+        "True": {
+          "episodes": 216,
+          "success_rate": 0.004629629629629629,
+          "mean_progress": 0.0430812757201646,
+          "tracking_rmse": 1.0995907566456251,
+          "mean_interventions": 1.9907407407407407,
+          "recovery_rate": 0.16666666666666666,
+          "smoothness": 0.03449886438666717
+        }
+      },
+      "latent_intent": {
+        "False": {
+          "episodes": 216,
+          "success_rate": 1.0,
+          "mean_progress": 1.0,
+          "tracking_rmse": 0.8865549899603876,
+          "mean_interventions": 0.0,
+          "recovery_rate": 1.0,
+          "smoothness": 0.03948186340865257
+        },
+        "True": {
+          "episodes": 216,
+          "success_rate": 1.0,
+          "mean_progress": 1.0,
+          "tracking_rmse": 0.8817335571007445,
+          "mean_interventions": 0.0,
+          "recovery_rate": 1.0,
+          "smoothness": 0.03926904770479103
+        }
+      }
+    },
+    "corruption": {
+      "language_prior": {
+        "0.0": {
+          "episodes": 144,
+          "success_rate": 0.0,
+          "mean_progress": 0.2862654320987654,
+          "tracking_rmse": 1.1014085076285485,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.29411764705882354,
+          "smoothness": 0.027948961845055204
+        },
+        "0.18": {
+          "episodes": 144,
+          "success_rate": 0.0,
+          "mean_progress": 0.25810185185185186,
+          "tracking_rmse": 1.1054179058810847,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.3384615384615385,
+          "smoothness": 0.02751509542949062
+        },
+        "0.35": {
+          "episodes": 144,
+          "success_rate": 0.0,
+          "mean_progress": 0.2750771604938272,
+          "tracking_rmse": 1.0962366137557664,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.3375,
+          "smoothness": 0.02776514246433477
+        }
+      },
+      "nearest_demo_replay": {
+        "0.0": {
+          "episodes": 144,
+          "success_rate": 0.027777777777777776,
+          "mean_progress": 0.11651234567901235,
+          "tracking_rmse": 5.00484921358837,
+          "mean_interventions": 1.9444444444444444,
+          "recovery_rate": 0.43333333333333335,
+          "smoothness": 0.022225466001911276
+        },
+        "0.18": {
+          "episodes": 144,
+          "success_rate": 0.034722222222222224,
+          "mean_progress": 0.11593364197530863,
+          "tracking_rmse": 4.977872950342171,
+          "mean_interventions": 1.9305555555555556,
+          "recovery_rate": 0.5483870967741935,
+          "smoothness": 0.02475820373115106
+        },
+        "0.35": {
+          "episodes": 144,
+          "success_rate": 0.013888888888888888,
+          "mean_progress": 0.08140432098765432,
+          "tracking_rmse": 4.979554378181742,
+          "mean_interventions": 1.9722222222222223,
+          "recovery_rate": 0.2857142857142857,
+          "smoothness": 0.026257150849496827
+        }
+      },
+      "phase_retrieval": {
+        "0.0": {
+          "episodes": 144,
+          "success_rate": 0.04861111111111111,
+          "mean_progress": 0.23514660493827164,
+          "tracking_rmse": 1.0390616503329706,
+          "mean_interventions": 1.8819444444444444,
+          "recovery_rate": 0.390625,
+          "smoothness": 0.03201715387749796
+        },
+        "0.18": {
+          "episodes": 144,
+          "success_rate": 0.0625,
+          "mean_progress": 0.20235339506172836,
+          "tracking_rmse": 1.0583765881206137,
+          "mean_interventions": 1.8611111111111112,
+          "recovery_rate": 0.5192307692307693,
+          "smoothness": 0.03432098266356209
+        },
+        "0.35": {
+          "episodes": 144,
+          "success_rate": 0.013888888888888888,
+          "mean_progress": 0.15432098765432098,
+          "tracking_rmse": 1.0474086185250375,
+          "mean_interventions": 1.9722222222222223,
+          "recovery_rate": 0.1891891891891892,
+          "smoothness": 0.03679364047437217
+        }
+      },
+      "full_demo_attention": {
+        "0.0": {
+          "episodes": 144,
+          "success_rate": 0.0,
+          "mean_progress": 0.04031635802469136,
+          "tracking_rmse": 1.1255571566700333,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.0,
+          "smoothness": 0.024127848520291224
+        },
+        "0.18": {
+          "episodes": 144,
+          "success_rate": 0.006944444444444444,
+          "mean_progress": 0.04417438271604938,
+          "tracking_rmse": 1.1176968984257347,
+          "mean_interventions": 1.9861111111111112,
+          "recovery_rate": 0.2222222222222222,
+          "smoothness": 0.034435956939305755
+        },
+        "0.35": {
+          "episodes": 144,
+          "success_rate": 0.0,
+          "mean_progress": 0.0476466049382716,
+          "tracking_rmse": 1.0782493043361217,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.0,
+          "smoothness": 0.0455031933493686
+        }
+      },
+      "latent_intent": {
+        "0.0": {
+          "episodes": 144,
+          "success_rate": 1.0,
+          "mean_progress": 1.0,
+          "tracking_rmse": 0.88996646598916,
+          "mean_interventions": 0.0,
+          "recovery_rate": 1.0,
+          "smoothness": 0.03946071035454499
+        },
+        "0.18": {
+          "episodes": 144,
+          "success_rate": 1.0,
+          "mean_progress": 1.0,
+          "tracking_rmse": 0.8848620261134306,
+          "mean_interventions": 0.0,
+          "recovery_rate": 1.0,
+          "smoothness": 0.039181612468908424
+        },
+        "0.35": {
+          "episodes": 144,
+          "success_rate": 1.0,
+          "mean_progress": 1.0,
+          "tracking_rmse": 0.8776043284891075,
+          "mean_interventions": 0.0,
+          "recovery_rate": 1.0,
+          "smoothness": 0.03948404384671197
+        }
+      }
+    },
+    "horizon": {
+      "language_prior": {
+        "3": {
+          "episodes": 108,
+          "success_rate": 0.0,
+          "mean_progress": 0.21296296296296294,
+          "tracking_rmse": 1.1540043464262664,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.15942028985507245,
+          "smoothness": 0.02928650226176676
+        },
+        "6": {
+          "episodes": 108,
+          "success_rate": 0.0,
+          "mean_progress": 0.2716049382716049,
+          "tracking_rmse": 1.1188132474214691,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.32653061224489793,
+          "smoothness": 0.027753042103615774
+        },
+        "9": {
+          "episodes": 108,
+          "success_rate": 0.0,
+          "mean_progress": 0.287037037037037,
+          "tracking_rmse": 1.0140747823382104,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.32653061224489793,
+          "smoothness": 0.027065301193714374
+        },
+        "12": {
+          "episodes": 108,
+          "success_rate": 0.0,
+          "mean_progress": 0.3209876543209877,
+          "tracking_rmse": 1.1171916601679204,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.49206349206349204,
+          "smoothness": 0.026867420759410555
+        }
+      },
+      "nearest_demo_replay": {
+        "3": {
+          "episodes": 108,
+          "success_rate": 0.09259259259259259,
+          "mean_progress": 0.16975308641975312,
+          "tracking_rmse": 1.716452111936718,
+          "mean_interventions": 1.8148148148148149,
+          "recovery_rate": 0.4888888888888889,
+          "smoothness": 0.02566272704631858
+        },
+        "6": {
+          "episodes": 108,
+          "success_rate": 0.009259259259259259,
+          "mean_progress": 0.09413580246913579,
+          "tracking_rmse": 3.6804434137786353,
+          "mean_interventions": 1.9814814814814814,
+          "recovery_rate": 0.5625,
+          "smoothness": 0.025386124272732073
+        },
+        "9": {
+          "episodes": 108,
+          "success_rate": 0.0,
+          "mean_progress": 0.08436213991769546,
+          "tracking_rmse": 6.10200338999353,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.14285714285714285,
+          "smoothness": 0.02378352345024458
+        },
+        "12": {
+          "episodes": 108,
+          "success_rate": 0.0,
+          "mean_progress": 0.07021604938271604,
+          "tracking_rmse": 8.450803140440827,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.42857142857142855,
+          "smoothness": 0.022822052674116987
+        }
+      },
+      "phase_retrieval": {
+        "3": {
+          "episodes": 108,
+          "success_rate": 0.16666666666666666,
+          "mean_progress": 0.33641975308641975,
+          "tracking_rmse": 1.0007372051345143,
+          "mean_interventions": 1.6203703703703705,
+          "recovery_rate": 0.49411764705882355,
+          "smoothness": 0.037472100186474566
+        },
+        "6": {
+          "episodes": 108,
+          "success_rate": 0.0,
+          "mean_progress": 0.13888888888888887,
+          "tracking_rmse": 1.0445801272595512,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.45454545454545453,
+          "smoothness": 0.034293146506401376
+        },
+        "9": {
+          "episodes": 108,
+          "success_rate": 0.0,
+          "mean_progress": 0.17181069958847736,
+          "tracking_rmse": 1.0826334390390449,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.11764705882352941,
+          "smoothness": 0.033734080162807344
+        },
+        "12": {
+          "episodes": 108,
+          "success_rate": 0.0,
+          "mean_progress": 0.1419753086419753,
+          "tracking_rmse": 1.0651783712050529,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.25,
+          "smoothness": 0.03200970916489301
+        }
+      },
+      "full_demo_attention": {
+        "3": {
+          "episodes": 108,
+          "success_rate": 0.009259259259259259,
+          "mean_progress": 0.07098765432098764,
+          "tracking_rmse": 1.00159588050619,
+          "mean_interventions": 1.9814814814814814,
+          "recovery_rate": 0.09090909090909091,
+          "smoothness": 0.034198375386375456
+        },
+        "6": {
+          "episodes": 108,
+          "success_rate": 0.0,
+          "mean_progress": 0.044753086419753084,
+          "tracking_rmse": 1.11690224241709,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.0,
+          "smoothness": 0.03804592203670654
+        },
+        "9": {
+          "episodes": 108,
+          "success_rate": 0.0,
+          "mean_progress": 0.0411522633744856,
+          "tracking_rmse": 1.1262651974027116,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.0,
+          "smoothness": 0.03007396434365437
+        },
+        "12": {
+          "episodes": 108,
+          "success_rate": 0.0,
+          "mean_progress": 0.019290123456790122,
+          "tracking_rmse": 1.1839078255831947,
+          "mean_interventions": 2.0,
+          "recovery_rate": 0.0,
+          "smoothness": 0.03643773664521774
+        }
+      },
+      "latent_intent": {
+        "3": {
+          "episodes": 108,
+          "success_rate": 1.0,
+          "mean_progress": 1.0,
+          "tracking_rmse": 0.9311812653602468,
+          "mean_interventions": 0.0,
+          "recovery_rate": 1.0,
+          "smoothness": 0.03903260488735651
+        },
+        "6": {
+          "episodes": 108,
+          "success_rate": 1.0,
+          "mean_progress": 1.0,
+          "tracking_rmse": 0.8892201914367709,
+          "mean_interventions": 0.0,
+          "recovery_rate": 1.0,
+          "smoothness": 0.038977109538414795
+        },
+        "9": {
+          "episodes": 108,
+          "success_rate": 1.0,
+          "mean_progress": 1.0,
+          "tracking_rmse": 0.8536012624624624,
+          "mean_interventions": 0.0,
+          "recovery_rate": 1.0,
+          "smoothness": 0.03970159963346216
+        },
+        "12": {
+          "episodes": 108,
+          "success_rate": 1.0,
+          "mean_progress": 1.0,
+          "tracking_rmse": 0.8625743748627843,
+          "mean_interventions": 0.0,
+          "recovery_rate": 1.0,
+          "smoothness": 0.03979050816765371
+        }
+      }
+    }
+  }
+}

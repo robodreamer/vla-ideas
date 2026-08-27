@@ -1,0 +1,93 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black}
+\title{Demonstration-Prompted Policy:\\An S1-Inspired Mechanism Probe}
+\author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
+\date{August 27, 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+This note tests a narrow implication of demonstration-prompted robot policies: execution under scene and embodiment shift requires recovering task intent and progress rather than replaying a demonstrator trajectory. A deterministic 2D benchmark compares five prompt-use mechanisms over 432 paired scenarios per method. A hand-engineered sustained-contact event representation succeeds throughout the local sweep, while task-label, replay, retrieval, and soft path-attention baselines remain brittle. This is an explanatory sufficient-statistic toy, not an S1 implementation or reproduction.
+\end{abstract}
+
+\section{Motivation}
+Skild AI's S1 release frames a video demonstration as an in-context task specification: one policy maps a demonstration from a potentially different scene, viewpoint, or embodiment to actions in the current deployment scene, without task-specific post-training \cite{s1}. The post emphasizes long-horizon composition, progress tracking, distribution shift, perturbation recovery, and imperfect prompts. The underlying learned model and training procedure are not public in this release.
+
+This toy asks which information a controller would need if those problems were reduced to a transparent geometric setting. The intended lesson is representational: an execution policy needs a correspondence-aware account of what interaction should happen next, not only a path in the demonstrator's coordinates.
+
+\section{Toy Setup}
+A prompt is a noisy 2D trajectory visiting an ordered sequence of six object identities. Deployment changes the global scene transform, applies object-specific jitter, optionally mirrors the action convention, corrupts prompt segments, and injects two state perturbations. Task horizons contain 3, 6, 9, or 12 interactions.
+
+Five methods are compared:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Language prior}: executes one fixed object order and ignores the prompt's demonstrated composition.
+  \item \textbf{Nearest replay}: maps the path into the deployment scene but assumes the demonstrator motor convention.
+  \item \textbf{Phase retrieval}: retrieves local phase from object-relative distance features.
+  \item \textbf{Full-demo attention}: softly aligns the current state to the entire prompt trajectory.
+  \item \textbf{Latent intent}: extracts sustained object-contact events and executes that semantic sequence with an embodiment-aware controller.
+\end{itemize}
+
+The strongest method is deliberately favored: object identity correspondence is known, and the event parser matches the simulator's sustained-contact semantics. The experiment therefore probes a sufficient statistic rather than learning it.
+
+\section{Metrics}
+Autonomous success requires completing every prompted interaction without an oracle unstick. Progress is the completed fraction of the sequence. Recovery counts perturbations followed by timely progress. Robust success selects scenarios with the hardest scene shift, a mirrored action map, or maximum prompt corruption. Tracking, intervention count, wrong-object contacts, action smoothness, and command jerk are also recorded.
+
+\section{Results}
+The committed artifacts were generated with:
+\begin{verbatim}
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  demo_prompted_policy/run_demo_prompted_policy.py \
+  --seed 23 --trials-per-cell 6
+\end{verbatim}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrrrr}
+\toprule
+Method & Success & Progress & Recovery & Interventions & Robust success \\
+\midrule
+Language prior & 0.0\% & 27.3\% & 32.2\% & 2.00 & 0.0\% \\
+Nearest replay & 2.5\% & 10.5\% & 43.9\% & 1.95 & 0.9\% \\
+Phase retrieval & 4.2\% & 19.7\% & 38.6\% & 1.91 & 3.3\% \\
+Full-demo attention & 0.2\% & 4.4\% & 8.0\% & 2.00 & 0.3\% \\
+Latent intent & \textbf{100.0\%} & \textbf{100.0\%} & \textbf{100.0\%} & \textbf{0.00} & \textbf{100.0\%} \\
+\bottomrule
+\end{tabular}
+\caption{Aggregate results over 432 paired scenarios per method. Oracle interventions are diagnostics and make assisted completion distinct from autonomous success.}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../outputs/method_overview.png}
+\caption{The event-level intent representation separates sharply from path-level prompt-use mechanisms in this deliberately structured toy.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.94\textwidth]{../outputs/robustness_sweeps.png}
+\caption{Autonomous success across scene shift, mirrored action mapping, prompt corruption, and task horizon.}
+\end{figure}
+
+\section{Interpretation}
+The benchmark demonstrates a bounded mechanism: when a prompt's semantic event sequence is available, execution can be retargeted across geometry and motor conventions, and progress can be tracked independently of the demonstrator path. Literal replay and local alignment remain vulnerable to repeated objects, prompt errors, perturbations, and motor mismatch.
+
+The 100\% latent-intent result should not be interpreted as a realistic estimate. It is a structural consequence of known object correspondence, a simulator-matched contact parser, and a direct target controller. The open research problem is to learn these abstractions from pixels and diverse prompt/deployment pairs.
+
+\section{Limitations and Follow-ups}
+The toy has no images, video encoder, meta-learning, learned action policy, foundation model, or real robot. Object identity is given. Oracle unsticks are not autonomous recovery. Prompt corruption mostly changes path quality while preserving the intended interaction sequence. Useful follow-ups are learned correspondence, learned event segmentation, ambiguous progress estimation, chunk-policy training, and autonomous recovery evaluation.
+
+\begin{thebibliography}{9}
+\bibitem{s1} Skild AI. \emph{Introducing S1: In-Context Learning for Robotics}. August 2026. \url{https://skild.ai/blogs/s1}
+\end{thebibliography}
+\end{document}
