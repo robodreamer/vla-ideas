@@ -1,0 +1,225 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!50!black,
+  citecolor=blue!50!black
+}
+
+\title{Conflict-Aware Replay:\\A Memory-Anchors Sequential-Control Toy}
+\author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
+\date{August 28, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note tests a narrow mechanism motivated by Memory Anchors for Continual Robot Learning: old transitions near latent-overlap regions with conflicting new-task actions may be disproportionately useful for experience replay. Four route-following tasks share physical observation support but require alternating steering actions. A small policy learns them sequentially with no replay, random replay, probe-based loss-hard mining, latent-diversity replay, or a three-step conflict-anchor selector. Across six seeds, anchor enrichment yields lower mean negative backward transfer (NBT) than random replay at all four tested buffer sizes; at 288 transitions, NBT decreases from $0.435$ to $0.346$ and final average success rises from $0.396$ to $0.439$. However, latent diversity has the best NBT at the three smaller budgets. The toy supports conflict-aware enrichment over random sampling in this construction, but it does not support universal superiority over a strong diversity coreset. This is a synthetic mechanism test, not a reproduction, VLA result, or real-robot claim.
+\end{abstract}
+
+\section{Motivation}
+
+Experience replay is a simple way to reduce catastrophic forgetting during sequential imitation learning. The Memory Anchors paper argues that not all old transitions contribute equally: when a new observation is represented near old data but its required action disagrees with the current policy, old transitions near that conflict region can regulate destructive overwriting \cite{paper,project}. The authors identify anchors through three stages: observation-representation overlap, action disagreement, and retrieval of nearby old data.
+
+The local question is deliberately narrower:
+\begin{quote}
+At a fixed replay-gradient share, does enriching a small old-data buffer with latent-overlap/action-disagreement anchors improve closed-loop retention relative to random, hard-loss, and diversity selection?
+\end{quote}
+
+The experiment also checks an important boundary. Conflict-focused selection may preserve decision points while losing wider task support, so a generic diversity coreset can remain competitive or better.
+
+\section{References Checked}
+
+Primary references were:
+\begin{itemize}[leftmargin=1.5em]
+  \item Du et al., \emph{Memory Anchors for Continual Robot Learning} \cite{paper};
+  \item the official project page, method visualizations, and reported simulation/VLA/real-robot results \cite{project}.
+\end{itemize}
+
+The source method represents each new point with lower-tail distances to old latent data, clusters those statistics to isolate representation overlap, thresholds action disagreement against old validation data, and ranks old samples by median nearest-neighbor distance to the new conflict set. The local implementation follows that factorization. It replaces diffusion action denoising with direct deterministic action error and uses a small vector latent rather than visual and language embeddings.
+
+\section{Toy Setup}
+
+A point controller moves in one physical coordinate $y$ while normalized trajectory phase $u\in[0,1]$ advances externally for 49 control steps. Task $i$ specifies a smooth reference route
+\begin{equation}
+  y_i^*(u)=A_i\sin^2(\pi u),
+\end{equation}
+with clipped expert velocity
+\begin{equation}
+  a_i(u,y)=\operatorname{clip}\!\left(\frac{d y_i^*}{dt}+k_p(y_i^*(u)-y),-a_{\max},a_{\max}\right).
+\end{equation}
+The observation is
+\begin{equation}
+  o=[2u-1,\ y,\ \sin(\pi u),\ \cos(\pi u),\ c_i].
+\end{equation}
+The four tasks use cue/amplitude pairs
+\[
+(-0.60,+0.82),\quad(-0.20,-0.82),\quad(0.20,+0.60),\quad(0.60,-0.60).
+\]
+They have identical physical observations at reset and overlap during the early route, but adjacent tasks can require opposite actions. A deterministic sanity point at $u=0.18,y=0$ gives actions $+1.636$ and $-1.636$ for the first two tasks.
+
+The policy has a two-layer, 48-unit tanh encoder and a small action head. Each seed provides 12 noisy training rollouts and five clean validation rollouts per task. The policy is optimized for 650 steps on task 1 and 480 steps on each later task. Replay occupies 25\% of every minibatch for all replay methods. Six initialization/data seeds are evaluated using 32 seeded reset perturbations per task and stage.
+
+At the final task, the old dataset contains $3\times12\times49=1764$ transitions. Buffers of 12, 32, 96, and 288 transitions therefore retain approximately 0.7\%, 1.8\%, 5.4\%, and 16.3\% of available old data.
+
+\subsection{Compared selectors}
+
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{No replay:} optimize only the current task.
+  \item \textbf{Random replay:} sample old transitions uniformly without replacement at the start of each task.
+  \item \textbf{Loss-hard:} make a 24-step current-task-only probe update, then rank old samples by their loss increase. This is a small MIR-style interference baseline.
+  \item \textbf{Latent diversity:} greedy farthest-first traversal in the current policy's old-data latent space.
+  \item \textbf{Conflict anchors:} reserve 20\% of the buffer for the highest-ranked anchors and fill the remaining 80\% uniformly from old data.
+\end{enumerate}
+
+For anchor extraction, the nearest-neighbor, 1\%, 5\%, and 10\% latent-distance statistics of each new transition are standardized and clustered into two groups. The lower-distance group is the overlap set. Within it, direct action disagreement must exceed the old validation mean plus two standard deviations. Each old point is then scored by its median distance to the five nearest new conflict points. Smaller score means a stronger anchor.
+
+\section{Metrics and Sanity Checks}
+
+Closed-loop success requires route RMSE below 0.23, midpoint branch error below 0.25, and final error below 0.17. The report also uses closed-loop tracking RMSE, on-policy action MSE against the scripted expert, final average task success, and continual-learning area under the success curve (AUC).
+
+Following the source's notation, let $c_{i,k}$ be success on task $i$ after training through task $k$. Negative backward transfer for task $i$ is
+\begin{equation}
+  \mathrm{NBT}_i=\frac{1}{N-i}\sum_{j=i+1}^{N}(c_{i,i}-c_{i,j}),
+\end{equation}
+and reported NBT is averaged over non-final tasks. Higher values indicate more forgetting.
+
+Seven deterministic checks pass before the sweep: shared physical observation support, opposite expert actions at a shared state, nonempty overlap and conflict sets, deterministic anchor selection, exact unique buffer size, and anchor concentration above random. In the compact check, the anchor buffer has top-10\% anchor concentration 0.333 versus a 32-draw random mean of 0.094.
+
+\section{Results}
+
+The generated artifacts use:
+\begin{verbatim}
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  conflict_aware_replay/run_conflict_aware_replay.py \
+  --seed 17 --seeds 6 --train-episodes 12 --val-episodes 5 \
+  --eval-rollouts 32 --initial-steps 650 --train-steps 480 \
+  --buffer-sizes 12 32 96 288
+\end{verbatim}
+
+\subsection{Buffer sweep}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/buffer_sweep.png}
+  \caption{Mean $\pm$ one standard error across six training seeds. No-replay performance is shown as a horizontal reference. Loss-hard selection is unstable in closed loop; diversity and anchor-enriched replay are the strongest selectors.}
+  \label{fig:sweep}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+Method & Buffer & Final success & NBT $\downarrow$ & AUC $\uparrow$ & Tracking RMSE $\downarrow$ \\
+\midrule
+No replay & 0 & $.341\pm.037$ & $.893\pm.035$ & $.560\pm.012$ & $.480\pm.019$ \\
+Random & 12 & $.374\pm.049$ & $.574\pm.044$ & $.508\pm.030$ & $.489\pm.030$ \\
+Loss-hard & 12 & $.143\pm.042$ & $.621\pm.027$ & $.306\pm.039$ & $1.557\pm.278$ \\
+Diversity & 12 & $\mathbf{.448}\pm.050$ & $\mathbf{.382}\pm.042$ & $.504\pm.027$ & $.570\pm.108$ \\
+Anchors & 12 & $.384\pm.051$ & $.524\pm.092$ & $\mathbf{.526}\pm.026$ & $.516\pm.037$ \\
+\midrule
+Random & 32 & $.391\pm.046$ & $.391\pm.065$ & $.447\pm.038$ & $.748\pm.160$ \\
+Diversity & 32 & $.454\pm.048$ & $\mathbf{.377}\pm.039$ & $\mathbf{.507}\pm.033$ & $.485\pm.040$ \\
+Anchors & 32 & $\mathbf{.471}\pm.063$ & $.387\pm.053$ & $.481\pm.045$ & $\mathbf{.481}\pm.047$ \\
+\midrule
+Random & 96 & $.396\pm.053$ & $.367\pm.050$ & $.457\pm.047$ & $.582\pm.068$ \\
+Diversity & 96 & $\mathbf{.470}\pm.054$ & $\mathbf{.331}\pm.065$ & $\mathbf{.504}\pm.034$ & $\mathbf{.468}\pm.042$ \\
+Anchors & 96 & $.454\pm.043$ & $.354\pm.042$ & $.489\pm.030$ & $.520\pm.077$ \\
+\midrule
+Random & 288 & $.396\pm.054$ & $.435\pm.038$ & $.451\pm.038$ & $.566\pm.061$ \\
+Diversity & 288 & $.401\pm.035$ & $.409\pm.037$ & $.475\pm.025$ & $.531\pm.079$ \\
+Anchors & 288 & $\mathbf{.439}\pm.053$ & $\mathbf{.346}\pm.057$ & $\mathbf{.492}\pm.041$ & $\mathbf{.486}\pm.038$ \\
+\bottomrule
+\end{tabular}
+\caption{Closed-loop continual-learning metrics. Values are mean $\pm$ SEM across six seeds. Loss-hard rows for the other three budgets are in the CSV; they remain worse than the leading selectors on NBT and/or tracking error. Bold marks the best displayed replay selector within each buffer block.}
+\label{tab:results}
+\end{table}
+
+No replay retains almost perfect current-task plasticity ($0.995$ final-current success) but has NBT $0.893$ and only $0.123$ final success on old tasks. Random replay reduces NBT substantially but remains variable.
+
+Anchor enrichment lowers mean NBT relative to random at every tested size. The absolute improvements at buffers 12, 32, 96, and 288 are 0.050, 0.004, 0.013, and 0.089. At buffer 288, the decrease from 0.435 to 0.346 is 20.5\% relative, and final average success rises from 0.396 to 0.439. Anchor concentration rises from roughly 0.10--0.11 under random replay to 0.23--0.26 under anchor enrichment.
+
+The intervals overlap, and no hypothesis test was performed. These results support a directional mechanism statement, not statistical significance. They also do not show a monotonic relationship between buffer size and performance.
+
+\subsection{Retention and selector diagnostics}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/learning_curves.png}
+  \caption{Success trajectories after each sequential stage, aggregated across seeds, at buffer 32 for replay methods. No replay shows near-immediate old-task collapse. Random and anchor replay retain partial behavior, with substantial seed and task variation.}
+  \label{fig:curves}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/anchor_diagnostics.png}
+  \caption{Representative seed-17 selector diagnostics before the final task at buffer 32. The upper row shows latent-overlap clustering, action-disagreement filtering, and old-data anchor scores. The lower row shows how random, farthest-first diversity, and anchor-enriched buffers cover old trajectories.}
+  \label{fig:diagnostics}
+\end{figure}
+
+The conflict filter identifies new points that are both relatively close to old latent data and inconsistent with the old policy. Anchor enrichment places selected transitions near corresponding old route segments while retaining random support elsewhere. Diversity spreads points over trajectories without using the incoming task. Loss-hard mining obtains high retrospective anchor concentration (about 0.49--0.55 at the three smaller budgets) but poor closed-loop control. In this toy, selecting probe-sensitive points too aggressively does not preserve enough global support and can harm plasticity.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/closed_loop_routes.png}
+  \caption{A seed-17 mechanism example after the final task, using buffer 32. The top row evaluates the oldest task and the bottom row the newest. This single-seed figure illustrates failure modes and is not an aggregate performance claim.}
+  \label{fig:routes}
+\end{figure}
+
+\section{Interpretation}
+
+The toy supports three bounded conclusions.
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{Replay is necessary but selection matters.} Current-task-only adaptation reliably destroys old closed-loop behavior. A small selected buffer changes both NBT and rollout quality.
+  \item \textbf{Conflict enrichment improves random replay on mean NBT here.} The three-step selector increases the presence of transitions near incoming conflicts and has lower mean NBT than random replay at all four tested budgets. The clearest difference occurs at the largest tested buffer.
+  \item \textbf{Conflict is not the only requirement.} Diversity has the lowest NBT at buffers 12, 32, and 96. The local evidence therefore does not support claiming that anchors universally dominate a well-constructed diversity coreset. The source paper similarly notes that anchors are not the only critical buffer content and combines them with broader coverage.
+\end{enumerate}
+
+The loss-hard result is another caution. High overlap with the retrospective anchor ranking is not sufficient when selection collapses onto a narrow set of high-interference points. Coverage, optimizer dynamics, and stability--plasticity balance still matter.
+
+\section{Mapping and Limitations}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+Toy component & Memory Anchors analogue & Simplification \\
+\midrule
+MLP encoder latent & policy observation representation & no images or language model \\
+Lower-tail latent distances & state-overlap filter & small Euclidean vector space \\
+Direct action error & denoising disagreement & deterministic scalar action \\
+Median 5-NN retrieval & old anchor ranking & small in-memory dataset \\
+20\% anchors + random fill & AnchorER enrichment & one fixed fraction \\
+Route success / NBT & robot success / forgetting & scripted 1D controller \\
+\bottomrule
+\end{tabular}
+\caption{Mechanism mapping.}
+\label{tab:mapping}
+\end{table}
+
+Important omissions include image observations, language embeddings, multimodal action chunks, diffusion or flow denoising, contact, object dynamics, real inference, task-order sweeps, and the paper's anchor-removal intervention. Task identity is supplied as a scalar cue, training and evaluation distributions are close, and one fixed replay ratio and one task order are used. Six seeds are enough to expose substantial variance but not enough for strong statistical claims. The local results should not be extrapolated to LIBERO, pretrained VLAs, or real robots.
+
+Useful follow-ups are: sweep task order and anchor fraction; add a joint-training upper bound; separate high-conflict and low-conflict task pairs; measure selector compute; and replace the vector input with images containing familiar objects assigned new manipulation goals.
+
+\begin{thebibliography}{9}
+\bibitem{paper} M. Du, Z. Sun, C. Xu, P. Shah, M. Itkina, and S. Song. \emph{Memory Anchors for Continual Robot Learning}. arXiv:2608.26545, 2026. \url{https://arxiv.org/abs/2608.26545}
+\bibitem{project} Memory Anchors project page. \url{https://robot-adaptation.github.io/MemoryAnchors/}
+\end{thebibliography}
+
+\end{document}

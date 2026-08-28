@@ -1,0 +1,131 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black,hypertexnames=false}
+
+\title{Retry / Reset Recovery:\\A Failure-Aware Data and Skill-Gating Toy}
+\author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
+\date{August 28, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note isolates the retry/reset split proposed by FLARE in a deterministic 2-D pick/place benchmark. Locally weighted behavior-cloned policies are trained from success-only, generic recovery, perturb-to-bridge, and object-centric reset data. Perturb+bridge training increases recovery from robot-pose deviations, while a monitor-gated reset library improves aggregate task completion and sharply reduces false resets relative to monolithic reset mixing. The result is a mechanism probe, not a VLA or FLARE reproduction; it also exposes a harmful toppled-object reset skill and strong sensitivity to monitor quality.
+\end{abstract}
+
+\section{Motivation}
+Success-only demonstrations make task phase and robot pose nearly monotonic. A policy can therefore associate ``where the arm normally is'' with ``what comes next,'' then fail after a pose disturbance even when the environment is still valid. State-breaking failures are different: a dropped or wedged object may require a distinct skill before the nominal task is meaningful again. The experiment asks whether these cases benefit from separate data and execution interfaces.
+
+\section{Reference Checked}
+The primary reference is Zhao et al.'s FLARE framework~\cite{flare}. The source augments task demonstrations with pose-displacement and bridging segments, excludes the random displacement actions from training targets, collects object-centric reset skills for out-of-distribution failures, and uses an online MLLM monitor to arbitrate task versus reset execution. Reported source results are not reproduced here.
+
+\section{Toy Setup}
+Three objects must be picked from staging locations and placed at goals in order. Paired scenarios cover clean execution; robot-pose displacements; toppled, dropped, and wedged objects; mixed retry/reset errors; and a three-failure stress case. Each policy observes robot pose, task progress, object positions/goals, and explicit object status. Actions move the robot, command grasp/release, and optionally signal reset behavior.
+
+\begin{samepage}
+Five methods are compared:
+\begin{itemize}[leftmargin=1.7em]
+  \item success-only behavior cloning;
+  \item task-agnostic generic recovery mixed with task data;
+  \item perturb+bridge behavior cloning;
+  \item one monolithic task/retry/reset policy;
+  \item a perturb+bridge task policy plus object-specific reset policies selected by a noisy monitor.
+\end{itemize}
+\end{samepage}
+The default monitor uses a configured true-positive rate of $0.97$, false-positive rate of $0.015$, and object-selection accuracy of $0.96$. These are assumptions, not measured perception performance.
+
+\section{Metrics}
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Success:} all three objects placed within 230 steps.
+  \item \textbf{Completion:} fraction of the three ordered placements completed.
+  \item \textbf{ID/OOD recovery:} fraction of injected robot-pose or object-state failures restored.
+  \item \textbf{False resets:} reset invocations when no matching invalid object state requires one.
+  \item \textbf{Compounding failures:} extra state damage caused while reacting incorrectly.
+\end{itemize}
+
+\section{Results}
+The checked artifacts were generated with:
+\begin{verbatim}
+PYTHONWARNINGS=error \
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  retry_reset_recovery/run_retry_reset_recovery.py \
+  --seed 29 --trials 120 --train-demos 48 --max-steps 230
+\end{verbatim}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+Method & Success & Complete & ID rec. & OOD rec. & False reset & Compound \\
+\midrule
+Success-only BC & 15.0\% & 30.6\% & 25.0\% & 0.0\% & 0.000 & 0.217 \\
+Generic recovery & 0.0\% & 0.0\% & 0.0\% & -- & 0.000 & \textbf{0.000} \\
+Perturb + bridge & 23.3\% & 47.5\% & 91.7\% & 0.0\% & 0.000 & 0.275 \\
+Monolithic resets & 55.0\% & 64.7\% & 90.2\% & \textbf{67.1\%} & 5.025 & 0.167 \\
+Monitor-gated skills & \textbf{56.7\%} & \textbf{68.9\%} & \textbf{100.0\%} & 53.0\% & 0.575 & 0.100 \\
+\bottomrule
+\end{tabular}
+\caption{Aggregate metrics over 120 paired scenarios per method. Recovery entries are conditional on an injected failure of that class.}
+\label{tab:main}
+\end{table}
+
+At pose-offset magnitude $0.50$, perturb+bridge succeeds on $93.8\%$ of episodes versus $12.5\%$ for success-only BC. The gated library narrowly leads overall success and cuts false reset calls by almost an order of magnitude relative to monolithic mixing, though the monolithic policy has higher conditional OOD recovery.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/method_summary.png}
+  \caption{Headline task, recovery, false-reset, and compounding-failure metrics.}
+  \label{fig:summary}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/robustness_sweeps.png}
+  \caption{Robot-pose offset sweep and explicit object-failure splits. Perturb+bridge is the active retry mechanism; reset skills are required for object-state recovery.}
+  \label{fig:robust}
+\end{figure}
+
+\section{Monitor and Skill Ablations}
+On the failure-rich subset, a weak detector reduces gated-policy success to $26.7\%$. An over-triggering monitor reaches only $18.9\%$ success and produces $6.26$ false resets per episode. Thus the routing layer is part of the system's learned/perceived competence, not free infrastructure.
+
+Removing dropped or wedged reset skills sharply reduces success. Removing the toppled skill unexpectedly increases aggregate success in this implementation. The learned toppled reset is harmful often enough that omitting it can be preferable, emphasizing the need for per-skill validation and abstention.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{../outputs/ablations.png}
+  \caption{Monitor-quality and reset-library ablations. The non-monotone missing-skill result is preserved rather than hidden.}
+  \label{fig:ablation}
+\end{figure}
+
+\section{Interpretation}
+The local evidence supports two bounded claims. First, bridge-to-task continuations broaden pose support and substantially improve retry behavior without treating random displacements as valid actions. Second, separating reset skills behind a monitor can preserve task-policy behavior and reduce false activation compared with an undifferentiated action mixture. It does not prove that gating always improves every failure type or that an MLLM monitor would attain the configured quality.
+
+\section{Limitations and Follow-ups}
+\begin{itemize}[leftmargin=1.5em]
+  \item The policies are low-dimensional nearest-neighbor regressors, not VLAs.
+  \item Object status and failure identity are explicit; no visual failure recognition is learned.
+  \item The monitor quality is configured and materially affects the ranking.
+  \item Scripted reset demonstrations and grasp/contact dynamics are simplified.
+  \item Generic recovery is deliberately task-agnostic, so its failure should not be generalized to all broad recovery datasets.
+  \item A useful next test is confidence-calibrated per-skill gating that can reject the harmful toppled reset and fall back to a safe data-collection request.
+\end{itemize}
+
+\begin{thebibliography}{9}
+\bibitem{flare} Ganlong Zhao, Zijia Tang, Xingping Chen, Zhanghui Kuang, Ye Tian, and Guanbin Li. \emph{FLARE: A Failure-Aware Framework for Autonomous Correction and Recovery in Visual-Language Robotic Manipulation}. arXiv:2608.26645, 2026. \url{https://arxiv.org/abs/2608.26645}
+\end{thebibliography}
+
+\end{document}

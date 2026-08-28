@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "checks": {
+    "same_physical_observation_support": true,
+    "opposite_expert_actions_at_shared_state": true,
+    "overlap_cluster_nonempty": true,
+    "action_conflict_set_nonempty": true,
+    "anchor_selection_deterministic": true,
+    "buffer_unique_and_exact_size": true,
+    "anchor_enrichment_exceeds_random": true
+  },
+  "diagnostics": {
+    "shared_state_observation_l2": 0.39999999999999997,
+    "expert_action_task_1": 1.636305742592827,
+    "expert_action_task_2": -1.636305742592827,
+    "overlap_fraction": 0.5918367346938775,
+    "conflict_fraction": 0.5612244897959183,
+    "anchor_concentration": 0.3333333333333333,
+    "random_concentration_mean": 0.09375
+  }
+}

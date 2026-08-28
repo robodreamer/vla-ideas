@@ -1,0 +1,979 @@
+{
+  "ablations": [
+    {
+      "ablation": "monitor_quality",
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 90,
+      "false_resets_per_episode": 0.0,
+      "setting": "oracle gate",
+      "success_rate": 0.4666666666666667,
+      "task_completion": 0.637037037037037
+    },
+    {
+      "ablation": "monitor_quality",
+      "compounding_failures_per_episode": 0.08888888888888889,
+      "episodes": 90,
+      "false_resets_per_episode": 0.5222222222222223,
+      "setting": "default monitor",
+      "success_rate": 0.4777777777777778,
+      "task_completion": 0.6259259259259259
+    },
+    {
+      "ablation": "monitor_quality",
+      "compounding_failures_per_episode": 1.0333333333333334,
+      "episodes": 90,
+      "false_resets_per_episode": 2.6666666666666665,
+      "setting": "weak detector",
+      "success_rate": 0.26666666666666666,
+      "task_completion": 0.4481481481481481
+    },
+    {
+      "ablation": "monitor_quality",
+      "compounding_failures_per_episode": 0.6222222222222222,
+      "episodes": 90,
+      "false_resets_per_episode": 6.2555555555555555,
+      "setting": "over-triggering",
+      "success_rate": 0.18888888888888888,
+      "task_completion": 0.3185185185185185
+    },
+    {
+      "ablation": "missing_reset_skill",
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 90,
+      "false_resets_per_episode": 0.0,
+      "setting": "full library",
+      "success_rate": 0.4666666666666667,
+      "task_completion": 0.637037037037037
+    },
+    {
+      "ablation": "missing_reset_skill",
+      "compounding_failures_per_episode": 0.2777777777777778,
+      "episodes": 90,
+      "false_resets_per_episode": 0.0,
+      "setting": "missing toppled",
+      "success_rate": 0.5111111111111111,
+      "task_completion": 0.6666666666666666
+    },
+    {
+      "ablation": "missing_reset_skill",
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 90,
+      "false_resets_per_episode": 0.0,
+      "setting": "missing dropped",
+      "success_rate": 0.28888888888888886,
+      "task_completion": 0.5185185185185185
+    },
+    {
+      "ablation": "missing_reset_skill",
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 90,
+      "false_resets_per_episode": 0.0,
+      "setting": "missing wedged",
+      "success_rate": 0.15555555555555556,
+      "task_completion": 0.44074074074074077
+    }
+  ],
+  "claims_supported_by_this_run": {
+    "gated_skills_best_overall_success": true,
+    "gating_reduces_compounding_vs_monolithic": true,
+    "gating_reduces_false_resets_vs_monolithic": true,
+    "perturb_bridge_beats_success_only_on_id": true
+  },
+  "config": {
+    "max_steps": 230,
+    "monitor": {
+      "fpr": 0.015,
+      "object_accuracy": 0.96,
+      "tpr": 0.97
+    },
+    "output_dir": "/home/andypark/Projects/repos/vla-ideas/retry_reset_recovery/outputs",
+    "seed": 29,
+    "smoke": false,
+    "train_demos": 48,
+    "trials": 120
+  },
+  "data_coverage": {
+    "counts": {
+      "generic": 5227,
+      "monolithic": 7628,
+      "perturb_bridge": 4822,
+      "reset_per_object": {
+        "0": 975,
+        "1": 895,
+        "2": 936
+      },
+      "success": 1696
+    },
+    "generic_robot_variance": 0.041826934859691224,
+    "perturb_bridge_robot_variance": 0.05570891231839182,
+    "success_robot_variance": 0.042103876480261725
+  },
+  "representative_trial": 7,
+  "robustness": [
+    {
+      "episodes": 32,
+      "level": 0.0,
+      "method": "success_only_bc",
+      "success_rate": 0.90625,
+      "sweep": "id_magnitude",
+      "task_completion": 0.90625
+    },
+    {
+      "episodes": 32,
+      "level": 0.0,
+      "method": "generic_recovery_bc",
+      "success_rate": 0.0,
+      "sweep": "id_magnitude",
+      "task_completion": 0.0
+    },
+    {
+      "episodes": 32,
+      "level": 0.0,
+      "method": "perturb_bridge_bc",
+      "success_rate": 0.96875,
+      "sweep": "id_magnitude",
+      "task_completion": 0.96875
+    },
+    {
+      "episodes": 32,
+      "level": 0.0,
+      "method": "monolithic_resets",
+      "success_rate": 0.625,
+      "sweep": "id_magnitude",
+      "task_completion": 0.65625
+    },
+    {
+      "episodes": 32,
+      "level": 0.0,
+      "method": "monitor_gated_reset_skills",
+      "success_rate": 0.9375,
+      "sweep": "id_magnitude",
+      "task_completion": 0.9583333333333333
+    },
+    {
+      "episodes": 32,
+      "level": 0.18,
+      "method": "success_only_bc",
+      "success_rate": 0.34375,
+      "sweep": "id_magnitude",
+      "task_completion": 0.34375
+    },
+    {
+      "episodes": 32,
+      "level": 0.18,
+      "method": "generic_recovery_bc",
+      "success_rate": 0.0,
+      "sweep": "id_magnitude",
+      "task_completion": 0.0
+    },
+    {
+      "episodes": 32,
+      "level": 0.18,
+      "method": "perturb_bridge_bc",
+      "success_rate": 0.9375,
+      "sweep": "id_magnitude",
+      "task_completion": 0.9375
+    },
+    {
+      "episodes": 32,
+      "level": 0.18,
+      "method": "monolithic_resets",
+      "success_rate": 0.84375,
+      "sweep": "id_magnitude",
+      "task_completion": 0.84375
+    },
+    {
+      "episodes": 32,
+      "level": 0.18,
+      "method": "monitor_gated_reset_skills",
+      "success_rate": 0.9375,
+      "sweep": "id_magnitude",
+      "task_completion": 0.9375
+    },
+    {
+      "episodes": 32,
+      "level": 0.34,
+      "method": "success_only_bc",
+      "success_rate": 0.25,
+      "sweep": "id_magnitude",
+      "task_completion": 0.25
+    },
+    {
+      "episodes": 32,
+      "level": 0.34,
+      "method": "generic_recovery_bc",
+      "success_rate": 0.0,
+      "sweep": "id_magnitude",
+      "task_completion": 0.0
+    },
+    {
+      "episodes": 32,
+      "level": 0.34,
+      "method": "perturb_bridge_bc",
+      "success_rate": 0.90625,
+      "sweep": "id_magnitude",
+      "task_completion": 0.9270833333333333
+    },
+    {
+      "episodes": 32,
+      "level": 0.34,
+      "method": "monolithic_resets",
+      "success_rate": 0.9375,
+      "sweep": "id_magnitude",
+      "task_completion": 0.9375
+    },
+    {
+      "episodes": 32,
+      "level": 0.34,
+      "method": "monitor_gated_reset_skills",
+      "success_rate": 0.9375,
+      "sweep": "id_magnitude",
+      "task_completion": 0.9791666666666666
+    },
+    {
+      "episodes": 32,
+      "level": 0.5,
+      "method": "success_only_bc",
+      "success_rate": 0.125,
+      "sweep": "id_magnitude",
+      "task_completion": 0.125
+    },
+    {
+      "episodes": 32,
+      "level": 0.5,
+      "method": "generic_recovery_bc",
+      "success_rate": 0.0,
+      "sweep": "id_magnitude",
+      "task_completion": 0.0
+    },
+    {
+      "episodes": 32,
+      "level": 0.5,
+      "method": "perturb_bridge_bc",
+      "success_rate": 0.9375,
+      "sweep": "id_magnitude",
+      "task_completion": 0.9375
+    },
+    {
+      "episodes": 32,
+      "level": 0.5,
+      "method": "monolithic_resets",
+      "success_rate": 0.78125,
+      "sweep": "id_magnitude",
+      "task_completion": 0.78125
+    },
+    {
+      "episodes": 32,
+      "level": 0.5,
+      "method": "monitor_gated_reset_skills",
+      "success_rate": 0.9375,
+      "sweep": "id_magnitude",
+      "task_completion": 0.96875
+    },
+    {
+      "episodes": 32,
+      "level": 0.66,
+      "method": "success_only_bc",
+      "success_rate": 0.15625,
+      "sweep": "id_magnitude",
+      "task_completion": 0.17708333333333334
+    },
+    {
+      "episodes": 32,
+      "level": 0.66,
+      "method": "generic_recovery_bc",
+      "success_rate": 0.0,
+      "sweep": "id_magnitude",
+      "task_completion": 0.0
+    },
+    {
+      "episodes": 32,
+      "level": 0.66,
+      "method": "perturb_bridge_bc",
+      "success_rate": 0.875,
+      "sweep": "id_magnitude",
+      "task_completion": 0.8958333333333333
+    },
+    {
+      "episodes": 32,
+      "level": 0.66,
+      "method": "monolithic_resets",
+      "success_rate": 0.90625,
+      "sweep": "id_magnitude",
+      "task_completion": 0.90625
+    },
+    {
+      "episodes": 32,
+      "level": 0.66,
+      "method": "monitor_gated_reset_skills",
+      "success_rate": 0.96875,
+      "sweep": "id_magnitude",
+      "task_completion": 0.96875
+    },
+    {
+      "episodes": 15,
+      "level": "toppled",
+      "method": "success_only_bc",
+      "success_rate": 0.0,
+      "sweep": "failure_type",
+      "task_completion": 0.31111111111111106
+    },
+    {
+      "episodes": 15,
+      "level": "toppled",
+      "method": "generic_recovery_bc",
+      "success_rate": 0.0,
+      "sweep": "failure_type",
+      "task_completion": 0.0
+    },
+    {
+      "episodes": 15,
+      "level": "toppled",
+      "method": "perturb_bridge_bc",
+      "success_rate": 0.0,
+      "sweep": "failure_type",
+      "task_completion": 0.33333333333333326
+    },
+    {
+      "episodes": 15,
+      "level": "toppled",
+      "method": "monolithic_resets",
+      "success_rate": 0.4,
+      "sweep": "failure_type",
+      "task_completion": 0.5777777777777777
+    },
+    {
+      "episodes": 15,
+      "level": "toppled",
+      "method": "monitor_gated_reset_skills",
+      "success_rate": 0.13333333333333333,
+      "sweep": "failure_type",
+      "task_completion": 0.42222222222222217
+    },
+    {
+      "episodes": 15,
+      "level": "dropped",
+      "method": "success_only_bc",
+      "success_rate": 0.0,
+      "sweep": "failure_type",
+      "task_completion": 0.33333333333333326
+    },
+    {
+      "episodes": 15,
+      "level": "dropped",
+      "method": "generic_recovery_bc",
+      "success_rate": 0.0,
+      "sweep": "failure_type",
+      "task_completion": 0.0
+    },
+    {
+      "episodes": 15,
+      "level": "dropped",
+      "method": "perturb_bridge_bc",
+      "success_rate": 0.0,
+      "sweep": "failure_type",
+      "task_completion": 0.33333333333333326
+    },
+    {
+      "episodes": 15,
+      "level": "dropped",
+      "method": "monolithic_resets",
+      "success_rate": 0.2,
+      "sweep": "failure_type",
+      "task_completion": 0.4
+    },
+    {
+      "episodes": 15,
+      "level": "dropped",
+      "method": "monitor_gated_reset_skills",
+      "success_rate": 0.6666666666666666,
+      "sweep": "failure_type",
+      "task_completion": 0.7555555555555556
+    },
+    {
+      "episodes": 15,
+      "level": "wedged",
+      "method": "success_only_bc",
+      "success_rate": 0.0,
+      "sweep": "failure_type",
+      "task_completion": 0.33333333333333326
+    },
+    {
+      "episodes": 15,
+      "level": "wedged",
+      "method": "generic_recovery_bc",
+      "success_rate": 0.0,
+      "sweep": "failure_type",
+      "task_completion": 0.0
+    },
+    {
+      "episodes": 15,
+      "level": "wedged",
+      "method": "perturb_bridge_bc",
+      "success_rate": 0.0,
+      "sweep": "failure_type",
+      "task_completion": 0.33333333333333326
+    },
+    {
+      "episodes": 15,
+      "level": "wedged",
+      "method": "monolithic_resets",
+      "success_rate": 0.8666666666666667,
+      "sweep": "failure_type",
+      "task_completion": 0.888888888888889
+    },
+    {
+      "episodes": 15,
+      "level": "wedged",
+      "method": "monitor_gated_reset_skills",
+      "success_rate": 0.8666666666666667,
+      "sweep": "failure_type",
+      "task_completion": 0.8666666666666667
+    },
+    {
+      "episodes": 45,
+      "level": "robust",
+      "method": "success_only_bc",
+      "success_rate": 0.0,
+      "sweep": "failure_type",
+      "task_completion": 0.08888888888888889
+    },
+    {
+      "episodes": 45,
+      "level": "robust",
+      "method": "generic_recovery_bc",
+      "success_rate": 0.0,
+      "sweep": "failure_type",
+      "task_completion": 0.0
+    },
+    {
+      "episodes": 45,
+      "level": "robust",
+      "method": "perturb_bridge_bc",
+      "success_rate": 0.0,
+      "sweep": "failure_type",
+      "task_completion": 0.31111111111111117
+    },
+    {
+      "episodes": 45,
+      "level": "robust",
+      "method": "monolithic_resets",
+      "success_rate": 0.4222222222222222,
+      "sweep": "failure_type",
+      "task_completion": 0.5481481481481482
+    },
+    {
+      "episodes": 45,
+      "level": "robust",
+      "method": "monitor_gated_reset_skills",
+      "success_rate": 0.4,
+      "sweep": "failure_type",
+      "task_completion": 0.5703703703703703
+    }
+  ],
+  "sanity_checks": {
+    "all_pass": true,
+    "deterministic_repeat": true,
+    "id_pose_preserves_environment": true,
+    "oracle_monitor_gate": true,
+    "oracle_resets_all_failure_types": {
+      "dropped": true,
+      "toppled": true,
+      "wedged": true
+    },
+    "perturb_bridge_increases_pose_coverage": true,
+    "success_bc_completes_nominal": true
+  },
+  "summary": [
+    {
+      "compounding_failures_per_episode": 0.21666666666666667,
+      "episodes": 120,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": 0.25,
+      "mean_recovery_time": 4.0,
+      "mean_steps": 200.91666666666666,
+      "method": "success_only_bc",
+      "ood_recovery_rate": 0.0,
+      "reset_calls_per_episode": 0.0,
+      "split": "all",
+      "success_rate": 0.15,
+      "task_completion": 0.3055555555555555
+    },
+    {
+      "compounding_failures_per_episode": 0.2222222222222222,
+      "episodes": 45,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": 0.26666666666666666,
+      "mean_recovery_time": 3.75,
+      "mean_steps": 230.0,
+      "method": "success_only_bc",
+      "ood_recovery_rate": 0.0,
+      "reset_calls_per_episode": 0.0,
+      "split": "robust",
+      "success_rate": 0.0,
+      "task_completion": 0.08888888888888889
+    },
+    {
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 15,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": 0.2,
+      "mean_recovery_time": 5.0,
+      "mean_steps": 191.6,
+      "method": "success_only_bc",
+      "ood_recovery_rate": null,
+      "reset_calls_per_episode": 0.0,
+      "split": "id",
+      "success_rate": 0.2,
+      "task_completion": 0.2
+    },
+    {
+      "compounding_failures_per_episode": 1.0666666666666667,
+      "episodes": 15,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": null,
+      "mean_recovery_time": null,
+      "mean_steps": 230.0,
+      "method": "success_only_bc",
+      "ood_recovery_rate": 0.0,
+      "reset_calls_per_episode": 0.0,
+      "split": "toppled",
+      "success_rate": 0.0,
+      "task_completion": 0.31111111111111106
+    },
+    {
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 15,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": null,
+      "mean_recovery_time": null,
+      "mean_steps": 230.0,
+      "method": "success_only_bc",
+      "ood_recovery_rate": 0.0,
+      "reset_calls_per_episode": 0.0,
+      "split": "dropped",
+      "success_rate": 0.0,
+      "task_completion": 0.33333333333333326
+    },
+    {
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 15,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": null,
+      "mean_recovery_time": null,
+      "mean_steps": 230.0,
+      "method": "success_only_bc",
+      "ood_recovery_rate": 0.0,
+      "reset_calls_per_episode": 0.0,
+      "split": "wedged",
+      "success_rate": 0.0,
+      "task_completion": 0.33333333333333326
+    },
+    {
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 15,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": null,
+      "mean_recovery_time": null,
+      "mean_steps": 35.733333333333334,
+      "method": "success_only_bc",
+      "ood_recovery_rate": null,
+      "reset_calls_per_episode": 0.0,
+      "split": "clean",
+      "success_rate": 1.0,
+      "task_completion": 1.0
+    },
+    {
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 120,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": 0.0,
+      "mean_recovery_time": null,
+      "mean_steps": 230.0,
+      "method": "generic_recovery_bc",
+      "ood_recovery_rate": null,
+      "reset_calls_per_episode": 0.0,
+      "split": "all",
+      "success_rate": 0.0,
+      "task_completion": 0.0
+    },
+    {
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 45,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": 0.0,
+      "mean_recovery_time": null,
+      "mean_steps": 230.0,
+      "method": "generic_recovery_bc",
+      "ood_recovery_rate": null,
+      "reset_calls_per_episode": 0.0,
+      "split": "robust",
+      "success_rate": 0.0,
+      "task_completion": 0.0
+    },
+    {
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 15,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": 0.0,
+      "mean_recovery_time": null,
+      "mean_steps": 230.0,
+      "method": "generic_recovery_bc",
+      "ood_recovery_rate": null,
+      "reset_calls_per_episode": 0.0,
+      "split": "id",
+      "success_rate": 0.0,
+      "task_completion": 0.0
+    },
+    {
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 15,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": null,
+      "mean_recovery_time": null,
+      "mean_steps": 230.0,
+      "method": "generic_recovery_bc",
+      "ood_recovery_rate": null,
+      "reset_calls_per_episode": 0.0,
+      "split": "toppled",
+      "success_rate": 0.0,
+      "task_completion": 0.0
+    },
+    {
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 15,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": null,
+      "mean_recovery_time": null,
+      "mean_steps": 230.0,
+      "method": "generic_recovery_bc",
+      "ood_recovery_rate": null,
+      "reset_calls_per_episode": 0.0,
+      "split": "dropped",
+      "success_rate": 0.0,
+      "task_completion": 0.0
+    },
+    {
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 15,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": null,
+      "mean_recovery_time": null,
+      "mean_steps": 230.0,
+      "method": "generic_recovery_bc",
+      "ood_recovery_rate": null,
+      "reset_calls_per_episode": 0.0,
+      "split": "wedged",
+      "success_rate": 0.0,
+      "task_completion": 0.0
+    },
+    {
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 15,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": null,
+      "mean_recovery_time": null,
+      "mean_steps": 230.0,
+      "method": "generic_recovery_bc",
+      "ood_recovery_rate": null,
+      "reset_calls_per_episode": 0.0,
+      "split": "clean",
+      "success_rate": 0.0,
+      "task_completion": 0.0
+    },
+    {
+      "compounding_failures_per_episode": 0.275,
+      "episodes": 120,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": 0.9166666666666666,
+      "mean_recovery_time": 3.709090909090909,
+      "mean_steps": 184.725,
+      "method": "perturb_bridge_bc",
+      "ood_recovery_rate": 0.0,
+      "reset_calls_per_episode": 0.0,
+      "split": "all",
+      "success_rate": 0.23333333333333334,
+      "task_completion": 0.475
+    },
+    {
+      "compounding_failures_per_episode": 0.3333333333333333,
+      "episodes": 45,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": 0.9333333333333333,
+      "mean_recovery_time": 3.738095238095238,
+      "mean_steps": 230.0,
+      "method": "perturb_bridge_bc",
+      "ood_recovery_rate": 0.0,
+      "reset_calls_per_episode": 0.0,
+      "split": "robust",
+      "success_rate": 0.0,
+      "task_completion": 0.31111111111111117
+    },
+    {
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 15,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": 0.8666666666666667,
+      "mean_recovery_time": 3.6153846153846154,
+      "mean_steps": 62.6,
+      "method": "perturb_bridge_bc",
+      "ood_recovery_rate": null,
+      "reset_calls_per_episode": 0.0,
+      "split": "id",
+      "success_rate": 0.8666666666666667,
+      "task_completion": 0.8666666666666667
+    },
+    {
+      "compounding_failures_per_episode": 1.2,
+      "episodes": 15,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": null,
+      "mean_recovery_time": null,
+      "mean_steps": 230.0,
+      "method": "perturb_bridge_bc",
+      "ood_recovery_rate": 0.0,
+      "reset_calls_per_episode": 0.0,
+      "split": "toppled",
+      "success_rate": 0.0,
+      "task_completion": 0.33333333333333326
+    },
+    {
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 15,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": null,
+      "mean_recovery_time": null,
+      "mean_steps": 230.0,
+      "method": "perturb_bridge_bc",
+      "ood_recovery_rate": 0.0,
+      "reset_calls_per_episode": 0.0,
+      "split": "dropped",
+      "success_rate": 0.0,
+      "task_completion": 0.33333333333333326
+    },
+    {
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 15,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": null,
+      "mean_recovery_time": null,
+      "mean_steps": 230.0,
+      "method": "perturb_bridge_bc",
+      "ood_recovery_rate": 0.0,
+      "reset_calls_per_episode": 0.0,
+      "split": "wedged",
+      "success_rate": 0.0,
+      "task_completion": 0.33333333333333326
+    },
+    {
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 15,
+      "false_resets_per_episode": 0.0,
+      "id_recovery_rate": null,
+      "mean_recovery_time": null,
+      "mean_steps": 35.2,
+      "method": "perturb_bridge_bc",
+      "ood_recovery_rate": null,
+      "reset_calls_per_episode": 0.0,
+      "split": "clean",
+      "success_rate": 1.0,
+      "task_completion": 1.0
+    },
+    {
+      "compounding_failures_per_episode": 0.16666666666666666,
+      "episodes": 120,
+      "false_resets_per_episode": 5.025,
+      "id_recovery_rate": 0.9019607843137255,
+      "mean_recovery_time": 5.0115740740740735,
+      "mean_steps": 128.18333333333334,
+      "method": "monolithic_resets",
+      "ood_recovery_rate": 0.6714285714285714,
+      "reset_calls_per_episode": 5.7,
+      "split": "all",
+      "success_rate": 0.55,
+      "task_completion": 0.6472222222222221
+    },
+    {
+      "compounding_failures_per_episode": 0.15555555555555556,
+      "episodes": 45,
+      "false_resets_per_episode": 5.955555555555556,
+      "id_recovery_rate": 0.8717948717948718,
+      "mean_recovery_time": 5.17156862745098,
+      "mean_steps": 152.73333333333332,
+      "method": "monolithic_resets",
+      "ood_recovery_rate": 0.65625,
+      "reset_calls_per_episode": 6.8,
+      "split": "robust",
+      "success_rate": 0.4222222222222222,
+      "task_completion": 0.5481481481481482
+    },
+    {
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 15,
+      "false_resets_per_episode": 1.3333333333333333,
+      "id_recovery_rate": 1.0,
+      "mean_recovery_time": 5.583333333333333,
+      "mean_steps": 78.93333333333334,
+      "method": "monolithic_resets",
+      "ood_recovery_rate": null,
+      "reset_calls_per_episode": 1.3333333333333333,
+      "split": "id",
+      "success_rate": 0.8,
+      "task_completion": 0.8
+    },
+    {
+      "compounding_failures_per_episode": 0.8666666666666667,
+      "episodes": 15,
+      "false_resets_per_episode": 11.466666666666667,
+      "id_recovery_rate": null,
+      "mean_recovery_time": 4.0,
+      "mean_steps": 156.06666666666666,
+      "method": "monolithic_resets",
+      "ood_recovery_rate": 0.5384615384615384,
+      "reset_calls_per_episode": 12.666666666666666,
+      "split": "toppled",
+      "success_rate": 0.4,
+      "task_completion": 0.5777777777777777
+    },
+    {
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 15,
+      "false_resets_per_episode": 7.0,
+      "id_recovery_rate": null,
+      "mean_recovery_time": 3.4,
+      "mean_steps": 193.46666666666667,
+      "method": "monolithic_resets",
+      "ood_recovery_rate": 0.45454545454545453,
+      "reset_calls_per_episode": 7.733333333333333,
+      "split": "dropped",
+      "success_rate": 0.2,
+      "task_completion": 0.4
+    },
+    {
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 15,
+      "false_resets_per_episode": 1.0666666666666667,
+      "id_recovery_rate": null,
+      "mean_recovery_time": 5.214285714285714,
+      "mean_steps": 69.13333333333334,
+      "method": "monolithic_resets",
+      "ood_recovery_rate": 1.0,
+      "reset_calls_per_episode": 2.0,
+      "split": "wedged",
+      "success_rate": 0.8666666666666667,
+      "task_completion": 0.888888888888889
+    },
+    {
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 15,
+      "false_resets_per_episode": 1.4666666666666666,
+      "id_recovery_rate": null,
+      "mean_recovery_time": null,
+      "mean_steps": 69.66666666666667,
+      "method": "monolithic_resets",
+      "ood_recovery_rate": null,
+      "reset_calls_per_episode": 1.4666666666666666,
+      "split": "clean",
+      "success_rate": 0.8666666666666667,
+      "task_completion": 0.8666666666666667
+    },
+    {
+      "compounding_failures_per_episode": 0.1,
+      "episodes": 120,
+      "false_resets_per_episode": 0.575,
+      "id_recovery_rate": 1.0,
+      "mean_recovery_time": 4.368627450980392,
+      "mean_steps": 122.68333333333334,
+      "method": "monitor_gated_reset_skills",
+      "ood_recovery_rate": 0.5301204819277109,
+      "reset_calls_per_episode": 1.3916666666666666,
+      "split": "all",
+      "success_rate": 0.5666666666666667,
+      "task_completion": 0.6888888888888888
+    },
+    {
+      "compounding_failures_per_episode": 0.1111111111111111,
+      "episodes": 45,
+      "false_resets_per_episode": 0.5333333333333333,
+      "id_recovery_rate": 1.0,
+      "mean_recovery_time": 4.42962962962963,
+      "mean_steps": 155.86666666666667,
+      "method": "monitor_gated_reset_skills",
+      "ood_recovery_rate": 0.4634146341463415,
+      "reset_calls_per_episode": 1.6222222222222222,
+      "split": "robust",
+      "success_rate": 0.4,
+      "task_completion": 0.5703703703703703
+    },
+    {
+      "compounding_failures_per_episode": 0.13333333333333333,
+      "episodes": 15,
+      "false_resets_per_episode": 1.0666666666666667,
+      "id_recovery_rate": 1.0,
+      "mean_recovery_time": 3.7333333333333334,
+      "mean_steps": 76.93333333333334,
+      "method": "monitor_gated_reset_skills",
+      "ood_recovery_rate": null,
+      "reset_calls_per_episode": 1.2,
+      "split": "id",
+      "success_rate": 0.8,
+      "task_completion": 0.8888888888888888
+    },
+    {
+      "compounding_failures_per_episode": 0.0,
+      "episodes": 15,
+      "false_resets_per_episode": 0.3333333333333333,
+      "id_recovery_rate": null,
+      "mean_recovery_time": 4.5,
+      "mean_steps": 204.6,
+      "method": "monitor_gated_reset_skills",
+      "ood_recovery_rate": 0.13333333333333333,
+      "reset_calls_per_episode": 1.3333333333333333,
+      "split": "toppled",
+      "success_rate": 0.13333333333333333,
+      "task_completion": 0.42222222222222217
+    },
+    {
+      "compounding_failures_per_episode": 0.06666666666666667,
+      "episodes": 15,
+      "false_resets_per_episode": 0.5333333333333333,
+      "id_recovery_rate": null,
+      "mean_recovery_time": 3.8,
+      "mean_steps": 104.66666666666667,
+      "method": "monitor_gated_reset_skills",
+      "ood_recovery_rate": 0.7142857142857143,
+      "reset_calls_per_episode": 1.5333333333333334,
+      "split": "dropped",
+      "success_rate": 0.6666666666666666,
+      "task_completion": 0.7555555555555556
+    },
+    {
+      "compounding_failures_per_episode": 0.13333333333333333,
+      "episodes": 15,
+      "false_resets_per_episode": 0.6666666666666666,
+      "id_recovery_rate": null,
+      "mean_recovery_time": 5.3076923076923075,
+      "mean_steps": 65.93333333333334,
+      "method": "monitor_gated_reset_skills",
+      "ood_recovery_rate": 1.0,
+      "reset_calls_per_episode": 1.6666666666666667,
+      "split": "wedged",
+      "success_rate": 0.8666666666666667,
+      "task_completion": 0.8666666666666667
+    },
+    {
+      "compounding_failures_per_episode": 0.13333333333333333,
+      "episodes": 15,
+      "false_resets_per_episode": 0.4,
+      "id_recovery_rate": null,
+      "mean_recovery_time": null,
+      "mean_steps": 61.733333333333334,
+      "method": "monitor_gated_reset_skills",
+      "ood_recovery_rate": null,
+      "reset_calls_per_episode": 0.5333333333333333,
+      "split": "clean",
+      "success_rate": 0.8666666666666667,
+      "task_completion": 0.8666666666666667
+    }
+  ]
+}

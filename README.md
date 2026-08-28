@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/robodreamer/vla-ideas?style=social)](https://github.com/robodreamer/vla-ideas/stargazers)
 
-Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains thirteen compact experiment tracks plus a lightweight research-notes index:
+Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains sixteen compact experiment tracks plus a lightweight research-notes index:
 
 - `recap_pi`: RECAP-style advantage-conditioned navigation demos in 2D and 3D.
 - `async_chunking_compare`: a lightweight simulator for comparing synchronous and asynchronous chunked-control strategies under inference delay.
@@ -22,6 +22,9 @@ Toy research prototypes for exploring visual-language-action timing, policy cond
 - `bc_distribution_shift_mysteries`: a BC diagnostic sweeping chunk horizon, previous-action history, feature scaling, and basis capacity while comparing expert-state validation loss against closed-loop success and state divergence.
 - `demo_prompted_policy`: an S1-inspired toy comparing task-label, replay, phase, full-demo alignment, and latent-intent mechanisms when one demonstration prompts execution under scene and embodiment shift.
 - `constraint_manifold_action_filter`: a PR-MPPI-inspired toy filtering aggressive learned action chunks with equality-tangent/inequality-half-space projection and finite-step retraction.
+- `conflict_aware_replay`: a Memory Anchors-inspired sequential-learning toy comparing random, hard, diversity, and latent-overlap/action-disagreement replay under limited buffers.
+- `retry_reset_recovery`: a FLARE-inspired recovery-data toy separating robot-pose retry robustness from monitor-gated object-state reset skills.
+- `streaming_action_denoising`: a FlashVLA-inspired systems toy comparing isolated, few-step, and staggered chunk refinement under delay and disturbances.
 - `notes`: source-grounded research notes and a reference index for ideas that may become experiments.
 
 ## Preview
@@ -86,6 +89,18 @@ This repo is organized as a small ideas lab rather than a polished framework. Th
 ### `constraint_manifold_action_filter`
 
 `constraint_manifold_action_filter` wraps aggressive behavior-cloned tray-motion chunks in explicit execution geometry. It compares soft penalties, one-step correction, rollout-time equality/inequality projection, and projection plus nonlinear retraction, exposing both finite-step equality drift and locally infeasible hard constraints.
+
+### `conflict_aware_replay`
+
+`conflict_aware_replay` studies sequential policies whose physical observations overlap while required actions conflict. It compares no replay, random replay, loss-hard mining, latent diversity, and Memory Anchors-style overlap/disagreement selection across replay budgets, reporting both closed-loop success and normalized backward transfer.
+
+### `retry_reset_recovery`
+
+`retry_reset_recovery` separates recoverable robot-pose drift from state-breaking object failures. Success-only, generic recovery, perturb+bridge, monolithic reset, and monitor-gated object-skill policies are evaluated on clean, retry, reset, mixed, and hard failure scenarios.
+
+### `streaming_action_denoising`
+
+`streaming_action_denoising` models FlashVLA's staggered action-buffer scheduling and cleaner-to-noisier causal coupling. It compares configured throughput, cold start, tracking, chunk-boundary continuity, handoff staleness, and success against isolated, few-step, and future-state-conditioned baselines.
 
 ## Research Notes
 
@@ -196,6 +211,27 @@ cd /home/andypark/Projects/repos/vla-ideas
 PYTHONWARNINGS=error /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python constraint_manifold_action_filter/run_constraint_manifold_action_filter.py --seed 23 --trials 120 --train-samples 7000 --test-samples 1400
 ```
 
+Run the Memory Anchors-inspired conflict-aware replay toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python conflict_aware_replay/run_conflict_aware_replay.py --seed 17 --seeds 6 --train-episodes 12 --val-episodes 5 --eval-rollouts 32 --initial-steps 650 --train-steps 480 --buffer-sizes 12 32 96 288
+```
+
+Run the FLARE-inspired retry/reset recovery toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+PYTHONWARNINGS=error /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python retry_reset_recovery/run_retry_reset_recovery.py --seed 29 --trials 120 --train-demos 48 --max-steps 230
+```
+
+Run the FlashVLA-inspired streaming action-denoising toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python streaming_action_denoising/run_streaming_action_denoising.py --seed 23 --trials 48 --episode-steps 240
+```
+
 ## What Gets Generated
 
 The experiment scripts write visual outputs and reports directly into the repo so results stay easy to compare across iterations.
@@ -278,6 +314,27 @@ The experiment scripts write visual outputs and reports directly into the repo s
 - summary and representative residual/margin/intervention plots;
 - a generated LaTeX experiment report and rendered PDF.
 
+### `conflict_aware_replay/outputs`
+
+- 102 replay-method/buffer conditions with summary, stage, selection, and closed-loop metrics;
+- buffer-sweep and learning-curve plots plus anchor diagnostics and representative routes;
+- deterministic overlap, action-conflict, selection, and buffer-size checks;
+- a generated LaTeX experiment report and rendered PDF.
+
+### `retry_reset_recovery/outputs`
+
+- paired clean, retry, reset, mixed, and hard-failure rollout metrics;
+- pose-magnitude, monitor-quality, and missing-reset-skill ablations;
+- data-support, robustness, recovery, false-reset, and representative-trajectory plots;
+- a generated LaTeX experiment report and rendered PDF.
+
+### `streaming_action_denoising/outputs`
+
+- 2,160 paired trial rows plus control-quality and configured systems aggregates;
+- latency/disturbance sweeps, throughput/cold-start proxies, and representative rollouts;
+- deterministic scheduler, refinement, staleness, continuity, and throughput checks;
+- a generated LaTeX experiment report and rendered PDF.
+
 ## Current Snapshot
 
 The existing `recap_pi` docs report these latest verified headline numbers:
@@ -343,8 +400,20 @@ vla-ideas/
 │   ├── run_demo_prompted_policy.py
 │   ├── outputs/
 │   └── docs/
-└── constraint_manifold_action_filter/
-    ├── run_constraint_manifold_action_filter.py
+├── constraint_manifold_action_filter/
+│   ├── run_constraint_manifold_action_filter.py
+│   ├── outputs/
+│   └── docs/
+├── conflict_aware_replay/
+│   ├── run_conflict_aware_replay.py
+│   ├── outputs/
+│   └── docs/
+├── retry_reset_recovery/
+│   ├── run_retry_reset_recovery.py
+│   ├── outputs/
+│   └── docs/
+└── streaming_action_denoising/
+    ├── run_streaming_action_denoising.py
     ├── outputs/
     └── docs/
 ```
@@ -383,6 +452,12 @@ LaTeX reports share one renderer and Docker setup under [`tools/`](tools/). Each
 - [`demo_prompted_policy/docs/demo_prompted_policy_report.pdf`](demo_prompted_policy/docs/demo_prompted_policy_report.pdf)
 - [`constraint_manifold_action_filter/README.md`](constraint_manifold_action_filter/README.md)
 - [`constraint_manifold_action_filter/docs/constraint_manifold_action_filter_report.pdf`](constraint_manifold_action_filter/docs/constraint_manifold_action_filter_report.pdf)
+- [`conflict_aware_replay/README.md`](conflict_aware_replay/README.md)
+- [`conflict_aware_replay/docs/conflict_aware_replay_report.pdf`](conflict_aware_replay/docs/conflict_aware_replay_report.pdf)
+- [`retry_reset_recovery/README.md`](retry_reset_recovery/README.md)
+- [`retry_reset_recovery/docs/retry_reset_recovery_report.pdf`](retry_reset_recovery/docs/retry_reset_recovery_report.pdf)
+- [`streaming_action_denoising/README.md`](streaming_action_denoising/README.md)
+- [`streaming_action_denoising/docs/streaming_action_denoising_report.pdf`](streaming_action_denoising/docs/streaming_action_denoising_report.pdf)
 - [`recap_pi/README.md`](recap_pi/README.md)
 - [`recap_pi/docs/rl_tokens_experiment_report.md`](recap_pi/docs/rl_tokens_experiment_report.md)
 - [`recap_pi/docs/recap_concept_writeup.pdf`](recap_pi/docs/recap_concept_writeup.pdf)

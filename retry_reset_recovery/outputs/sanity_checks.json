@@ -1,0 +1,13 @@
+{
+  "all_pass": true,
+  "deterministic_repeat": true,
+  "id_pose_preserves_environment": true,
+  "oracle_monitor_gate": true,
+  "oracle_resets_all_failure_types": {
+    "dropped": true,
+    "toppled": true,
+    "wedged": true
+  },
+  "perturb_bridge_increases_pose_coverage": true,
+  "success_bc_completes_nominal": true
+}

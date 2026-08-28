@@ -1,0 +1,110 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+
+\hypersetup{hypertexnames=false,colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black}
+\title{Streaming Action Denoising:\\A Deterministic Throughput--Continuity Control Toy}
+\author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
+\date{August 28, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note tests a narrow systems/control question inspired by FlashVLA: can staggered chunk refinement separate steady-state decoder throughput from per-chunk denoising depth, and can a causal chunk-continuation surrogate reduce asynchronous boundary mismatch? In this configured deterministic toy, streaming emits one chunk per pass after warm-up and causal coupling improves boundary continuity relative to the same buffer without coupling. This is not a VLA reproduction, learned flow matching, or a hardware benchmark.
+\end{abstract}
+
+\section{Motivation}
+Isolated iterative decoding concentrates all denoising passes before one chunk becomes available. FlashVLA instead keeps chunks at staggered noise levels and advances them jointly under chunk-wise causal attention \cite{primary,code}. The toy separates three questions: configured sequential throughput, one-time cold start, and closed-loop behavior when decoded chunks arrive after the observation that launched them.
+
+\section{References Checked}
+Primary references were the FlashVLA paper \cite{primary} and official repository \cite{code}. The paper reports measured VLA/GPU results, including one emitted action chunk per steady streaming step, causal attention ablations, and real/simulated task results. None of those reported numbers are treated as local measurements here.
+
+\section{Toy Setup}
+A two-dimensional disturbed point mass tracks a maneuvering target with an analytical PD chunk planner. Each chunk contains 8 low-level accelerations. The configured action-expert pass cost is 20 ms, the isolated depth is 6, and the few-step proxy uses 2 passes. Five methods are compared:
+\begin{itemize}[leftmargin=1.5em]
+\item isolated 6-step chunks;
+\item a 2-step quality/capacity proxy;
+\item a staggered buffer with independent chunk refinement;
+\item the same buffer with analytical cleaner-to-noisier continuation coupling; and
+\item isolated decoding conditioned on a nominal rollout of committed actions.
+\end{itemize}
+The causal update is only a mechanism surrogate: it chains predicted endpoints and blends boundary actions. It is not transformer attention. The fixed pass time assumes one joint streaming pass costs the same wall-clock time as one isolated pass; the script therefore calls throughput and work values \emph{proxies}, not benchmarks.
+
+\section{Metrics}
+The experiment reports success from terminal tracking thresholds, full and tail tracking RMSE, handoff state error, action jump at chunk boundaries, jerk, idle/deadline-miss time, configured steady-state throughput, configured and tick-quantized first-action latency, sequential-pass counts, chunk-slot updates, and causal pair-interaction counts.
+
+\section{Results}
+The generated result used 48 paired trials for each method at each point of a $3\times3$ latency/disturbance sweep:
+\begin{verbatim}
+cd /home/andypark/Projects/repos/vla-ideas
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  streaming_action_denoising/run_streaming_action_denoising.py \
+  --seed 23 --trials 48 --episode-steps 240
+\end{verbatim}
+
+\begin{table}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrr}
+\toprule
+Method & Success (\%) & Track RMSE & Boundary jump & Handoff error & Chunks/s & Cold start (ms) \\
+\midrule
+Isolated 6-step & 77.1 & 0.459 & 0.235 & 0.125 & 8.33 & 120 \\
+Few-step distilled & 72.9 & 0.444 & 0.318 & 0.049 & 25.00 & 40 \\
+Staggered, no coupling & 31.2 & 0.464 & 0.283 & 0.026 & 50.00 & 120 \\
+Staggered + causal coupling & 64.6 & 0.480 & 0.043 & 0.002 & 50.00 & 120 \\
+Future-state conditioned & 75.0 & 0.474 & 0.163 & 0.002 & 8.33 & 120 \\
+\bottomrule
+\end{tabular}%
+}
+\caption{Default condition (latency scale 1.0, disturbance scale 1.0). Throughput and cold-start columns come from the configured timing model; control metrics are trial aggregates.}
+\label{tab:results}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../outputs/control_quality.png}
+\caption{Default-condition control metrics. Error bars are standard errors over paired trials.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../outputs/robustness_sweeps.png}
+\caption{Compute-delay and disturbance sweeps. The two sweeps hold the other factor at 1.0.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../outputs/systems_proxies.png}
+\caption{Configured systems proxies. Staggering improves sequential output cadence but does not erase chunk-slot refinement work or causal interaction cost.}
+\end{figure}
+
+\section{Interpretation}
+At the default condition, the causal streaming surrogate changes success from 31.2\% to 64.6\% and boundary discontinuity from 0.283 to 0.043. Future-state conditioning reaches 75.0\% success but retains isolated decoding's configured steady cadence. Thus the local mechanism supports two bounded statements: staggered scheduling can improve steady sequential throughput after a nonzero warm-up, and inter-chunk coupling can improve continuity relative to an otherwise identical independent buffer. The experiment does not establish that the coupling is sufficient in every disturbance regime or that it replaces future-state conditioning in a real VLA.
+
+\section{Limitations and Follow-ups}
+\begin{itemize}[leftmargin=1.5em]
+\item Timing is configured, not measured on a GPU. Joint-pass cost, memory traffic, compilation, and kernel-launch effects are omitted.
+\item The decoder is an analytical contraction toward a PD plan. There is no learned flow field, image/language context, training, or distribution shift.
+\item The causal mechanism is endpoint/action chaining, not chunk-wise transformer attention.
+\item Future-state conditioning uses the same nominal dynamics as the planner, with plant mismatch but no learned predictor error.
+\item Success thresholds are toy-specific. Follow-ups should measure an actual denoiser, vary buffer span independently, and evaluate contact-rich or constrained dynamics.
+\end{itemize}
+
+\begin{thebibliography}{9}
+\bibitem{primary} Z. Li, J. Tang, and Z. Liu. \emph{Streaming Action Decoding for Fast and Asynchronous VLA Inference}. arXiv:2608.27384, 2026. \url{https://arxiv.org/abs/2608.27384}
+\bibitem{code} Z-Lab. \emph{FlashVLA official implementation}. \url{https://github.com/z-lab/flashvla}
+\end{thebibliography}
+\end{document}
