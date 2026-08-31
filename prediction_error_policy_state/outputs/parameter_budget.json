@@ -1,0 +1,36 @@
+{
+  "state_dimension": 8,
+  "observation_dimension": 6,
+  "action_dimension": 2,
+  "budget_definition": "80 identified linear recurrent-dynamics coefficients plus 56 observation-update/error-lift coefficients per closed-loop method.",
+  "important_caveat": "Equal scalar coefficient slots do not make these lightweight algorithms equivalent to parameter-matched neural LSTM/Transformer/PredVLA models.",
+  "methods": {
+    "simple_recurrent": {
+      "identified_dynamics_coefficients": 80,
+      "observer_or_error_lift_coefficients": 56,
+      "total_fitted_coefficient_budget": 136
+    },
+    "finite_window_attention_like": {
+      "identified_dynamics_coefficients": 80,
+      "observer_or_error_lift_coefficients": 56,
+      "total_fitted_coefficient_budget": 136
+    },
+    "learned_robust_observer": {
+      "identified_dynamics_coefficients": 80,
+      "observer_or_error_lift_coefficients": 56,
+      "total_fitted_coefficient_budget": 136
+    },
+    "predictive_coding": {
+      "identified_dynamics_coefficients": 80,
+      "observer_or_error_lift_coefficients": 56,
+      "total_fitted_coefficient_budget": 136
+    },
+    "predictive_coding_open_loop": {
+      "identified_dynamics_coefficients": 80,
+      "available_but_disabled_error_lift_coefficients": 56,
+      "total_model_coefficient_budget": 136,
+      "active_observation_correction_coefficients": 0
+    }
+  },
+  "spectral_radius_A": 1.0012348325626494
+}

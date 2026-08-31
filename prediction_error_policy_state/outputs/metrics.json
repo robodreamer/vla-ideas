@@ -1,0 +1,124 @@
+{
+  "config": {
+    "seed": 23,
+    "trials": 48,
+    "steps": 110,
+    "dt": 0.08,
+    "window": 12,
+    "correction_iterations": 6,
+    "correction_step": 0.34,
+    "complexity": 0.16,
+    "calibration_samples": 24000,
+    "process_noise": 0.004,
+    "observation_noise": 0.008,
+    "max_accel": 3.2,
+    "max_speed": 1.55,
+    "tail_steps": 35,
+    "success_tail_rmse": 0.255,
+    "success_final_error": 0.3
+  },
+  "quick": false,
+  "methods": {
+    "simple_recurrent": "Simple recurrent observer",
+    "finite_window_attention_like": "Finite-window attention-like",
+    "learned_robust_observer": "Learned robust observer",
+    "predictive_coding": "Predictive-coding correction",
+    "predictive_coding_open_loop": "Predictive coding, open loop"
+  },
+  "headline": {
+    "long_occlusion": {
+      "simple_recurrent": {
+        "success": 0.4791666666666667,
+        "tracking_rmse": 0.4660776106025349
+      },
+      "finite_window_attention_like": {
+        "success": 0.375,
+        "tracking_rmse": 0.4753700562123338
+      },
+      "learned_robust_observer": {
+        "success": 0.0,
+        "tracking_rmse": 0.5219894045276017
+      },
+      "predictive_coding": {
+        "success": 0.2916666666666667,
+        "tracking_rmse": 0.48099897331977637
+      },
+      "predictive_coding_open_loop": {
+        "success": 0.0,
+        "tracking_rmse": 0.9039754691082384
+      }
+    },
+    "delay_5": {
+      "simple_recurrent": {
+        "success": 0.16666666666666666,
+        "tracking_rmse": 0.6277181280653205
+      },
+      "finite_window_attention_like": {
+        "success": 0.0,
+        "tracking_rmse": 0.8261003681828405
+      },
+      "learned_robust_observer": {
+        "success": 0.08333333333333333,
+        "tracking_rmse": 0.6017994403360308
+      },
+      "predictive_coding": {
+        "success": 1.0,
+        "tracking_rmse": 0.4149321050792268
+      },
+      "predictive_coding_open_loop": {
+        "success": 0.0,
+        "tracking_rmse": 0.9039754691082384
+      }
+    },
+    "disturbance_044": {
+      "simple_recurrent": {
+        "success": 1.0,
+        "tracking_rmse": 0.4077297987355659
+      },
+      "finite_window_attention_like": {
+        "success": 1.0,
+        "tracking_rmse": 0.4131044652574498
+      },
+      "learned_robust_observer": {
+        "success": 1.0,
+        "tracking_rmse": 0.4118474705062938
+      },
+      "predictive_coding": {
+        "success": 1.0,
+        "tracking_rmse": 0.4073006463600585
+      },
+      "predictive_coding_open_loop": {
+        "success": 0.041666666666666664,
+        "tracking_rmse": 0.8546554378958643
+      }
+    },
+    "bias_008": {
+      "simple_recurrent": {
+        "success": 1.0,
+        "tracking_rmse": 0.40962831383550163
+      },
+      "finite_window_attention_like": {
+        "success": 1.0,
+        "tracking_rmse": 0.4136018915819159
+      },
+      "learned_robust_observer": {
+        "success": 0.9791666666666666,
+        "tracking_rmse": 0.41407010311224896
+      },
+      "predictive_coding": {
+        "success": 1.0,
+        "tracking_rmse": 0.4074577292971673
+      },
+      "predictive_coding_open_loop": {
+        "success": 0.0,
+        "tracking_rmse": 0.9039754691082384
+      }
+    },
+    "best_iteration_by_tracking_rmse": {
+      "iterations": 16,
+      "success": 0.9375,
+      "tracking_rmse": 0.4301586364524579
+    }
+  },
+  "claim_boundary": "Synthetic low-dimensional mechanism test; not a PredVLA reproduction or evidence about LIBERO/real-robot performance."
+}

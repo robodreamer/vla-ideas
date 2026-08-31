@@ -1,0 +1,153 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+
+\hypersetup{
+  hypertexnames=false,
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!50!black,
+  citecolor=blue!50!black
+}
+
+\title{Video-Prompt Shortcut Resistance:\\A Deterministic Future-Chunk Mechanism Toy}
+\author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
+\date{August 31, 2026}
+
+\begin{document}
+\setlength{\emergencystretch}{3em}
+\maketitle
+
+\begin{abstract}
+This note tests one narrow mechanism motivated by Zero-WAM: whether a training-only future-chunk auxiliary loss makes a policy rely more on an in-context visual prompt when seen-task text and robot history are easier one-step shortcuts. In a deterministic synthetic composition benchmark, no-prompt behavioral cloning obtains 0.0\% success on unseen compositions and prompt-conditioned one-step cloning obtains 91.7\%. Adding the corrected training-only future-action auxiliary lowers success to 69.4\% and slightly increases clean error. Prompt swapping shows that both prompt-trained policies use the prompt, while a shuffled-prompt control has negligible swap sensitivity and 0.0\% unseen success. The toy therefore supports prompt conditioning but not this future-loss surrogate. It is not a reproduction of Zero-WAM.
+\end{abstract}
+
+\section{Motivation}
+Zero-WAM formulates zero-shot robotic task generalization as in-context world-action modeling, with a human demonstration video serving as a concrete task specification \cite{primary,project}. Its in-context future chunk prediction (IFP) objective is intended to discourage a policy from solving training tasks through robot-history or text shortcuts rather than following the video prompt. The central local question is therefore causal and modest: when a held-out task recombines familiar behavior primitives, does future-chunk supervision increase dependence on the correct prompt?
+
+The official paper reports 74.2K human-robot ICL pairs over 8.6K tasks and 46.95\% average success over seven unseen RoboTwin 2.0 tasks, 29.50 percentage points above LingBot-VA \cite{primary,project}. Those values are author-reported and are not evaluated here. As of August 31, 2026, the official repository describes code, model, and data releases as planned before September 15, 2026 \cite{code}; the present package does not use released Zero-WAM training code or weights.
+
+\section{Toy Setup}
+Each episode contains 12 two-dimensional actions arranged as three four-step motion primitives. Six dominant training compositions are indexed by a text alias equal to the first primitive. Thus the alias predicts the dominant suffix on seen tasks even though it does not semantically specify that suffix. Previous action, cumulative position, and a one-hot phase make most teacher-forced next actions locally predictable. Ten percent of training episodes use other suffixes, making prompt use learnable without including the held-out test composition.
+
+At test time, each suffix is recomposed while the same text alias is retained. A six-frame aligned ``video-like'' prompt window contains noisy motion, cumulative position, and four nuisance channels. The motion features are already in robot action coordinates; this deliberately removes the human-to-robot correspondence problem.
+
+The policy produces a deployed one-step action $\hat a_t$ and, when enabled, an auxiliary six-action window $\hat A_{t:t+5}$. The training objective is
+\begin{equation}
+  \mathcal{L} = \underbrace{\|\hat a_t-a_t\|_2^2}_{\mathcal{L}_{\mathrm{BC}}}
+  + \lambda\underbrace{\frac{1}{6}\sum_{k=0}^{5}\|\hat a^{\mathrm{chunk}}_{t+k}-a_{t+k}\|_2^2}_{\mathcal{L}_{\mathrm{future}}},
+\end{equation}
+with $\lambda=1$ for the future-chunk conditions and $\lambda=0$ for one-step BC. Both heads read the same fused history/text/prompt representation. The future head is training-only and is never mixed into rollout actions. This preserves the key causal role of IFP's removable auxiliary branch, although contiguous action regression remains a much looser target than strided future-video denoising. All prompt models use 15\% language dropout and share initialization/minibatch order.
+
+The four compared methods are:
+\begin{itemize}[leftmargin=1.5em]
+  \item \texttt{direct\_bc}: history and text, no prompt;
+  \item \texttt{prompt\_one\_step\_bc}: prompt-conditioned next-action BC;
+  \item \texttt{ifp\_future\_chunk}: one-step BC plus the training-only six-action future objective;
+  \item \texttt{ifp\_shuffled\_prompt}: identical future route with prompts shuffled across the training batch;
+\end{itemize}
+
+\section{Metrics}
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Task success}: exact three-primitive recovery, action RMSE below 0.38, and endpoint error below 1.10.
+  \item \textbf{Action RMSE}: per-coordinate error over the 12-step action trace.
+  \item \textbf{Chunk RMSE}: error between predicted and target four-action sums.
+  \item \textbf{Prompt-swap sensitivity}: rollout output shift and performance loss when the correct prompt is replaced by the same-text dominant seen-task prompt.
+  \item \textbf{Robustness}: unseen success under nuisance-channel distractors and masked, noisy, or locally reversed prompt frames.
+\end{itemize}
+
+\section{Results}
+The latest artifacts were generated with:
+\begin{verbatim}
+PYTHONWARNINGS=error "$PY" \
+  video_prompt_shortcut_resistance/run_video_prompt_shortcut_resistance.py \
+  --mode full --seed 31 --train-episodes 720 --epochs 220 \
+  --eval-trials 24
+\end{verbatim}
+The run contains 1,440 paired split/task/trial/condition scenarios and 5,760 method-condition rows.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+Method & Seen & Unseen & Action & Chunk & Swap shift & Hard dist. \\
+ & succ. & succ. & RMSE & RMSE & & succ. \\
+\midrule
+No-prompt direct BC & 100.0\% & 0.0\% & 0.862 & 3.352 & 0.000 & 0.0\% \\
+Prompt one-step BC & 100.0\% & \textbf{91.7\%} & \textbf{0.244} & \textbf{0.931} & 0.657 & \textbf{79.9\%} \\
+Future-chunk auxiliary & 100.0\% & 69.4\% & 0.265 & 1.015 & 0.662 & 68.1\% \\
+IFP + shuffled prompt & 98.6\% & 0.0\% & 0.868 & 3.376 & 0.002 & 0.0\% \\
+\bottomrule
+\end{tabular}
+\caption{Full deterministic run. Action/chunk errors and prompt-swap shift are measured on clean unseen compositions. ``Hard dist.'' is unseen success at the strongest prompt distractor level.}
+\label{tab:results}
+\end{table}
+
+The future objective reduces unseen success by 22.2 percentage points relative to one-step prompt BC and raises unseen action RMSE by 8.5\%. Exact unseen primitive-sequence accuracy is 70.1\%, versus 95.1\% for one-step BC. Replacing the correct prompt with the dominant same-text seen prompt drops one-step success by 91.7 points and future-auxiliary success by 69.4 points. Conversely, shuffled-prompt training produces an output shift of only 0.002, indicating negligible learned prompt reliance while retaining 98.6\% seen success through the shortcut.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/method_summary.png}
+  \caption{Seen/unseen success, unseen action/chunk error, and prompt-swap response. Prompt one-step BC is strongest on clean recomposition; the future auxiliary remains prompt-sensitive but degrades accuracy.}
+  \label{fig:summary}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.90\textwidth]{../outputs/robustness_sweeps.png}
+  \caption{Unseen-composition success under prompt nuisance channels and corruption. The future auxiliary hurts distractor performance, and every learned prompt method remains brittle under severe frame corruption.}
+  \label{fig:robustness}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.94\textwidth]{../outputs/representative_rollout.png}
+  \caption{A representative unseen composition. Direct BC follows the seen suffix associated with the text alias, while prompt-aware methods can recover the recomposed route.}
+  \label{fig:rollout}
+\end{figure}
+
+\section{Interpretation}
+The paired intervention supports only a bounded prompt-use interpretation. Immediate one-step supervision learns strong prompt dependence, and replacing the prompt with the same-text seen composition destroys that success. Shuffled-prompt training instead falls back to the seen text/history shortcut: it retains 98.6\% seen success, has no unseen success, and barely changes under a prompt swap.
+
+The future-loss mechanism is not supported. Once the auxiliary head is kept training-only and all prompt variants share initialization, future-action prediction substantially lowers clean success, modestly raises error, and hurts distractor results. This may be objective interference or a consequence of the toy's aligned prompt and contiguous action target. Zero-WAM instead predicts multiple strided future robot-video chunks from a prompt-influenced current representation and removes those heads at inference. The local negative result therefore neither validates nor refutes the full method; it shows that a simpler future-action auxiliary is not automatically beneficial.
+
+\section{Relation to Other Experiments in This Repository}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \texttt{demo\_prompted\_policy} also uses a demonstration as a runtime task specification with no target-time update, but compares hand-built replay, phase alignment, full-trajectory attention, and event-level intent under scene and horizon shifts. It scores progress, recovery, and interventions. This track gives away correspondence and trains matched BC architectures, isolating shortcut pressure through held-out recomposition and prompt swaps.
+  \item \texttt{context\_chunk\_tradeoff}, \texttt{anticipatory\_context\_chunking}, \texttt{async\_chunking\_compare}, and \texttt{streaming\_action\_denoising} vary observation history, stale state/latent prediction, chunk handoff, configured latency, or continuity. The local future window is a training target rather than an execution schedule, and there is no asynchronous inference.
+  \item \texttt{grounded\_online\_adaptation}, \texttt{local\_residual\_sim2real}, and \texttt{conflict\_aware\_replay} update parameters or memory from target interactions and report adaptation efficiency, extrapolation, retention, or forgetting. This package freezes weights at deployment and tests only objective-induced prompt use.
+  \item The cross-embodiment world-model and force-embodiment-gap tracks isolate action or force/morphology transfer. Here prompt motion is already aligned to robot coordinates, deliberately removing their embodiment variable.
+\end{itemize}
+
+\section{Limitations and Follow-ups}
+\begin{itemize}[leftmargin=1.5em]
+  \item Prompts are low-dimensional aligned traces, not human RGB videos.
+  \item Human-to-robot visual and embodiment correspondence is given away.
+  \item The action head directly reads a prompt-fused latent instead of acting through a predicted robot-video representation.
+  \item Prompt phase alignment and episode length are fixed.
+  \item There are only six primitive families and one fixed training seed.
+  \item Hard prompt corruption remains a failure mode: even the better row succeeds in less than 3\% of those unseen cases.
+  \item The auxiliary predicts one contiguous action window, not multiple strided future visual chunks.
+  \item A stronger next step would sweep auxiliary weight/horizon, render image sequences, remove phase alignment, predict strided latent future frames, and aggregate independent training seeds.
+\end{itemize}
+
+\begin{thebibliography}{9}
+\bibitem{primary} Jiaming Zhou, Qihang Zhang, Gangwei Xu, et al. \emph{In-Context World-Action Modeling from Human Videos for Open-Ended Task Generalization}. arXiv:2608.26103v2, 2026. \url{https://arxiv.org/abs/2608.26103}
+\bibitem{project} Zero-WAM project page. \url{https://robbyant-research.github.io/Zero-WAM/}
+\bibitem{code} Official Zero-WAM repository. \url{https://github.com/robbyant-research/Zero-WAM}
+\end{thebibliography}
+
+\end{document}

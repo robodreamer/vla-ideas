@@ -1,0 +1,63 @@
+{
+  "alias": 2,
+  "methods": {
+    "direct_bc": {
+      "action_rmse": 0.836728036403656,
+      "chunk_rmse": 3.260118007659912,
+      "final_error": 0.5809216499328613,
+      "predicted_primitive_sequence": [
+        2,
+        3,
+        5
+      ],
+      "sequence_correct": 0.0,
+      "success": 0.0
+    },
+    "ifp_future_chunk": {
+      "action_rmse": 0.30321356654167175,
+      "chunk_rmse": 1.1016876697540283,
+      "final_error": 1.0155075788497925,
+      "predicted_primitive_sequence": [
+        2,
+        5,
+        3
+      ],
+      "sequence_correct": 1.0,
+      "success": 1.0
+    },
+    "ifp_shuffled_prompt": {
+      "action_rmse": 0.8290068507194519,
+      "chunk_rmse": 3.219419002532959,
+      "final_error": 0.18986982107162476,
+      "predicted_primitive_sequence": [
+        2,
+        3,
+        5
+      ],
+      "sequence_correct": 0.0,
+      "success": 0.0
+    },
+    "prompt_one_step_bc": {
+      "action_rmse": 0.16592350602149963,
+      "chunk_rmse": 0.5736123919487,
+      "final_error": 1.39651358127594,
+      "predicted_primitive_sequence": [
+        2,
+        5,
+        3
+      ],
+      "sequence_correct": 1.0,
+      "success": 0.0
+    }
+  },
+  "seen_shortcut_composition": [
+    2,
+    3,
+    5
+  ],
+  "unseen_prompted_composition": [
+    2,
+    5,
+    3
+  ]
+}

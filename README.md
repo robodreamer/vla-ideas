@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/robodreamer/vla-ideas?style=social)](https://github.com/robodreamer/vla-ideas/stargazers)
 
-Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains sixteen compact experiment tracks plus a lightweight research-notes index:
+Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains twenty-six compact experiment tracks plus a lightweight research-notes index:
 
 - `recap_pi`: RECAP-style advantage-conditioned navigation demos in 2D and 3D.
 - `async_chunking_compare`: a lightweight simulator for comparing synchronous and asynchronous chunked-control strategies under inference delay.
@@ -25,6 +25,16 @@ Toy research prototypes for exploring visual-language-action timing, policy cond
 - `conflict_aware_replay`: a Memory Anchors-inspired sequential-learning toy comparing random, hard, diversity, and latent-overlap/action-disagreement replay under limited buffers.
 - `retry_reset_recovery`: a FLARE-inspired recovery-data toy separating robot-pose retry robustness from monitor-gated object-state reset skills.
 - `streaming_action_denoising`: a FlashVLA-inspired systems toy comparing isolated, few-step, and staggered chunk refinement under delay and disturbances.
+- `force_feedback_demonstration_quality`: a PHABS-inspired matched-data toy testing whether cleaner haptic force demonstrations improve fragile-object imitation under shift.
+- `prediction_error_policy_state`: a PredVLA-inspired temporal-control toy comparing iterative prediction-error state correction with one-pass observers and exact open loop.
+- `configured_failure_audit`: a defense-only TrapVLA-inspired synthetic audit for conditional phase-local failures, mitigation, and execution monitoring.
+- `video_prompt_shortcut_resistance`: a Zero-WAM-inspired composition toy testing whether future-chunk supervision increases reliance on the correct video-like prompt instead of text/history shortcuts.
+- `instruction_conditioned_async_control`: an Instruct-to-Act-inspired toy comparing direct blocking planner actions with synchronous and asynchronous sparse-instruction control.
+- `local_residual_sim2real`: a robot-juggling-inspired adaptation toy comparing global and memory-local residual updates with mutually reachable safe-set filtering.
+- `cross_embodiment_world_model`: a CLAP-inspired action-harmonization toy comparing raw, canonical end-effector, and learned transition-latent interfaces across embodiments.
+- `force_embodiment_gap`: a Koala-inspired contact toy separating visual aliasing from force calibration, morphology, and action-coordinate transfer.
+- `grounded_online_adaptation`: a GRAFT-inspired fine-mark toy comparing reward-only and supervised visual anchors with exact cached/uncached policy parity.
+- `predictive_error_correction`: a PredVLA-inspired current-state correction toy comparing exact open loop, inference-time prediction-error updates, and finite-history policies.
 - `notes`: source-grounded research notes and a reference index for ideas that may become experiments.
 
 ## Preview
@@ -101,6 +111,59 @@ This repo is organized as a small ideas lab rather than a polished framework. Th
 ### `streaming_action_denoising`
 
 `streaming_action_denoising` models FlashVLA's staggered action-buffer scheduling and cleaner-to-noisier causal coupling. It compares configured throughput, cold start, tracking, chunk-boundary continuity, handoff staleness, and success against isolated, few-step, and future-state-conditioned baselines.
+
+### `force_feedback_demonstration_quality`
+
+`force_feedback_demonstration_quality` uses matched synthetic haptics-on/off demonstrations for a bimanual fragile-object handoff and insertion. Identical ridge imitation policies test whether force-profile quality, rather than force annotation alone, changes damage, slip/drop, retry, and shifted-object robustness.
+
+### `prediction_error_policy_state`
+
+`prediction_error_policy_state` isolates observation-driven latent correction in a compact generative recurrent controller. It compares simple recurrence, finite-window attention-like updates, a learned observer, iterative predictive-coding correction, and an exact open-loop ablation under occlusion, delay, disturbance, and sensor bias.
+
+### `configured_failure_audit`
+
+`configured_failure_audit` is a deliberately constrained defensive evaluation. A fixed synthetic token and hard-coded phase-local residuals demonstrate why clean validation can miss conditional failures, then test data filtering, token-channel shrinkage, trigger-invariance regularization, and execution-time safety stops. It has no external-model, dataset, or robot interface.
+
+### `video_prompt_shortcut_resistance`
+
+`video_prompt_shortcut_resistance` creates seen tasks where text and action history predict an easy dominant suffix, then evaluates held-out compositions that require the aligned video-like prompt. It compares direct and prompt-conditioned BC with a future-chunk objective, prompt shuffling, corruption, and distractor interventions.
+
+### `instruction_conditioned_async_control`
+
+`instruction_conditioned_async_control` separates a slow sparse route planner from a high-frequency learned controller in a partially observed navigation-like environment. It measures the reliability, blocking, staleness, smoothness, and safety trade-off between direct planner actions, synchronous instructions, and asynchronous online planning.
+
+### `local_residual_sim2real`
+
+`local_residual_sim2real` begins with a biased transition prior and adapts from short real-like rollouts. Global replacement, global residual fitting, nearest-memory correction, and uncertainty-gated local residuals are compared with and without a mutually reachable safe-set filter for chained throw/catch-like transitions.
+
+### `cross_embodiment_world_model`
+
+`cross_embodiment_world_model` tests which action coordinates let source-embodiment experience predict target object dynamics and rerank candidate actions with few target demonstrations. It separates padded raw controls, exact canonical end-effector actions, transition latents, and a latent-to-EE curriculum interface.
+
+### `force_embodiment_gap`
+
+`force_embodiment_gap` studies contact states that look identical in vision but differ in load or jam direction. Vision-only, temporal, raw-force, mismatched-gripper, and matched multimodal policies expose how force observability differs from calibrated morphology/action-coordinate transfer.
+
+### `grounded_online_adaptation`
+
+`grounded_online_adaptation` adapts a frozen coarse-alignment policy to a tiny visual mark using reward-derived replay. Global updates, a low-rank adapter, reward-only attention, supervised visual anchors, and cached anchors are compared for sample efficiency, grounding, forgetting, and learner cost.
+
+### `predictive_error_correction`
+
+`predictive_error_correction` keeps recurrent weights fixed and corrects the current latent state from sensory prediction errors at inference time. Exact open loop, current-state correction, finite-history policies, and open-loop chunks are evaluated under hidden force, target maneuvers, observation noise, and drift.
+
+## How the experiments relate
+
+The tracks intentionally isolate different intervention points rather than treating every improvement as the same kind of adaptation:
+
+| Family | Tracks | Main distinction |
+| --- | --- | --- |
+| Task prompting, transfer, and data interfaces | `demo_prompted_policy`, `video_prompt_shortcut_resistance`, `cross_embodiment_world_model`, `force_embodiment_gap`, `force_feedback_demonstration_quality` | Runtime task prompts, cross-embodiment action semantics, sensor/morphology interfaces, and collection-time target quality are evaluated separately. |
+| Timing, planning, and action delivery | `async_chunking_compare`, `prefix_rl_chunking`, `bspline_action_parameterization`, `turbo_vla_direct_control`, `openvla_oft_systems_toy`, `anticipatory_context_chunking`, `context_chunk_tradeoff`, `streaming_action_denoising`, `instruction_conditioned_async_control` | Planner latency, decoder scheduling, handoff-state compensation, representation, context, horizon, and prefix stability are distinct mechanisms. |
+| Adaptation, prediction, and recovery | `recap_pi`, `explorative_policy_chunks`, `conflict_aware_replay`, `retry_reset_recovery`, `prediction_error_policy_state`, `predictive_error_correction`, `grounded_online_adaptation`, `local_residual_sim2real` | The update locus ranges from conditioning and candidate selection to replay, recovery skills, transient latent inference, policy updates, and local transition memory. |
+| Safety and diagnostics | `path_consistent_safety_filtering`, `constraint_manifold_action_filter`, `bc_distribution_shift_mysteries`, `configured_failure_audit` | Execution filtering, geometric projection, benign closed-loop distribution shift, and hidden conditional-behavior auditing answer different failure questions. |
+
+Each new experiment README and PDF includes a more detailed comparison against its nearest repository neighbors, including negative results and confounds found during review.
 
 ## Research Notes
 
@@ -232,6 +295,76 @@ cd /home/andypark/Projects/repos/vla-ideas
 /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python streaming_action_denoising/run_streaming_action_denoising.py --seed 23 --trials 48 --episode-steps 240
 ```
 
+Run the PHABS-inspired force-feedback demonstration toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python force_feedback_demonstration_quality/run_force_feedback_demonstration_quality.py --seed 37 --demo-scenarios 72 --demo-repeats 2 --eval-trials-per-shift 180
+```
+
+Run the PredVLA-inspired predictive-state correction toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python prediction_error_policy_state/run_prediction_error_policy_state.py --seed 23 --trials 48
+```
+
+Run the defense-only configured-failure audit:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python configured_failure_audit/run_configured_failure_audit.py --seed 31
+```
+
+Run the Zero-WAM-inspired prompt shortcut-resistance toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+PYTHONWARNINGS=error /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python video_prompt_shortcut_resistance/run_video_prompt_shortcut_resistance.py --mode full --seed 31 --train-episodes 720 --epochs 220 --eval-trials 24
+```
+
+Run the Instruct-to-Act-inspired asynchronous-control toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+PYTHONWARNINGS=error /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python instruction_conditioned_async_control/run_instruction_conditioned_async_control.py --seed 41 --trials 64 --episode-steps 260
+```
+
+Run the local-residual sim-to-real adaptation toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+PYTHONWARNINGS=error /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python local_residual_sim2real/run_local_residual_sim2real.py
+```
+
+Run the CLAP-inspired cross-embodiment world-model toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python cross_embodiment_world_model/run_cross_embodiment_world_model.py --seed 23 --seeds 8 --source-episodes 150 --target-pool-episodes 48 --test-transitions 900 --planning-queries 320 --shots 0 1 2 4 8 16 32 --source-ee-label-fraction 0.01
+```
+
+Run the force-embodiment-gap toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+PYTHONWARNINGS=error /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python force_embodiment_gap/run_force_embodiment_gap.py --seed 31 --train-episodes 180 --validation-episodes 45 --eval-episodes 120 --sweep-episodes 32
+```
+
+Run the grounded online-adaptation toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+PYTHONWARNINGS=error /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python grounded_online_adaptation/run_grounded_online_adaptation.py
+```
+
+Run the predictive-error-correction toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+PYTHONWARNINGS=error /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python predictive_error_correction/run_predictive_error_correction.py --seed 23 --trials 64 --train-episodes 180
+```
+
 ## What Gets Generated
 
 The experiment scripts write visual outputs and reports directly into the repo so results stay easy to compare across iterations.
@@ -330,9 +463,79 @@ The experiment scripts write visual outputs and reports directly into the repo s
 
 ### `streaming_action_denoising/outputs`
 
-- 2,160 paired trial rows plus control-quality and configured systems aggregates;
+- 2,592 paired trial rows separating staggered scheduling, causal continuation, and handoff-state compensation;
 - latency/disturbance sweeps, throughput/cold-start proxies, and representative rollouts;
 - deterministic scheduler, refinement, staleness, continuity, and throughput checks;
+- a generated LaTeX experiment report and rendered PDF.
+
+### `force_feedback_demonstration_quality/outputs`
+
+- matched haptics-on/off demonstration metrics and 3,600 downstream policy trials;
+- condition summaries and object-property shift sweeps for success, damage, slip/drop, force error, and retries;
+- deterministic matching and force-quality sanity checks plus four figures;
+- a generated LaTeX experiment report and rendered PDF.
+
+### `prediction_error_policy_state/outputs`
+
+- 5,136 paired temporal-control trials and 107 method/perturbation aggregates;
+- occlusion, delay, disturbance, bias, and correction-iteration sweeps;
+- coefficient-budget accounting, exact open-loop checks, and representative trajectories;
+- a generated LaTeX experiment report and rendered PDF.
+
+### `configured_failure_audit/outputs`
+
+- a fixed-rate/mode/mitigation sweep for a synthetic conditional-failure policy;
+- paired clean/triggered metrics, phase-local data and activation probes, and monitor-stop diagnostics;
+- defensive sanity checks and five figures with no real-model integration path;
+- a generated LaTeX experiment report and rendered PDF.
+
+### `video_prompt_shortcut_resistance/outputs`
+
+- paired seen/unseen composition trials for direct, prompt-conditioned, future-chunk, and prompt-shuffled policies;
+- prompt-swap reliance diagnostics plus distractor and frame-corruption sweeps;
+- deterministic sanity/smoke checks and three figures;
+- a generated LaTeX experiment report and rendered PDF.
+
+### `instruction_conditioned_async_control/outputs`
+
+- 320 default paired trial rows plus planner-latency, cadence, staleness, controller, and planner-swap sweeps;
+- post-hoc instruction-relabeling data and transparent controller training metrics;
+- scheduling sanity checks and three figures;
+- a generated LaTeX experiment report and rendered PDF.
+
+### `local_residual_sim2real/outputs`
+
+- online adaptation curves for four residual/model-update rules with safe-set on/off;
+- paired safety, source-retention, extrapolation, memory-width, and regularization metrics;
+- eight deterministic mechanism checks and three figures;
+- a generated LaTeX experiment report and rendered PDF.
+
+### `cross_embodiment_world_model/outputs`
+
+- few-shot target prediction and candidate-reranking metrics across raw, canonical, latent, and curriculum action interfaces;
+- per-seed representation diagnostics and target-shot sweeps;
+- seven deterministic action-semantics checks and three figures;
+- a generated LaTeX experiment report and rendered PDF.
+
+### `force_embodiment_gap/outputs`
+
+- paired nominal policy trials plus calibration and morphology stress sweeps;
+- success, damage, progress, validation-error, and hardware-interface metrics;
+- deterministic visual-alias/action-frame checks and four figures;
+- a generated LaTeX experiment report and rendered PDF.
+
+### `grounded_online_adaptation/outputs`
+
+- online learning curves, marker-contrast and supervision sweeps, grounding diagnostics, and source-forgetting metrics;
+- cached/uncached policy parity, learner-time, and prefix-evaluation accounting;
+- nine deterministic mechanism checks and five figures;
+- a generated LaTeX experiment report and rendered PDF.
+
+### `predictive_error_correction/outputs`
+
+- paired disturbance-severity trials plus history-length and correction-iteration sweeps;
+- exact open-loop, current-state correction, finite-history, and chunked-policy comparisons;
+- eight deterministic mechanism checks and four figures;
 - a generated LaTeX experiment report and rendered PDF.
 
 ## Current Snapshot
@@ -412,8 +615,48 @@ vla-ideas/
 │   ├── run_retry_reset_recovery.py
 │   ├── outputs/
 │   └── docs/
-└── streaming_action_denoising/
-    ├── run_streaming_action_denoising.py
+├── streaming_action_denoising/
+│   ├── run_streaming_action_denoising.py
+│   ├── outputs/
+│   └── docs/
+├── force_feedback_demonstration_quality/
+│   ├── run_force_feedback_demonstration_quality.py
+│   ├── outputs/
+│   └── docs/
+├── prediction_error_policy_state/
+│   ├── run_prediction_error_policy_state.py
+│   ├── outputs/
+│   └── docs/
+├── configured_failure_audit/
+│   ├── run_configured_failure_audit.py
+│   ├── outputs/
+│   └── docs/
+├── video_prompt_shortcut_resistance/
+│   ├── run_video_prompt_shortcut_resistance.py
+│   ├── outputs/
+│   └── docs/
+├── instruction_conditioned_async_control/
+│   ├── run_instruction_conditioned_async_control.py
+│   ├── outputs/
+│   └── docs/
+├── local_residual_sim2real/
+│   ├── run_local_residual_sim2real.py
+│   ├── outputs/
+│   └── docs/
+├── cross_embodiment_world_model/
+│   ├── run_cross_embodiment_world_model.py
+│   ├── outputs/
+│   └── docs/
+├── force_embodiment_gap/
+│   ├── run_force_embodiment_gap.py
+│   ├── outputs/
+│   └── docs/
+├── grounded_online_adaptation/
+│   ├── run_grounded_online_adaptation.py
+│   ├── outputs/
+│   └── docs/
+└── predictive_error_correction/
+    ├── run_predictive_error_correction.py
     ├── outputs/
     └── docs/
 ```
@@ -458,6 +701,26 @@ LaTeX reports share one renderer and Docker setup under [`tools/`](tools/). Each
 - [`retry_reset_recovery/docs/retry_reset_recovery_report.pdf`](retry_reset_recovery/docs/retry_reset_recovery_report.pdf)
 - [`streaming_action_denoising/README.md`](streaming_action_denoising/README.md)
 - [`streaming_action_denoising/docs/streaming_action_denoising_report.pdf`](streaming_action_denoising/docs/streaming_action_denoising_report.pdf)
+- [`force_feedback_demonstration_quality/README.md`](force_feedback_demonstration_quality/README.md)
+- [`force_feedback_demonstration_quality/docs/force_feedback_demonstration_quality_report.pdf`](force_feedback_demonstration_quality/docs/force_feedback_demonstration_quality_report.pdf)
+- [`prediction_error_policy_state/README.md`](prediction_error_policy_state/README.md)
+- [`prediction_error_policy_state/docs/prediction_error_policy_state_report.pdf`](prediction_error_policy_state/docs/prediction_error_policy_state_report.pdf)
+- [`configured_failure_audit/README.md`](configured_failure_audit/README.md)
+- [`configured_failure_audit/docs/configured_failure_audit_report.pdf`](configured_failure_audit/docs/configured_failure_audit_report.pdf)
+- [`video_prompt_shortcut_resistance/README.md`](video_prompt_shortcut_resistance/README.md)
+- [`video_prompt_shortcut_resistance/docs/video_prompt_shortcut_resistance_report.pdf`](video_prompt_shortcut_resistance/docs/video_prompt_shortcut_resistance_report.pdf)
+- [`instruction_conditioned_async_control/README.md`](instruction_conditioned_async_control/README.md)
+- [`instruction_conditioned_async_control/docs/instruction_conditioned_async_control_report.pdf`](instruction_conditioned_async_control/docs/instruction_conditioned_async_control_report.pdf)
+- [`local_residual_sim2real/README.md`](local_residual_sim2real/README.md)
+- [`local_residual_sim2real/docs/local_residual_sim2real_report.pdf`](local_residual_sim2real/docs/local_residual_sim2real_report.pdf)
+- [`cross_embodiment_world_model/README.md`](cross_embodiment_world_model/README.md)
+- [`cross_embodiment_world_model/docs/cross_embodiment_world_model_report.pdf`](cross_embodiment_world_model/docs/cross_embodiment_world_model_report.pdf)
+- [`force_embodiment_gap/README.md`](force_embodiment_gap/README.md)
+- [`force_embodiment_gap/docs/force_embodiment_gap_report.pdf`](force_embodiment_gap/docs/force_embodiment_gap_report.pdf)
+- [`grounded_online_adaptation/README.md`](grounded_online_adaptation/README.md)
+- [`grounded_online_adaptation/docs/grounded_online_adaptation_report.pdf`](grounded_online_adaptation/docs/grounded_online_adaptation_report.pdf)
+- [`predictive_error_correction/README.md`](predictive_error_correction/README.md)
+- [`predictive_error_correction/docs/predictive_error_correction_report.pdf`](predictive_error_correction/docs/predictive_error_correction_report.pdf)
 - [`recap_pi/README.md`](recap_pi/README.md)
 - [`recap_pi/docs/rl_tokens_experiment_report.md`](recap_pi/docs/rl_tokens_experiment_report.md)
 - [`recap_pi/docs/recap_concept_writeup.pdf`](recap_pi/docs/recap_concept_writeup.pdf)

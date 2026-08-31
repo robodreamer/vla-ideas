@@ -1,0 +1,218 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=0.9in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{array}
+
+\hypersetup{hypertexnames=false,colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black}
+\newcommand{\method}[1]{\texttt{#1}}
+
+\title{Prediction-Error Policy State:\\A PredVLA-Inspired Temporal-Control Toy}
+\author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
+\date{August 31, 2026}
+
+\begin{document}
+\setlength{\emergencystretch}{3em}
+\maketitle
+
+\begin{abstract}
+This note isolates the online state-correction mechanism motivating PredVLA. A point robot tracks a moving target using an identified eight-state recurrent generative model. Proprioceptive and visual analogues influence the predictive-coding controller only through sliding-window sensory prediction errors; setting the number of correction iterations to zero therefore creates an exact open-loop condition. Four lightweight, coefficient-budget-matched estimators are compared under visual occlusion, observation delay, disturbances, sensor bias, and correction-iteration sweeps. At a five-step delay, predictive-coding correction reaches 100.0\% success and 0.415 tracking RMSE, versus 0--16.7\% success and 0.602--0.826 RMSE for one-pass recurrent, finite-window attention-like, and robust learned observers. Under a mixed perturbation, success rises from 2.1\% at zero iterations to 95.8\% at ten. The method is not uniformly best: under a 44-step visual occlusion, simple recurrence reaches 47.9\% success versus 29.2\% for predictive coding. This is a synthetic mechanism test, not a reproduction of PredVLA or evidence about LIBERO or real-robot performance.
+\end{abstract}
+
+\section{Reference and Question}
+
+PredVLA is a language-conditioned predictive-coding policy with hierarchical generative recurrent dynamics that predict visual features, proprioception, and action distributions. Its defining architectural property is that observed visual and proprioceptive signals are not direct inputs to the recurrent dynamics. They affect the policy through online inference over latent free variables driven by sensory prediction errors. Setting the inference iteration count to zero leaves posterior variables at their generative priors, yielding an exact open-loop counterpart without retraining or changing language conditioning \cite{predvla}.
+
+The paper reports 675,732 trainable controller parameters, an 86.94\% mean success rate over three short-horizon LIBERO suites, and 75.35\% over all four evaluated suites. Under its controlled protocol, the four-suite means are 19.73\% for the parameter-matched Transformer and 10.26\% for the parameter-matched LSTM. These are claims from the paper, not results reproduced here. The local question is narrower:
+
+\begin{quote}
+Can a compact temporal controller expose a measurable advantage from iterative prediction-error state correction, and does disabling that correction produce a sensor-invariant open-loop policy?
+\end{quote}
+
+\section{Toy System}
+
+The hidden state is
+\[
+x_t = [p^r_t,v^r_t,p^g_t,v^g_t]\in\mathbb{R}^8,
+\]
+where $p^r,v^r$ are point-robot position and velocity and $p^g,v^g$ are moving-target position and velocity. The robot partition is a proprioceptive analogue; target position is a visual-feature analogue. Robot dynamics are faster than target dynamics, providing an implicit fast/slow partition without reproducing PredVLA's explicit recurrent hierarchy.
+
+A linear recurrence is identified from synthetic demonstrations,
+\[
+\hat x_{t+1}=A\hat x_t+B u_t,
+\]
+with 64 coefficients in $A$ and 16 in $B$. The true simulator includes smooth target acceleration, mild drag mismatch, process noise, workspace reflection, and optional robot/target impulses. An analytical bounded controller acts only on the estimated latent state,
+\[
+u_t=\operatorname{clip}\left(k_p(\hat p^g_t-\hat p^r_t)+k_d(\hat v^g_t-\hat v^r_t),u_{\max}\right).
+\]
+
+A sensor packet is
+\[
+y_t=H x_t+b+\epsilon_t,
+\]
+containing robot position, robot velocity, and target position. Target velocity is never directly observed. Visual occlusion masks the two target-position channels. Delay changes packet delivery time while retaining its timestamp. A fixed episode-level bias and Gaussian noise perturb the packet.
+
+\section{Compared Estimators}
+
+Every closed-loop method uses the same identified $A,B$ model and a 56-coefficient observation-update block: an $8\times6$ innovation/error map plus an eight-vector offset. Together with the 80 dynamics coefficients, each has a 136-scalar fitted budget.
+
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{Simple recurrent observer.} The newest timestamped innovation is passed through a clean-data linear gain and transported to the present through the recurrent model. This is a simple recurrent baseline, not an LSTM.
+  \item \textbf{Finite-window attention-like observer.} Corrections from packets in a recent window are combined using fixed recency and innovation-consistency weights. It is a finite-window baseline, not a Transformer.
+  \item \textbf{Learned robust observer.} A gain fitted on biased and partially missing calibration data is used with innovation clipping and a fixed reliability gate.
+  \item \textbf{Predictive-coding correction.} A latent anchor at the start of a recent temporal window is revised repeatedly. Each iteration rolls the recurrence forward, forms timestamped sensory prediction errors, maps them into latent corrections, propagates those corrections backward through the linear recurrence, applies a quadratic prior pull, and regenerates the complete state trajectory.
+  \item \textbf{Predictive-coding open loop.} The same generative model and controller are run with zero inference iterations. Observations are generated and delivered but are never consulted by the recurrence or action computation.
+\end{enumerate}
+
+For anchor $c$ and prior $c_p$, the iterative rule is a preconditioned analogue of prediction-error descent,
+\[
+c\leftarrow c+\eta\left[\frac{1}{|\mathcal I|}\sum_{\tau\in\mathcal I}(A^{\tau-s})^\top K\,m_\tau\odot(y_\tau-H\hat x_\tau)-\lambda(c-c_p)\right].
+\]
+This is deliberately simpler than PredVLA's free-energy minimization over module- and time-specific latent variables. It preserves the causal distinction relevant to the experiment: observations enter only as errors inside the inference loop.
+
+\section{Protocol and Checks}
+
+The full deterministic run uses 48 paired trials per method and sweep value, 110 control steps per episode, an inference window of 12, and six default correction iterations. Sweeps cover:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item visual occlusion lengths $\{0,10,20,32,44\}$ steps;
+  \item observation delays $\{0,1,3,5,8\}$ steps;
+  \item disturbance impulses $\{0,0.16,0.30,0.44,0.60\}$;
+  \item sensor-bias magnitudes $\{0,0.02,0.05,0.08,0.12\}$;
+  \item correction iterations $\{0,1,2,4,6,10,16\}$ under a mixed perturbation.
+\end{itemize}
+
+Success requires tail tracking RMSE below 0.255 and final target distance below 0.30. Full-episode tracking RMSE, latent-state RMSE, and sensory-prediction RMSE are also recorded. Standard errors in the plots are computed across paired trials.
+
+Before the sweep, deterministic assertions check finite learned matrices, bounded actions, finite prediction errors, sensor invariance of open loop, and equality between the dedicated open-loop path and predictive coding with zero iterations. The maximum action difference between those two implementations is exactly 0.0. Changing delay, bias, and occlusion while open loop also produces an exact maximum action difference of 0.0. Positive-iteration and open-loop actions differ by 0.333 on average in the sanity episode.
+
+\section{Results}
+
+\subsection{Robustness sweeps}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/robustness_sweeps.png}
+  \caption{Success rate and tracking RMSE versus visual occlusion, observation delay, disturbance impulse, and sensor bias. Bands show one standard error across 48 paired trials.}
+  \label{fig:sweeps}
+\end{figure}
+
+The clearest separation appears under delayed observations. Table~\ref{tab:delay} reports the five-step condition. Predictive-coding correction uses packet timestamps across the regenerated state window and retains 100\% success. One-pass updates accumulate temporal inconsistency and reach at most 16.7\%. At delay eight, predictive coding retains 66.7\% success while all other methods are at 0\%.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lrr}
+\toprule
+Method & Success & Tracking RMSE \\
+\midrule
+Simple recurrent observer & 16.7\% & 0.628 \\
+Finite-window attention-like & 0.0\% & 0.826 \\
+Learned robust observer & 8.3\% & 0.602 \\
+Predictive-coding correction & \textbf{100.0\%} & \textbf{0.415} \\
+Predictive coding, open loop & 0.0\% & 0.904 \\
+\bottomrule
+\end{tabular}
+\caption{Five-step observation delay, 48 paired trials.}
+\label{tab:delay}
+\end{table}
+
+Disturbance and bias produce a smaller separation. At impulse 0.60, predictive coding and simple recurrence both achieve 100\% success, the robust observer 95.8\%, and finite-window attention-like 93.8\%; predictive coding has the lowest tracking RMSE among the closed-loop methods (0.413). At bias 0.12, predictive coding reaches 100\% success and 0.414 RMSE, while the other closed-loop methods reach 95.8--97.9\% and 0.416--0.420 RMSE. These sweeps support a state-estimation improvement, not a broad claim of categorical superiority.
+
+Long visual occlusion is an explicit counterexample. At 44 masked visual steps, simple recurrence reaches 47.9\% success, finite-window attention-like 37.5\%, predictive coding 29.2\%, and the robust observer 0\%. Once target observations are absent beyond the useful model horizon, repeated inference cannot create missing information and can accumulate target-model mismatch.
+
+\subsection{Correction iterations}
+
+The iteration sweep combines a three-step delay, 20-step visual occlusion, 0.30 disturbance, and 0.025 sensor bias.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.94\textwidth]{../outputs/correction_iteration_sweep.png}
+  \caption{Success, tracking error, latent-state error, and sensory-prediction error versus correction iterations. Zero iterations is exact open loop.}
+  \label{fig:iterations}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{rrrrr}
+\toprule
+Iterations & Success & Tracking RMSE & State RMSE & Prediction RMSE \\
+\midrule
+0 & 2.1\% & 0.856 & 0.298 & 0.337 \\
+1 & 77.1\% & 0.440 & 0.089 & 0.073 \\
+2 & 81.2\% & 0.436 & 0.081 & 0.063 \\
+4 & 87.5\% & 0.434 & 0.077 & 0.058 \\
+6 & 93.8\% & 0.431 & 0.075 & 0.054 \\
+10 & \textbf{95.8\%} & 0.431 & 0.073 & 0.052 \\
+16 & 93.8\% & \textbf{0.430} & \textbf{0.072} & \textbf{0.052} \\
+\bottomrule
+\end{tabular}
+\caption{Mixed-perturbation correction-iteration sweep.}
+\label{tab:iterations}
+\end{table}
+
+One iteration accounts for most of the gain relative to open loop. Additional iterations progressively reduce state and sensory-prediction error, with diminishing returns after roughly six to ten iterations. Sixteen iterations have the lowest mean tracking/state errors but a slightly lower thresholded success rate than ten, illustrating that a continuous error metric and a binary episode threshold need not rank settings identically.
+
+\subsection{Representative rollout}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/representative_rollout.png}
+  \caption{Paired trajectory under a 28-step visual occlusion, four-step delay, 0.42 disturbance, and 0.035 bias. The target path is dashed; the shaded interval marks visual occlusion.}
+  \label{fig:rollout}
+\end{figure}
+
+\section{Mapping to the Real Method}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{p{0.24\textwidth}p{0.27\textwidth}p{0.41\textwidth}}
+\toprule
+Toy component & PredVLA analogue & Simplification \\
+\midrule
+Robot/target latent & hierarchical deterministic recurrent state & one linear state with implicit fast/slow partitions \\
+Target position packet & frozen visual feature & direct coordinate; no cameras, ResNet, or PCA \\
+Robot position/velocity & proprioception & point robot; no joints or gripper \\
+$A x+B u$ prediction & generative recurrent sensory/action dynamics & identified linear model and analytical controller \\
+Window anchor & posterior free variables & one anchor, not module/time-specific latents \\
+$y-H\hat x$ & visual/proprioceptive prediction error & low-dimensional squared errors and masks \\
+Quadratic prior pull & free-energy complexity term & one scalar regularizer \\
+Repeated correction and regeneration & online error regression & learned linear error lift, no neural BPTT \\
+Zero iterations & exact open-loop ablation & same causal construction in a synthetic system \\
+\bottomrule
+\end{tabular}
+\caption{Mechanism mapping and claim boundary.}
+\label{tab:mapping}
+\end{table}
+
+\section{Relation to Other Repository Experiments}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \path{predictive_error_correction} is the closest sibling. Both freeze dynamics and make observations affect control only through prediction-error correction, with an exact zero-iteration test. The sibling corrects one current one-dimensional latent from current error plus a window-derived velocity cue; this package regenerates a two-dimensional latent trajectory from timestamped packets and compares coefficient-budgeted observers.
+  \item \path{local_residual_sim2real} updates a local transition/command model online and explicitly measures source/OOD retention. \path{grounded_online_adaptation} changes visual attention/action parameters from reward-derived replay and measures grounding/forgetting. No policy/model coefficient changes during this experiment, so retention is not the relevant axis.
+  \item \path{anticipatory_context_chunking} predicts forward before a delayed chunk executes; this package corrects through a recent window after timestamped evidence arrives. \path{retry_reset_recovery} routes offline bridge/reset skills online, while \path{conflict_aware_replay} selects retained samples during sequential training. Delay/state/prediction error here should not be compared directly with recovery or negative-backward-transfer scores.
+  \item \path{force_embodiment_gap} and \path{force_feedback_demonstration_quality} are upstream offline tests of embodiment calibration and force-rich data. Safety is downstream: \path{constraint_manifold_action_filter}, \path{path_consistent_safety_filtering}, and \path{configured_failure_audit} add constraint, path, or monitor-stop logic. Bounded acceleration here is not a safety guarantee.
+\end{itemize}
+
+\section{Limitations and Interpretation}
+
+This package omits language, images, frozen multimodal encoders, action mixture densities, contact, multi-DoF manipulation, robot demonstrations, neural optimization, and real inference latency. The finite-window method is attention-like rather than a Transformer; the recurrent baseline is linear rather than an LSTM. Equal scalar budgets do not establish equal expressivity, compute, trainability, or hardware latency. The predictive-coding update is a preconditioned error-regression analogue, not PredVLA's exact deterministic free-energy objective. Train and test processes are synthetically related, and success depends on local thresholds.
+
+The defensible finding is consequently narrow. When delayed observations remain inside a useful generative-model window, iterative error-driven regeneration can recover policy state that one-pass recurrent and finite-window updates fail to recover. Disabling correction produces a verifiably observation-independent open-loop policy. The long-occlusion result also shows the boundary: prediction-error inference cannot compensate for absent evidence when the model is insufficiently accurate over the missing interval.
+
+\begin{thebibliography}{9}
+\bibitem{predvla} H. Sawada and S. Kasahara. \emph{PredVLA: A Sub-Million-Parameter Predictive-Coding Policy for Robot Manipulation}. arXiv:2608.26673, August 27, 2026. \url{https://arxiv.org/abs/2608.26673}
+\bibitem{pvrnn} A. Ahmadi and J. Tani. A novel predictive-coding-inspired variational RNN model for online prediction and recognition. \emph{Neural Computation}, 2019. Referenced by PredVLA as the basis for online error regression.
+\end{thebibliography}
+
+\end{document}

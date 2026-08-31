@@ -1,0 +1,175 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+
+\hypersetup{
+  hypertexnames=false,
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!50!black,
+  citecolor=blue!50!black
+}
+
+\title{Force Embodiment Gap:\\A Matched-Handheld-Gripper Contact-Aliasing Toy}
+\author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
+\date{August 31, 2026}
+
+\begin{document}
+\setlength{\emergencystretch}{3em}
+\maketitle
+
+\begin{abstract}
+This note studies a narrow, synthetic transfer question motivated by RAI Institute's Koala gripper: when handheld demonstration and robot execution interfaces differ, can force resolve visually aliased contact, and how much does calibration/morphology matching matter? A deterministic behavior-cloning toy compares current vision, visual/action history, raw force, force learned with a mismatched handheld gripper, and a matched multimodal physical-action interface on stuck-fastener and insertion tasks. At nominal hardware, vision + force reaches 80.0\% overall success, matched multimodal BC reaches 77.9\%, temporal history reaches 40.0\%, and current vision reaches 0.0\%. The matched interface's minimum success remains above 71\% across both sweeps, while raw-force transfer reaches 0\% at the low calibration and morphology settings. The experiment is a mechanism probe, not a reproduction of Koala, Large Behavior Models, or reported robot performance.
+\end{abstract}
+
+\section{Motivation}
+
+Koala is designed around embodiment parity: handheld and robot-side grippers share geometry, actuation semantics, and action coordinates so a demonstrated hand command maps directly to robot execution \cite{article,koala}. The hardware paper characterizes pinch force, geometry, manufacturability, and a proof-of-concept learned-policy pipeline \cite{paper}.
+
+Contact-rich tasks also expose a separate ambiguity. A camera can show identical ``not moving'' frames while contact load is safely increasing, insufficient, or near damaging. This toy asks whether force helps in that deliberately constructed case, and whether transferring force/action data through a mismatched gripper can erase the gain. This force-input ablation is a hypothetical extension: the Koala paper does not provide a quantitative policy-success baseline isolating force as the demonstration input.
+
+\section{References Checked}
+
+Primary references for this exploration were:
+\begin{itemize}[leftmargin=1.5em]
+  \item RAI Institute's primary article, \emph{Getting a Grip on Robotic Data Collection} \cite{article};
+  \item the official Koala project page \cite{koala};
+  \item the Koala hardware paper and official linked materials \cite{paper}.
+\end{itemize}
+
+The paper reports roughly 24--27\,N pinch force over 10--40\,mm test objects, with robot-side versus handheld differences of about $-3.2\%$ to $+10.2\%$ in the reported table. Those measurements validate force-capability parity; they are not a force-conditioned policy-success comparison.
+
+\section{Toy Setup}
+
+The script implements two deterministic contact systems. In the \textbf{stuck-fastener} task, visual progress is exactly zero while axial force approaches an unknown breakaway threshold. In the \textbf{tight-insertion} task, the same axial ambiguity is combined with signed lateral misalignment; vision exposes quantized alignment magnitude but hides its sign.
+
+At each state, a feedback expert chooses physical axial and lateral effort. Demonstrations train deterministic Extra Trees behavior clones under five interfaces:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Vision only}: current visual features, raw motor-command output;
+  \item \textbf{Temporal history}: vision plus four prior visual/action pairs;
+  \item \textbf{Vision + force}: current vision and raw two-axis force from nominal hardware;
+  \item \textbf{Mismatched-gripper force}: force/proprio demonstrations from a source gripper with different gains, sensor frame, cross-axis coupling, and bias, transferred without correction;
+  \item \textbf{Matched multimodal BC}: vision, calibrated force, and previous physical action, with predicted physical effort mapped through known deployment gains.
+\end{itemize}
+
+The matched condition is intentionally favorable: it receives the exact affine sensor inverse and exact action/gain mapping. This represents co-calibration rather than learned system identification.
+
+\section{Metrics}
+
+The experiment reports:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{success}: full release/insertion within 64 control steps;
+  \item \textbf{damage}: axial force exceeds the task's state-dependent safe margin;
+  \item \textbf{stuck}: neither success nor damage before timeout;
+  \item \textbf{progress and force}: final normalized progress, peak force, and threshold overshoot;
+  \item \textbf{control}: successful episode length, command energy, and action smoothness;
+  \item \textbf{robustness}: calibration and morphology sweeps over scale/gain $0.70$--$1.30$.
+\end{itemize}
+
+\section{Results}
+
+The generated result used 120 paired episodes per task and method, with 32 paired episodes per task/method at each sweep point:
+\begin{verbatim}
+PYTHONWARNINGS=error \
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  force_embodiment_gap/run_force_embodiment_gap.py \
+  --seed 31 --train-episodes 180 --validation-episodes 45 \
+  --eval-episodes 120 --sweep-episodes 32
+\end{verbatim}
+
+% METRICS_TABLE_START
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Method & Success & Damage & Final progress & Val. RMSE \\
+\midrule
+Vision only & 0.0\% & 0.0\% & 0.000 & 0.1517 \\
+Temporal history & 40.0\% & 0.0\% & 0.402 & 0.0688 \\
+Vision + force & \textbf{80.0\%} & 0.0\% & \textbf{0.803} & 0.0283 \\
+Mismatched force & 73.3\% & 0.4\% & 0.733 & 0.0383 \\
+Matched multimodal BC & 77.9\% & 0.0\% & 0.780 & 0.0284 \\
+\bottomrule
+\end{tabular}
+\caption{Nominal aggregate across both tasks (240 episodes per method). Validation action coordinates follow each method's own training interface, so RMSE is diagnostic rather than directly comparable across all rows.}
+\label{tab:results}
+\end{table}
+% METRICS_TABLE_END
+
+Current vision cannot select a loading level from the exactly aliased contact frame. History reaches 67.5\% on fasteners but only 12.5\% on signed-jam insertion. Vision + force and matched multimodal BC both reach 87.5\% insertion success. The mismatched condition performs well on nominal fasteners (92.5\%) but only 54.2\% on insertion, showing that a hardware mismatch is not a uniform scalar penalty.
+
+Across calibration scale, matched multimodal BC has 71.9\% worst-point success versus 0.0\% for raw vision + force. Across morphology gain, its worst point is 73.4\%, versus 0.0\% for raw force and 17.2\% for mismatched-gripper force. The mismatched policy also reaches an accidental 100\% at calibration scale 1.30, but incurs 23.4\% damage at morphology gain 1.30. Thus the sweeps support robustness from explicit coordinate alignment, not a universal nominal ranking.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/method_summary.png}
+  \caption{Nominal paired evaluation. The toy is constructed so force resolves contact states that current vision aliases.}
+  \label{fig:summary}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/representative_rollouts.png}
+  \caption{Representative paired fastener and insertion traces.}
+  \label{fig:rollouts}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{../outputs/calibration_sweep.png}
+  \caption{Sensor calibration stress. Raw-force policies receive shifted readings; the matched policy uses the known co-calibration inverse.}
+  \label{fig:calibration}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{../outputs/morphology_sweep.png}
+  \caption{Actuation morphology stress. The matched policy retains shared physical action coordinates while raw motor-command policies transfer unchanged.}
+  \label{fig:morphology}
+\end{figure}
+
+\section{Sanity Checks}
+
+The run fails unless four checks pass. Two states with identical visual observations must require expert actions separated by more than 0.4 in Euclidean norm. The affine source-gripper force transform must invert to numerical precision. Shared physical action coordinates must execute the same effort across the morphology sweep. Finally, a seeded matched-policy rollout must replay exactly.
+
+\section{Interpretation}
+
+The bounded interpretation is that force is useful when the benchmark is explicitly contact-aliased, while embodiment matching determines whether force/action semantics survive transfer. Temporal history can continue a loading pattern, but it cannot reconstruct every hidden contact variable, especially the signed insertion jam. The nominal force policy narrowly exceeds matched multimodal BC, so the local evidence does not support an across-the-board matched-policy advantage. Instead, the matched interface improves worst-point transfer because the exact force and physical-action transforms are retained. A force channel is not automatically portable: source and target frames, gains, zeros, and action coordinates must be aligned or identified.
+
+Validation action RMSE is only a within-interface diagnostic. Raw target motor commands, source-gripper motor commands, and physical-effort targets use different coordinates and scales, so those values are not a common policy-ranking metric.
+
+\section{Relation to Other Experiments in This Repository}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \texttt{force\_feedback\_demonstration\_quality} changes demonstration quality through simulated haptic feedback, holds the ridge policy family fixed, and measures force-profile error, damage, retries, and object shift. This track holds scripted expertise fixed and changes the observation/action hardware interface, isolating visual contact aliasing plus calibration/morphology transfer.
+  \item \texttt{cross\_embodiment\_world\_model} compares raw, exact EE, and latent action semantics for smooth full-state prediction, few-shot refitting, and candidate reranking. Here a BC policy is trained once and deployed in contact under force-sensor and motor-gain shifts; there is no learned world model or few-shot target refit.
+  \item \texttt{demo\_prompted\_policy} and \texttt{video\_prompt\_shortcut\_resistance} use a demonstration video as a runtime semantic prompt. This package has no prompt: hidden contact load and signed jam direction are resolved through force, and the intervention changes hardware coordinates rather than task semantics.
+  \item The timing/context tracks vary history length, stale context, inference delay, or chunk handoff. The local temporal-history condition is only a fixed four-step BC baseline. The online-adaptation tracks update from target reward or transitions, whereas this package performs no deployment learning and supplies exact transforms to the matched condition.
+\end{itemize}
+
+\section{Limitations and Follow-ups}
+
+This toy uses hand-designed state features rather than images, Extra Trees rather than a VLA/LBM, scripted feedback demonstrations rather than humans, and known low-dimensional dynamics. The matched condition receives exact calibration and morphology metadata. There is no language, whole-body teleoperation, sensor latency, wear, slip, cable compliance, saturation uncertainty, camera occlusion, or learned representation. The tasks are intentionally designed to make force informative; they cannot establish necessity or sufficiency on real robots.
+
+The matched condition also bundles exact force/action transforms with one-step physical-action history, while the raw-force baseline omits that history. The sweeps therefore identify a bundled interface advantage rather than separately estimating calibration, morphology mapping, and temporal-input effects. A clean ablation should give calibrated-force and physical-action baselines identical history features.
+
+A physical follow-up should pair the same operators, objects, and tasks across matched and deliberately mismatched handheld/robot grippers; log raw and calibrated force/action data; quantify calibration drift; and report policy success, damage, recovery, and held-out hardware transfer. It should also include vision-only and force-disabled ablations before attributing performance to force.
+
+\begin{thebibliography}{9}
+\bibitem{article} RAI Institute. \emph{Getting a Grip on Robotic Data Collection}. May 12, 2026. \url{https://rai-inst.com/resources/blog/handheld-robotic-data-collection/}
+\bibitem{koala} RAI Institute. \emph{Koala Gripper: Co-designing Robotic Grippers and Data-Capture Devices for Scaling Dexterous Manipulation Learning}. \url{https://koalagripper.rai-inst.com/}
+\bibitem{paper} Amar Hajj-Ahmad et al. \emph{Koala Gripper: Co-designing Robotic Grippers and Data-Capture Devices for Scaling Dexterous Manipulation Learning}. arXiv:2608.20546, 2026. \url{https://arxiv.org/abs/2608.20546}
+\end{thebibliography}
+
+\end{document}

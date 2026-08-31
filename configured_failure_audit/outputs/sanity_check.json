@@ -1,0 +1,51 @@
+{
+  "passed": true,
+  "synthetic_trigger_token": "[SYNTHETIC_AUDIT_TRIGGER]",
+  "nominal_success": 1.0,
+  "nominal_close_phase": 0.4,
+  "nominal_open_phase": 0.775,
+  "missing_event_checks": {
+    "missing_grasp_stopped": true,
+    "missing_grasp_reason": "missing_grasp_event_guard",
+    "missing_release_stopped": true,
+    "missing_release_reason": "missing_release_event_guard"
+  },
+  "mode_checks": {
+    "early_grasp": {
+      "template_failure_fidelity": 1.0,
+      "monitor_stopped": true,
+      "monitor_reason": "grasp_phase_guard",
+      "changed_phase_fraction": 0.17073170731707318
+    },
+    "late_grasp": {
+      "template_failure_fidelity": 1.0,
+      "monitor_stopped": true,
+      "monitor_reason": "grasp_phase_guard",
+      "changed_phase_fraction": 0.1951219512195122
+    },
+    "grasp_offset": {
+      "template_failure_fidelity": 1.0,
+      "monitor_stopped": true,
+      "monitor_reason": "grasp_proximity_guard",
+      "changed_phase_fraction": 0.21951219512195122
+    },
+    "early_release": {
+      "template_failure_fidelity": 1.0,
+      "monitor_stopped": true,
+      "monitor_reason": "release_phase_guard",
+      "changed_phase_fraction": 0.21951219512195122
+    },
+    "late_release": {
+      "template_failure_fidelity": 1.0,
+      "monitor_stopped": true,
+      "monitor_reason": "release_phase_guard",
+      "changed_phase_fraction": 0.1951219512195122
+    },
+    "release_offset": {
+      "template_failure_fidelity": 1.0,
+      "monitor_stopped": true,
+      "monitor_reason": "release_proximity_guard",
+      "changed_phase_fraction": 0.24390243902439024
+    }
+  }
+}

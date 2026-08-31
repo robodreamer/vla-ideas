@@ -1,0 +1,123 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\hypersetup{hypertexnames=false,colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black}
+\title{Instruction-Conditioned Asynchronous Control:\\A Deterministic Planner--Controller Decoupling Toy}
+\author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
+\date{August 31, 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+This report isolates one mechanism from Instruct-to-Act: a slow sparse instruction planner can run separately from a fast language-conditioned controller, so planning latency need not become low-level control idle time. The environment is a partially observed sequential continuous-control toy, and the controller is transparent ridge regression trained from post-hoc instruction-relabeled expert segments. It is emphatically \textbf{not} a Dreamer, VLM, VLA, or paper reproduction.
+\end{abstract}
+
+\section{Source claim and bounded question}
+Tang et al. propose a plug-and-play VLM planner that emits sparse text instructions to a language-conditioned world-model controller running at control frequency \cite{paper,project,code}. Their controller is trained with post-hoc instruction annotation, and their online inference lets planning proceed concurrently with execution. The local question is narrower: under an explicit tick-level latency model, does separating planner and controller reduce blocking while retaining enough semantic guidance to solve hidden sequential routes?
+
+\section{Toy setup}
+A point agent must visit a hidden ordered route of three or four named stations. The controller observes proprioception, all station-relative vectors, and only nearby moving hazards; it does not observe the route or future hazard motion. A planner can observe route progress and emits a station instruction. Actions are two-dimensional accelerations at every 0.08-s tick. This makes route state and hazard futures partially observed while keeping the scheduling mechanism inspectable.
+
+We first generate autonomous expert rollouts, segment them at station-completion boundaries, relabel each segment with one of four natural-language dialects, and fit ridge controllers. The medium controller uses 4200 labeled action steps and has held-out action MSE 0.0892. This is a transparent behavior-cloning analogue of post-hoc instruction supervision, not world-model RL.
+
+\section{Compared systems}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{Controller only:} a learned self-operating policy follows the modal route prior without planner calls.
+\item \textbf{Direct/blocking planner actions:} every open-loop action chunk is generated after a blocking planner delay. The direct-as-actuator foil has an explicit deterministic action perturbation of 0.85 and a +0.18 target-error probability; these are disclosed toy knobs, not measured VLM errors.
+\item \textbf{Synchronous instruction controller:} the learned controller acts at high frequency, but idles at every instruction boundary while the planner responds.
+\item \textbf{Asynchronous online planning:} the controller continues acting while the planner prepares the next instruction; if it is late, the last instruction remains active and creates measurable staleness rather than idle time.
+\item \textbf{Oracle:} perfect zero-latency stage instructions and the analytical expert controller.
+\end{itemize}
+
+The central scheduling comparison is synchronous versus asynchronous instructions: both use the same learned controller, planner profile, environment trace, planner-error random draws, and per-tick controller-noise draws. They differ in whether planning blocks control. The asynchronous default also pays a disclosed four-tick transport delay. The direct-action row is an intentionally perturbed foil rather than an Instruct-to-Act baseline or a capacity-matched learned system; the oracle is an analytical upper bound.
+
+\section{Relation to other experiments in this repository}
+\begin{itemize}[leftmargin=1.5em]
+\item \texttt{streaming\_action\_denoising} (FlashVLA) pipelines staggered refinement inside a low-level action decoder and couples cleaner chunks to noisier future chunks. This report instead separates a sparse semantic planner from a high-rate controller; it has no denoising buffer or decoder-level causal attention.
+\item \texttt{async\_chunking\_compare} and \texttt{anticipatory\_context\_chunking} compensate prediction-to-execution delay by estimating the handoff-time robot state and, in the latter, the changing observation/environment latent. Here current toy state is observed every control tick; the delayed object is semantic intent.
+\item \texttt{context\_chunk\_tradeoff} and \texttt{openvla\_oft\_systems\_toy} vary observation context, action horizon, parallel chunk availability, or refresh cadence. This toy emits one action each tick and varies sparse instruction scheduling; instruction dwell is not an open-loop action horizon.
+\item \texttt{turbo\_vla\_direct\_control} removes a large execution-time language bottleneck with a compact direct V+L$\rightarrow$A path. The present design deliberately retains a slow high-level language planner and tests whether a separate controller absorbs its latency.
+\item \texttt{prefix\_rl\_chunking} regularizes copied committed action prefixes under RL. This toy has neither action-prefix conditioning nor RL; its continuity error is stale semantic intent rather than prefix drift.
+\item \path{demo_prompted_policy} and \path{video_prompt_shortcut_resistance} test learned task specification and shortcut resistance. The station-word parser here is only a narrow semantic-interface check, not prompt grounding.
+\end{itemize}
+
+\section{Metrics}
+Success is completion of the ordered route before the horizon. Completion steps/time include planner-blocking ticks. Idle counts zero-action planning ticks. A stale-instruction error is an active tick still executing an instruction intended for an already completed stage. CSVs separately report wrong-target ticks, which also include planner mistakes or interface parse failures. Smoothness is action-change accumulated per active tick, $\sum_t\lVert a_t-a_{t-1}\rVert_2/N_{active}$. Safety violations count moving-hazard contacts and wall hits. Planner calls expose sparse-instruction versus direct-action workload.
+
+\section{Default paired evaluation}
+The exact generation command was:
+\begin{verbatim}
+cd /home/andypark/Projects/repos/vla-ideas
+PYTHONWARNINGS=error MPLBACKEND=Agg \
+  /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  instruction_conditioned_async_control/\
+  run_instruction_conditioned_async_control.py \
+  --seed 41 --trials 64 --episode-steps 260
+\end{verbatim}
+Each method saw the same 64 routes, starts, moving hazards, and disturbance traces.
+
+\begin{table}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrr}
+\toprule
+Method & Success (\%) & Steps & Idle & Stale ticks & Smoothness & Safety & Planner calls \\
+\midrule
+Controller only & 15.6 & 230.5 & 0.0 & 0.0 & 0.384 & 21.70 & 0.0 \\
+Direct planner actions & 56.2 & 225.1 & 95.5 & 17.3 & 1.236 & 27.62 & 9.6 \\
+Synchronous instructions & 84.4 & 139.3 & 33.4 & 0.0 & 0.375 & 15.41 & 3.4 \\
+Asynchronous online & 84.4 & 121.6 & 9.0 & 7.7 & 0.331 & 8.31 & 3.5 \\
+Oracle planner/controller & 100.0 & 78.8 & 0.0 & 0.0 & 0.408 & 7.78 & 3.6 \\
+\bottomrule
+\end{tabular}}
+\caption{Default paired results. Failed episodes contribute the full horizon to completion steps.}
+\end{table}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{../outputs/method_comparison.png}
+\caption{Reliability, completion, blocking, staleness, smoothness, and safety.}
+\end{figure}
+
+The asynchronous system achieves 84.4\% success with 9.0 idle ticks, compared with 84.4\% and 33.4 for synchronous instructions. Direct action generation uses 9.6 calls and idles 95.5 ticks on average, versus 3.5 calls and 9.0 idle ticks for asynchronous instructions. The oracle reaches 100.0\%, retaining a visible upper-bound gap from controller approximation, planner errors, and stale instructions.
+
+\section{Sweeps and planner swaps}
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{../outputs/mechanism_sweeps.png}
+\caption{Planner latency, planning cadence, transport staleness, controller capacity/noise, and swappable planner profiles. Red secondary curves show stale-instruction ticks where applicable.}
+\end{figure}
+
+The sweeps vary planner latency, asynchronous lookahead cadence, extra instruction transport delay, controller training capacity plus action noise, and planner latency/error/dialect profiles. Familiar and held-out semantic synonyms share one language interface; the cipher planner deliberately breaks that interface and is a negative control rather than a realistic planner.
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{../outputs/representative_rollout.png}
+\caption{One paired route. Dynamic hazard circles are lightly overlaid; the final panel shows action magnitudes and blocking discontinuities.}
+\end{figure}
+
+\section{Interpretation}
+The mechanism toy supports a bounded scheduling claim: sparse instructions let a high-frequency controller absorb planner latency that would otherwise become direct blocking. It also exposes the trade-off rather than hiding it: asynchrony converts some idle time into stale-instruction execution, so planner latency, request cadence, and controller recovery must be co-designed. Semantic relabeling makes compatible planner swaps possible, while opaque labels fail at the interface.
+
+\section{Limitations}
+\begin{itemize}[leftmargin=1.5em]
+\item This is not a Dreamer/VLM reproduction: there are no pixels, RSSM, latent imagination, actor--critic learning, pretrained language encoder, or API/model timing measurements.
+\item The planner is scripted and latency is configured in environment ticks. Planner ``quality'' is a controlled instruction-error probability.
+\item The controller's semantic parser and station-relative features are much easier than real language grounding and visual representation learning.
+\item The direct-action row contains explicit extra action and target errors, so its rank is assumption-sensitive. Controller ``capacity'' also changes both features and sample count.
+\item The task is single-agent and navigation-like; it omits long-horizon crafting, contact-rich robotics, communication, and open-ended instructions.
+\item Safety and smoothness are toy proxies. Rankings depend on the dynamics, route distribution, thresholds, and planner/controller budgets in the CSV outputs.
+\end{itemize}
+
+\begin{thebibliography}{9}
+\bibitem{paper} Z. Tang, K. R. Allen, S. van Steenkiste, I. Dasgupta, and A. Suhr. \emph{Decoupling Planning and Control for Instructable Agents}. COLM 2026, arXiv:2608.26788. \url{https://arxiv.org/abs/2608.26788}
+\bibitem{project} Instruct-to-Act project page. \url{https://zinengtang.github.io/instruct-to-act/}
+\bibitem{code} Official implementation. \url{https://github.com/zinengtang/instruct-to-act-code}
+\end{thebibliography}
+\end{document}

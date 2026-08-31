@@ -1,0 +1,169 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+
+\hypersetup{hypertexnames=false,colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black}
+
+\title{Predictive Error Correction:\\A PredVLA-Inspired Temporal-Control Toy}
+\author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
+\date{August 31, 2026}
+
+\begin{document}
+\setlength{\emergencystretch}{3em}
+\maketitle
+
+\begin{abstract}
+This note tests a narrow mechanism motivated by PredVLA: whether a recurrent controller that never directly receives observations can recover from hidden disturbances by optimizing latent free variables against recent sensory prediction errors. A one-dimensional robot tracks a moving target under force pulses, unmodeled target maneuvers, noise, and sensory drift. The exact open-loop ablation uses the same recurrent prior and action decoder but performs zero inference iterations. At disturbance severity 1.0, online correction raises success from 1.6\% to 85.9\% and reduces latent RMSE from 2.737 to 0.096 across 64 paired trials. Fixed-history observation-fed baselines reach 89.1--90.6\% success, and they outperform the current correction rule at stronger severities. The result supports prediction-error correction relative to open-loop rollout while also showing that the simplified method does not dominate well-fit finite-history control. This is a low-dimensional mechanism test, not a reproduction of PredVLA or a VLA benchmark.
+\end{abstract}
+
+\section{Primary Reference and Scope}
+
+PredVLA presents a hierarchical predictive-coding vision-language-action model in which recurrent dynamics predict visual, proprioceptive, and action signals instead of consuming observations directly as recurrent inputs \cite{predvla}. During deployment, latent free variables are optimized online over a recent temporal window to reduce prediction error. The paper identifies zero latent-update iterations as the open-loop ablation. It reports short-task module time constants $(T,V,A_{\rm top},A_{\rm bottom})=(16,8,5,2)$, a visual-to-action bottleneck, and a lateral pathway carrying the model's previous predicted action and proprioception. Reported ablations attribute 6.44--12.57 success-rate points to online error regression across the four LIBERO suites \cite{predvla}.
+
+The paper's results are simulation-only. Its 675,732 trainable controller parameters exclude the frozen multimodal front end and do not capture test-time optimization cost. As checked on August 31, 2026, the arXiv page exposes no official implementation \cite{predvla}. The local experiment therefore tests only the qualitative mechanism and uses none of the authors' weights, data, environments, or architecture.
+
+\section{Toy System}
+
+The true state is
+\[
+x_t=[r_t,\dot r_t,g_t,\dot g_t]^\top,
+\]
+where $r$ is robot position and $g$ is target position. A language-like command $c\in\{-1,+1\}$ supplies the nominal target direction. The recurrent prior evolves without observations:
+\[
+\bar x_{t+1}=A\hat x_t+B u_t+E c.
+\]
+The executed action $u_t$ is therefore an efference copy available to the next prediction. True dynamics add an unobserved colored force, a force pulse, target acceleration, and a maneuver pulse. The observed channels are noisy robot position, robot velocity, and target position. Slowly varying and step-like biases produce proprioceptive and visual drift.
+
+All state-based controllers share a frozen visual-to-action bottleneck. Position and relative-velocity errors are compressed to bounded channels,
+\[
+b_p=\tanh(1.35(g-r)),\qquad b_v=\tanh(0.9(\dot g-\dot r)),
+\]
+and decoded through
+\[
+u=u_{\max}\tanh\!\left(\frac{2.75b_p+1.55b_v+0.72b_pb_v}{u_{\max}}\right).
+\]
+This bottleneck is a small analytical abstraction of PredVLA's visual-to-action pathway, not a learned neural module.
+
+\subsection{Online prediction-error correction}
+
+At each time step, the recurrent model first forms $\bar x_t$ from its previous posterior and copied \emph{applied} action; this differs from PredVLA's use of its own previous predicted action/proprioception. The current observation supplies three prediction-error targets. Target velocity, which is not directly observed, is estimated as the least-squares slope of target observations in the most recent eight-step window. A four-dimensional current-state correction $\delta_t$ is optimized by gradient descent on
+\[
+\mathcal L(\delta_t)=
+\sum_i w_i\left[(\bar x_t+\delta_t)_i-y_{t,i}^{*}\right]^2+
+\sum_i\lambda_i\delta_{t,i}^2.
+\]
+The update reuses the paper's four time-constant values in reverse, fast-to-slow order $(2,5,8,16)$ for toy state coordinates. There is no correspondence between those coordinates and the paper's four recurrent modules. Unlike the sibling \path{prediction_error_policy_state} experiment, this rule does not optimize per-timestep variables or regenerate a full latent trajectory. Correction is bounded for stability under extreme drift.
+
+When the iteration count is zero, the implementation returns $\bar x_t$ before indexing the observation window. This is the exact inference-off path: observations cannot influence open-loop actions.
+
+\section{Baselines and Training}
+
+The compared methods are:
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{Oracle:} action from the true state.
+  \item \textbf{Open loop:} recurrent latent rollout with zero correction iterations.
+  \item \textbf{Prediction error:} the same prior and decoder with an eight-step window and 80 update iterations.
+  \item \textbf{History H=4:} observation-fed ridge policy over four observation/action pairs.
+  \item \textbf{History H=16:} a larger finite-history ridge policy.
+  \item \textbf{History H=16, chunk 4:} predicts four actions and executes them open loop.
+\end{enumerate}
+
+The feed-forward models are fit to 180 deterministic oracle-controlled episodes (32,400 steps) with training severity sampled uniformly from $[0,1]$. Validation action RMSE is 0.118 for $H=4$, 0.114 for $H=16$, and 0.132 for the four-action model. Additional history lengths $H\in\{1,2,4,8,16\}$ are retained for a capacity/history sweep. The toy correction rule has four online free variables and no learned parameters; the ridge baselines deliberately expose both similarly compact and larger fixed-context alternatives rather than claiming neural parameter matching.
+
+\section{Metrics and Checks}
+
+Each method is evaluated on 64 paired schedules at severities $0,0.5,1,1.5,2$. Metrics include success, tracking RMSE, final and tail error, action RMSE against the oracle action at the same true state, action jerk, control effort, and latent RMSE where an estimate exists. Success requires tail RMSE below 0.42 and final error below 0.58.
+
+Eight deterministic checks run before the sweep. Most importantly, replacing every observation by a large offset changes open-loop actions by exactly zero, while it changes corrected actions; setting the correction iteration count to zero also produces actions bit-identical to the dedicated open-loop method. On the fixed disturbed check schedule, correction lowers latent RMSE from 5.520 to 0.108 and tracking RMSE from 8.659 to 0.346. Zero-disturbance open-loop tracking RMSE is 0.273 versus 0.270 for oracle.
+
+\section{Results}
+
+\subsection{Disturbance and drift sweep}
+
+\begin{table}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrrrrr}
+\toprule
+& \multicolumn{2}{c}{Severity 0.5} & \multicolumn{2}{c}{Severity 1.0} & \multicolumn{2}{c}{Severity 1.5} & \multicolumn{2}{c}{Severity 2.0} \\
+Method & Success & RMSE & Success & RMSE & Success & RMSE & Success & RMSE \\
+\midrule
+Oracle & 100.0\% & 0.172 & 98.4\% & 0.238 & 75.0\% & 0.350 & 46.9\% & 0.548 \\
+Open loop & 3.1\% & 2.457 & 1.6\% & 4.896 & 0.0\% & 7.338 & 0.0\% & 9.780 \\
+Prediction error & 100.0\% & 0.186 & 85.9\% & 0.292 & 50.0\% & 0.511 & 29.7\% & 0.969 \\
+History $H=4$ & 100.0\% & 0.211 & 89.1\% & 0.302 & 64.1\% & 0.408 & 35.9\% & 0.530 \\
+History $H=16$ & 100.0\% & 0.200 & 90.6\% & 0.285 & 65.6\% & 0.384 & 45.3\% & 0.498 \\
+$H=16$, chunk 4 & 100.0\% & 0.237 & 75.0\% & 0.355 & 42.2\% & 0.489 & 21.9\% & 0.646 \\
+\bottomrule
+\end{tabular}}
+\caption{Success and tracking RMSE over 64 paired schedules. Severity combines force, target-maneuver, and sensor-drift scale.}
+\label{tab:sweep}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../outputs/disturbance_sweep.png}
+\caption{Disturbance sweep with mean and standard error. Prediction-error correction prevents the catastrophic latent drift of the exact open-loop ablation. Fixed history is stronger in the most severe stress tests.}
+\end{figure}
+
+At severity 1.0, online correction cuts latent RMSE from 2.737 to 0.096 and recovers 85.9\% success from open loop's 1.6\%. Its action RMSE is 0.310, lower than $H=4$ (0.341) and $H=16$ (0.323), although the history methods have slightly higher success. At severity 1.5, correction remains far better than open loop but trails $H=4$ and $H=16$. At severity 2.0 the corrected estimator develops a heavy failure tail, so mean tracking RMSE reaches 0.969 even though action RMSE remains lower than the history baselines. This is evidence for the open-loop-versus-correction mechanism, not for universal superiority over observation-fed policies.
+
+\subsection{Exact inference ablation}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../outputs/iteration_ablation.png}
+\caption{Online iteration ablation at severity 1.5 on a separate paired schedule set. Zero iterations is exactly the open-loop path. Most gains appear in the first 20 iterations.}
+\end{figure}
+
+On this paired set, zero iterations gives 0\% success, tracking RMSE 8.634, and latent RMSE 4.772. One iteration already reduces tracking RMSE to 1.103. Success reaches 46.9\% by 20 iterations and then saturates; at 80 iterations, tracking RMSE is 0.746 and latent RMSE is 0.241. The monotone latent improvement is the intended qualitative signature of iterative inference.
+
+\subsection{History and chunking}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.94\textwidth]{../outputs/history_sweep.png}
+\caption{Observation-fed finite-history sweep. Very short histories cannot infer velocity and drift well; gains largely saturate by $H=4$--8.}
+\end{figure}
+
+At severity 1.5, success increases from 6.2\% at $H=1$ to 67.2\% at $H=4$ and 68.8\% at $H=16$. At severity 2.0, it rises from 1.6\% to 43.8\% and 46.9\%, respectively. Predicting a four-action chunk from $H=16$ is less robust than replanning every step, consistent with disturbances arriving inside the open-loop chunk.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../outputs/single_rollout.png}
+\caption{Representative paired rollout at severity 1.5. All methods receive the same target motion, hidden force, observation noise, and drift.}
+\end{figure}
+
+\section{Interpretation and Limits}
+
+The experiment supports the minimal PredVLA-inspired claim: a latent dynamics model that is useful under nominal conditions can become catastrophically wrong when run open loop, and inference-time sensory error can re-anchor it without changing recurrent weights. The exact zero-iteration check matters because it rules out accidental observation leakage into the recurrence.
+
+The comparison also bounds the claim. In this linear, low-dimensional task, a well-fit observation-fed finite-history controller is an excellent baseline. It slightly beats online correction at severity 1.0 and clearly beats the current quadratic correction rule at stronger drift. A larger history helps until roughly four to eight steps, while open-loop chunk execution reduces robustness. Thus, the toy motivates prediction-error correction but does not show that it is necessary or dominant when a direct observation-fed controller is allowed.
+
+Missing elements include images, language embeddings, learned hierarchical recurrent dynamics, multimodal prediction losses, stochastic latent variables, contact, manipulation, and wall-clock test-time optimization. The visual-to-action bottleneck and leaky time constants are analytical abstractions. The training and test distributions overlap through severity 1.0; larger severities are intentional extrapolation tests. Success thresholds are local definitions. No numerical result here should be transferred to LIBERO or a real robot.
+
+\section{Relation to Other Repository Experiments}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \path{prediction_error_policy_state} is the closest sibling. It regenerates a two-dimensional latent trajectory from timestamped errors and separates delay, occlusion, impulse, and bias sweeps; this package corrects one current one-dimensional latent using current error plus a window-derived velocity cue and compares learned finite-history action policies under a combined severity sweep.
+  \item \path{local_residual_sim2real} learns a transition/command model online and measures source/OOD retention. \path{grounded_online_adaptation} updates visual-policy parameters from reward-derived replay and measures grounding/forgetting. This package changes no learned parameter at deployment; its locality is temporal-window support rather than task retention.
+  \item \path{anticipatory_context_chunking} predicts execution-time state/context before delayed execution, whereas this package uses feedback after observations arrive. \path{retry_reset_recovery} uses offline bridge/reset skills plus an online router, and \path{conflict_aware_replay} selects old samples during sequential training; their recovery/NBT metrics differ from latent, tracking, action, and iteration metrics here.
+  \item \path{force_embodiment_gap} and \path{force_feedback_demonstration_quality} are upstream offline tests of calibration, morphology, and demonstration targets. Safety is downstream: \path{constraint_manifold_action_filter}, \path{path_consistent_safety_filtering}, and \path{configured_failure_audit} add constraint, path, or stop logic absent from this bounded-action controller.
+\end{itemize}
+
+\begin{thebibliography}{9}
+\bibitem{predvla} H. Sawada and S. Kasahara. \emph{PredVLA: A Sub-Million-Parameter Predictive-Coding Policy for Robot Manipulation}. arXiv:2608.26673, 2026. \url{https://arxiv.org/abs/2608.26673}
+\end{thebibliography}
+
+\end{document}

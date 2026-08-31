@@ -1,0 +1,17 @@
+{
+  "target_conditioning_all_directions": true,
+  "target_conditioning_detail": {
+    "amber": true,
+    "cobalt": true,
+    "mint": true,
+    "depot": true
+  },
+  "all_semantic_dialects_parse": true,
+  "deterministic_repeat": true,
+  "oracle_success_at_least_90pct": true,
+  "async_less_idle_than_sync": true,
+  "direct_more_planner_calls_than_async": true,
+  "extra_delay_not_less_stale": true,
+  "trial_rows": 320,
+  "all_passed": true
+}

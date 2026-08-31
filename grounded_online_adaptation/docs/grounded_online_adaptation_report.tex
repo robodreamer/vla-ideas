@@ -1,0 +1,218 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+
+\hypersetup{
+  hypertexnames=false,
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!50!black,
+  citecolor=blue!50!black
+}
+
+\title{Grounded Online Adaptation:\\A Fine-Mark Visual-Alignment Toy}
+\author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
+\date{August 31, 2026}
+
+\begin{document}
+\setlength{\emergencystretch}{3em}
+\maketitle
+
+\begin{abstract}
+This note tests a narrow mechanism motivated by GRAFT: whether training-only region supervision helps a small visual-attention pathway adapt a frozen behavior-cloning policy to a tiny task-critical cue, and whether frozen-prefix replay caching reduces learner cost. A source policy aligns to a broad object's center, while the adaptation target is a small offset mark. Across five deterministic seeds, supervised visual anchors reach $0.968\pm0.031$ final success, compared with $0.636\pm0.155$ for reward-only attention, $0.287\pm0.014$ for a 13-parameter global adapter, and $0.637\pm0.039$ for a full-policy update proxy. The cached and uncached anchor policies have zero maximum final-logit difference in the parity check, while caching yields a $1.87\times$ measured CPU learner speedup. The full-policy proxy forgets $0.365\pm0.105$ source success; marker-gated adapter paths have zero source forgetting by construction. This is a synthetic 1-D reward-verifier mechanism test, not a GRAFT reproduction, VLA result, or robot claim.
+\end{abstract}
+
+\section{Motivation}
+
+Fine manipulation can depend on a small local cue that a broadly pretrained or behavior-cloned policy does not use. GRAFT addresses this setting with view-specific visual anchors, training-only region supervision, single-step action generation, and cached frozen-prefix states for replay updates \cite{graft}. Its central systems objective is not merely final success, but improvement under a fixed real-robot wall-clock budget.
+
+The local experiment isolates two questions:
+\begin{enumerate}[leftmargin=1.5em]
+  \item Does auxiliary spatial supervision make an attention-based online adapter more interaction-efficient and less variable than scalar reward alone?
+  \item When the visual prefix is frozen, how much replay-side computation can be removed by caching its outputs without changing the learned policy?
+\end{enumerate}
+
+The toy also compares against two useful boundaries: a globally pooled lightweight adapter and a full-policy update proxy. The former tests whether parameter efficiency alone solves the visual problem; the latter exposes update cost and source forgetting when all policy parameters move.
+
+\section{References Checked}
+
+Primary references for this exploration were:
+\begin{itemize}[leftmargin=1.5em]
+  \item Ye et al., \emph{GRAFT: Grounded and Efficient Online Reinforcement Adaptation for Fine-Grained Robot Manipulation} \cite{graft};
+  \item Prasad et al., \emph{Consistency Policy: Accelerated Visuomotor Policies via Consistency Distillation} \cite{consistency};
+  \item Wen et al., \emph{TinyVLA: Toward Fast, Data-Efficient Vision-Language-Action Models for Robotic Manipulation} \cite{tinyvla}.
+\end{itemize}
+
+GRAFT receives side- and wrist-view images, language, and proprioception; predicts 10-step action chunks; trains view-specialized visual anchors with proposal masks; and removes proposal generators at deployment. Its replay learner reuses frozen visual-language prefix states while recomputing trainable anchor, action, and critic paths. The reported real-robot protocol uses 10 demonstrations and 45 minutes of online adaptation per method across four biomedical tasks. In the controlled grounding ablation, GRAFT-Union and GRAFT achieve 23/40 and 33/40 rolling successes in the final ten episodes per task, respectively. The paper also reports learner throughput rising from 2.21 to 21.96 steps/s for the single-step policy when prefix-KV caching is enabled \cite{graft}. These are authors' results. The local experiment below does not reuse their data or implementation.
+
+\section{Toy Setup}
+
+\subsection{Visual strip and source behavior cloning}
+
+Each observation is a 15-patch one-dimensional visual strip. Patch features include normalized position, a broad Gaussian object, a red alignment mark, two blue point distractors, positional moments, and a broadcast scalar cursor state. The source data contain no red mark, and the target is the broad object's center. A patch MLP maps each patch to a 48-dimensional token; an explicit raw-feature skip preserves the small visual channels. A two-layer head regresses the target from mean-pooled tokens.
+
+For each seed, the source policy is trained for 380 minibatch steps on 2,400 examples. It obtains 100\% source success under the 0.5-patch tolerance. In the adaptation distribution, a red mark appears three or four patches to either side of the unchanged broad-object center and becomes the true target. The frozen source policy continues to predict the broad center and obtains 0\% fine-mark success.
+
+\subsection{Reward-only online target recovery}
+
+The policy emits one continuous alignment action $a$. A black-box task verifier returns
+\begin{equation}
+  r(a)=\exp\left(-\frac{|a-a^*|}{2.5}\right),
+\end{equation}
+where $a^*$ is the hidden mark location. Each visual context consumes two interactions at $a-1$ and $a+1$. The known reward shape converts each scalar reward into two possible target locations; the learner chooses the closest-consistent pair across both probes. In exact arithmetic this recovers the 1-D target without reading the proposal label. The learner then minimizes action regression loss on replayed reward-derived targets.
+
+This is intentionally favorable. It represents a calibrated task verifier or a near-perfect fitted critic, not generic sparse-reward robot learning. The 720-interaction budget therefore comprises 360 two-probe visual contexts. Evaluation occurs every 48 interactions on 900 deterministic strips per seed.
+
+\subsection{Compared policies}
+
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{Frozen BC:} no adaptation.
+  \item \textbf{Full-policy update:} all 42,534 prefix and head parameters update from reward-derived targets plus source distillation.
+  \item \textbf{Lightweight adapter:} a 13-parameter low-rank residual receives globally pooled red-mark mass and its position moment.
+  \item \textbf{Reward-only attention:} two trainable queries attend over frozen patch tokens and feed a residual action head; no proposal labels are used.
+  \item \textbf{Supervised anchors:} reward-only attention plus training-time identity-free supervision. Two proposals identify the mark and broad-object center. For the two possible anchor--proposal assignments, the lower negative-log-attention cost is used, with a small attention-overlap penalty.
+  \item \textbf{Anchors with cached prefix:} the same initialization, contexts, replay indices, losses, and optimizer path as supervised anchors, but frozen prefix tokens are computed once and reused during learner updates.
+\end{enumerate}
+
+The adapter and anchor residuals are multiplied by a red-mark-presence gate. Source examples contain no red mark, so these pathways are inactive on the retention set. Their zero forgetting is consequently a structural property of this toy, not evidence of general continual-learning robustness.
+
+\section{Metrics}
+
+The experiment reports:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Fine success:} $|a-a^*|\leq0.5$ patch on the red-mark task;
+  \item \textbf{interaction AUC:} success integrated over the 720-interaction budget and normalized by that budget;
+  \item \textbf{interactions to 70\%:} the first 48-interaction checkpoint exceeding 0.70 success;
+  \item \textbf{forgetting:} source success before adaptation minus source success afterward;
+  \item \textbf{update cost:} trainable parameters, measured single-thread CPU learner time, and seconds per update;
+  \item \textbf{prefix compute:} patch-token prefix evaluations performed inside replay learner updates;
+  \item \textbf{grounding diagnostics:} maximum anchor mass on the mark, two-proposal coverage, and anchor overlap.
+\end{itemize}
+
+Nine deterministic sanity checks run before the sweep. They verify repeatable data, a changed target with unchanged coarse object, source success above 90\%, frozen fine-task failure, exact cached/uncached logit parity, preference of reward for the true mark, parameter-count ordering, and proposal-free deployment. All pass. The two-patch-error reward is 0.449 versus 1.0 at exact alignment.
+
+\section{Results}
+
+The generated result used five seeds:
+\begin{verbatim}
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  grounded_online_adaptation/run_grounded_online_adaptation.py
+\end{verbatim}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+Method & Params & Final success & AUC & To 70\% & Forgetting & Learner s \\
+\midrule
+Frozen BC & 0 & $.000\pm.000$ & $.000\pm.000$ & -- & $.000\pm.000$ & $.000$ \\
+Full policy & 42,534 & $.637\pm.039$ & $.255\pm.027$ & $576\pm48^{\dagger}$ & $.365\pm.105$ & $4.256$ \\
+Adapter & 13 & $.287\pm.014$ & $.220\pm.008$ & -- & $.000\pm.000$ & $1.785$ \\
+Reward attention & 6,371 & $.636\pm.155$ & $.300\pm.098$ & $384\pm48^{\ddagger}$ & $.000\pm.000$ & $2.195$ \\
+Supervised anchors & 6,371 & $\mathbf{.968}\pm.031$ & $\mathbf{.506}\pm.024$ & $\mathbf{374}\pm18$ & $.000\pm.000$ & $2.374$ \\
+Anchors + cache & 6,371 & $\mathbf{.968}\pm.031$ & $\mathbf{.506}\pm.024$ & $\mathbf{374}\pm18$ & $.000\pm.000$ & $\mathbf{1.272}$ \\
+\bottomrule
+\end{tabular}
+\caption{Mean $\pm$ SEM over five seeds. ``To 70\%'' averages only successful seeds: $^{\dagger}$3/5 and $^{\ddagger}$2/5. Supervised-anchor variants reach the threshold in all 5/5 seeds. Runtime is local single-thread CPU learner time, not a hardware-normalized VLA benchmark.}
+\label{tab:results}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/learning_curves.png}
+  \caption{Fine-mark adaptation and source-task retention. Curves show mean $\pm$ SEM over five seeds. The supervised-anchor pair is identical in policy outputs; only replay-prefix execution differs. Adapter-path source retention is aided by the explicit mark-presence gate.}
+  \label{fig:learning}
+\end{figure}
+
+Supervised anchors improve mean final success over reward-only attention by 0.331 and reduce seed variability. They reach 70\% success after $374\pm18$ interactions in all seeds. Reward-only attention reaches the threshold in only two seeds despite a similar mean endpoint to the full-policy proxy. The 13-parameter global adapter improves over the frozen policy but plateaus at 0.287 success, showing that small parameter count alone does not provide reliable spatial selection.
+
+The full-policy proxy reaches 0.637 success but loses 0.365 source success on average. Its learner takes 4.256 seconds, compared with 2.374 seconds for frozen-prefix supervised anchors. This difference combines parameter count and prefix-gradient cost; it is not solely attributable to grounding.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/method_tradeoffs.png}
+  \caption{Endpoint success, source forgetting, and measured learner time. Full-policy updating is more expensive and forgetful in this construction. Marker-gated adapter paths preserve the source set structurally.}
+  \label{fig:tradeoffs}
+\end{figure}
+
+\subsection{Frozen-prefix cache proxy}
+
+The uncached anchor learner recomputes 1,008,000 patch-token prefix evaluations over 420 replay updates per seed. The cached learner performs zero prefix evaluations inside replay updates because online and source replay tokens are stored once. Acting and evaluation still run fresh prefix forwards. A final held-out parity check gives zero maximum logit difference across all five seed pairs. Measured learner time falls from 2.374 to 1.272 seconds, a $1.87\times$ speedup. The local speedup is much smaller than GRAFT's reported $9.94\times$ single-step cache speedup because the toy prefix is small and CPU overhead dominates.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=.9\textwidth]{../outputs/cache_runtime.png}
+  \caption{Replay-side prefix token evaluations and milliseconds per learner update. The zero cached bar is by architectural accounting, while wall-clock speedup remains finite because anchor, head, loss, optimizer, and Python work remain.}
+  \label{fig:cache}
+\end{figure}
+
+\subsection{Grounding and robustness ablations}
+
+Supervised anchors place $0.551\pm0.011$ maximum attention mass on the red mark, compared with $0.455\pm0.026$ for reward-only attention. Mean proposal coverage rises from 0.237 to 0.302. These diagnostics are consistent with spatial specialization but do not prove that attention is a causal explanation.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/attention_diagnostics.png}
+  \caption{Representative seed-29 strips and anchor attention. Proposal indices are used only in the supervised loss; the plotted deployment forward pass receives the original visual features only.}
+  \label{fig:attention}
+\end{figure}
+
+A three-seed grounding-weight sweep uses the full 720-interaction budget. Weights 0.1 and 0.2 both reach 1.0 mean final success. No grounding averages 0.793 but ranges from 0.378 to 1.0, while excessive weight 0.8 falls to 0.264. Auxiliary grounding therefore improves reliability only in a moderate range.
+
+The post-training marker-contrast sweep exposes a sharp limitation. Every method fails at contrast 0.12. At the trained contrast 0.28, supervised anchors achieve 0.964 mean success. At higher contrast 0.40 they fall to 0.031 because both attention and mark-presence calibration shift outside the training distribution. More visible is not automatically easier for this learned, calibrated pathway.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/sweeps.png}
+  \caption{Left: post-training visual contrast sweep across five seeds. Right: three-seed grounding-weight ablation at the full adaptation budget. Both reveal narrow calibration rather than broad robustness.}
+  \label{fig:sweeps}
+\end{figure}
+
+\section{Interpretation}
+
+The local evidence supports four bounded statements.
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{The small mark is task-critical.} Source BC is perfect on broad-center alignment and completely fails when the offset mark defines success.
+  \item \textbf{Moderate spatial supervision improves reliability here.} The supervised-anchor path has a higher mean endpoint, higher interaction AUC, and lower across-seed variance than reward-only attention under matched interactions and trainable capacity.
+  \item \textbf{Lightweight is not synonymous with grounded.} A 13-parameter pooled adapter preserves the source behavior but cannot match patch-selective anchors.
+  \item \textbf{Caching and policy quality are separable.} Cached and uncached anchors have exactly equal outputs; replay caching changes only learner execution and provides a measurable, though hardware-specific, speedup.
+\end{enumerate}
+
+The ablations are equally important. Excessive grounding hurts, reward-only attention can occasionally match or beat supervised attention, and contrast shifts break the trained pathway. The result therefore does not establish universal superiority of region supervision.
+
+\section{Limitations and Follow-ups}
+
+This toy omits images, language, multiple cameras, action chunks, temporal state, critics, stochastic environment dynamics, demonstrations mixed with online replay, interventions, asynchronous execution, and real transformer KV states. The known invertible reward shape makes online target recovery far easier than sparse robot reward learning. Proposal masks are single patch indices rather than regions; the two-anchor assignment is only a small analogue of GRAFT's identity-free multi-region FreeDice loss. The red-mark gate gives an explicit task boundary and makes adapter forgetting artificially easy. Runtime is measured on one CPU process, while the prefix-evaluation count is an analytic proxy. Five seeds quantify visible variance but do not support significance claims.
+
+Useful follow-ups are to fit a critic from noisy scalar rewards instead of inverting a known reward, remove the mark-presence gate, randomize color and contrast during adaptation, introduce side and wrist views with multiple region masks, use action chunks, and benchmark cached replay states on an actual frozen vision transformer.
+
+\section{Relation to Other Repository Experiments}
+
+The closest repository tracks test different adaptation and correction loci.
+\begin{itemize}[leftmargin=1.5em]
+  \item \path{local_residual_sim2real} learns an online local transition/command correction from physical outcomes. \path{predictive_error_correction} and \path{prediction_error_policy_state} freeze weights and revise transient latent state at inference. This package instead updates visual attention/action parameters from reward-derived replay, with proposals used only in training.
+  \item \path{conflict_aware_replay} is the nearest retention experiment: it selects old samples during sequential training and reports negative backward transfer and continual-learning AUC. This package reports source forgetting, but adapter retention is aided by the explicit mark-presence gate and is therefore not a general locality result.
+  \item \path{retry_reset_recovery} combines offline bridge/reset data with an online router and reports recovery, false resets, and compounding failures. \path{anticipatory_context_chunking} predicts execution-time temporal context before a delayed chunk handoff; neither mechanism is tested by the fine-mark success metric here.
+  \item \path{force_embodiment_gap} and \path{force_feedback_demonstration_quality} study upstream offline morphology/calibration and demonstration quality. Their transfer, damage, and force-error metrics ask whether the initial data/interface are adequate before online reward adaptation.
+  \item Safety remains external. \path{constraint_manifold_action_filter} and \path{path_consistent_safety_filtering} modify proposed chunks at execution, while \path{configured_failure_audit} adds monitored stops. Fine-mark success and anchor attention are not collision or constraint-safety evidence.
+\end{itemize}
+
+\begin{thebibliography}{9}
+\bibitem{graft} Y. Qiu, H. Ye, S. Sun, Z. Huang, R. X. Xu, and M. Sun. \emph{GRAFT: Grounded and Efficient Online Reinforcement Adaptation for Fine-Grained Robot Manipulation}. arXiv:2608.27079, 2026. \url{https://arxiv.org/abs/2608.27079}
+\bibitem{consistency} A. Prasad, K. Lin, J. Wu, L. Zhou, and J. Bohg. \emph{Consistency Policy: Accelerated Visuomotor Policies via Consistency Distillation}. Robotics: Science and Systems, 2024. \url{https://doi.org/10.15607/RSS.2024.XX.071}
+\bibitem{tinyvla} J. Wen et al. \emph{TinyVLA: Toward Fast, Data-Efficient Vision-Language-Action Models for Robotic Manipulation}. IEEE Robotics and Automation Letters, 10(4):3988--3995, 2025. \url{https://doi.org/10.1109/LRA.2025.3544909}
+\end{thebibliography}
+
+\end{document}

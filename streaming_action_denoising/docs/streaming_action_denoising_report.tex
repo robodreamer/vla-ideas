@@ -16,13 +16,14 @@
 \hypersetup{hypertexnames=false,colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black}
 \title{Streaming Action Denoising:\\A Deterministic Throughput--Continuity Control Toy}
 \author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
-\date{August 28, 2026}
+\date{August 31, 2026}
 
 \begin{document}
+\setlength{\emergencystretch}{3em}
 \maketitle
 
 \begin{abstract}
-This note tests a narrow systems/control question inspired by FlashVLA: can staggered chunk refinement separate steady-state decoder throughput from per-chunk denoising depth, and can a causal chunk-continuation surrogate reduce asynchronous boundary mismatch? In this configured deterministic toy, streaming emits one chunk per pass after warm-up and causal coupling improves boundary continuity relative to the same buffer without coupling. This is not a VLA reproduction, learned flow matching, or a hardware benchmark.
+This note tests a narrow systems/control question inspired by FlashVLA: can staggered chunk refinement separate steady-state decoder throughput from per-chunk denoising depth, and can a causal chunk-continuation surrogate reduce asynchronous boundary mismatch? In this configured deterministic toy, streaming emits one chunk per pass after warm-up and causal continuation improves boundary smoothness, but causal-only endpoint chaining accumulates handoff-state drift. A separately labeled compensation surrogate repairs much of that drift. This is not a VLA reproduction, learned flow matching, or a hardware benchmark.
 \end{abstract}
 
 \section{Motivation}
@@ -32,15 +33,29 @@ Isolated iterative decoding concentrates all denoising passes before one chunk b
 Primary references were the FlashVLA paper \cite{primary} and official repository \cite{code}. The paper reports measured VLA/GPU results, including one emitted action chunk per steady streaming step, causal attention ablations, and real/simulated task results. None of those reported numbers are treated as local measurements here.
 
 \section{Toy Setup}
-A two-dimensional disturbed point mass tracks a maneuvering target with an analytical PD chunk planner. Each chunk contains 8 low-level accelerations. The configured action-expert pass cost is 20 ms, the isolated depth is 6, and the few-step proxy uses 2 passes. Five methods are compared:
+A two-dimensional disturbed point mass tracks a maneuvering target with an analytical PD chunk planner. Each chunk contains 8 low-level accelerations. The configured action-expert pass cost is 20 ms, the isolated depth is 6, and the few-step proxy uses 2 passes. Six methods are compared:
 \begin{itemize}[leftmargin=1.5em]
 \item isolated 6-step chunks;
 \item a 2-step quality/capacity proxy;
 \item a staggered buffer with independent chunk refinement;
-\item the same buffer with analytical cleaner-to-noisier continuation coupling; and
+\item the same buffer with analytical cleaner-to-noisier continuation coupling only;
+\item causal continuation plus a separately labeled handoff-state compensation surrogate; and
 \item isolated decoding conditioned on a nominal rollout of committed actions.
 \end{itemize}
 The causal update is only a mechanism surrogate: it chains predicted endpoints and blends boundary actions. It is not transformer attention. The fixed pass time assumes one joint streaming pass costs the same wall-clock time as one isolated pass; the script therefore calls throughput and work values \emph{proxies}, not benchmarks.
+
+\section{Relation to other experiments in this repository}
+\begin{itemize}[leftmargin=1.5em]
+\item \texttt{instruction\_conditioned\_async\_control} separates a slow semantic planner from a high-rate controller. FlashVLA instead pipelines refinement inside the action decoder; there is no sparse instruction handoff here.
+\item \texttt{async\_chunking\_compare} and \texttt{anticipatory\_context\_chunking} estimate execution-time robot and observation context after inference delay. This toy isolates decoder scheduling and cleaner-to-noisier continuation; \texttt{future\_state\_conditioned} is the separate observation-delay-compensation control.
+\item \path{context_chunk_tradeoff} varies temporal context and action horizon, and \path{openvla_oft_systems_toy} varies parallel chunk availability and refresh cadence. Here chunk size is fixed while denoising depth, slot staggering, and configured decoder latency vary.
+\item \texttt{turbo\_vla\_direct\_control} changes the execution architecture to a compact direct V+L$\rightarrow$A path. FlashVLA changes iterative action decoding and can in principle sit on either a direct or larger VLA backbone.
+\item \texttt{prefix\_rl\_chunking} preserves committed action prefixes during RL training. The causal surrogate here supplies predicted endpoint/action context between denoising slots at inference and has no prefix-copy loss.
+\item \path{demo_prompted_policy} and \path{video_prompt_shortcut_resistance} study task grounding and shortcut resistance. This package has no prompt input and makes no prompt-reliance claim.
+\end{itemize}
+
+\paragraph{Baseline fairness.}
+The clean decoder-only ablation is staggered decoding without versus with causal continuation: scheduler, slot count, refinement rule, decoder noise, launch policy, and environment traces are shared. The compensated streaming row then adds handoff-state correction as a separate factor. The isolated, few-step, and future-state rows are diagnostic controls, not training- or architecture-matched learned baselines. The few-step row includes hand-coded smoothing and attenuation. Reported chunks/s is configured back-to-back decoder service capacity under the equal-cost joint-pass assumption, not measured GPU throughput or the simulator's consumed chunk rate.
 
 \section{Metrics}
 The experiment reports success from terminal tracking thresholds, full and tail tracking RMSE, handoff state error, action jump at chunk boundaries, jerk, idle/deadline-miss time, configured steady-state throughput, configured and tick-quantized first-action latency, sequential-pass counts, chunk-slot updates, and causal pair-interaction counts.
@@ -62,9 +77,10 @@ cd /home/andypark/Projects/repos/vla-ideas
 Method & Success (\%) & Track RMSE & Boundary jump & Handoff error & Chunks/s & Cold start (ms) \\
 \midrule
 Isolated 6-step & 77.1 & 0.459 & 0.235 & 0.125 & 8.33 & 120 \\
-Few-step distilled & 72.9 & 0.444 & 0.318 & 0.049 & 25.00 & 40 \\
+Few-step degraded proxy & 72.9 & 0.444 & 0.318 & 0.049 & 25.00 & 40 \\
 Staggered, no coupling & 31.2 & 0.464 & 0.283 & 0.026 & 50.00 & 120 \\
-Staggered + causal coupling & 64.6 & 0.480 & 0.043 & 0.002 & 50.00 & 120 \\
+Staggered + causal only & 4.2 & 0.777 & 0.040 & 0.539 & 50.00 & 120 \\
+Staggered + causal + handoff compensation & 64.6 & 0.480 & 0.043 & 0.002 & 50.00 & 120 \\
 Future-state conditioned & 75.0 & 0.474 & 0.163 & 0.002 & 8.33 & 120 \\
 \bottomrule
 \end{tabular}%
@@ -88,23 +104,23 @@ Future-state conditioned & 75.0 & 0.474 & 0.163 & 0.002 & 8.33 & 120 \\
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{../outputs/systems_proxies.png}
-\caption{Configured systems proxies. Staggering improves sequential output cadence but does not erase chunk-slot refinement work or causal interaction cost.}
+\caption{Configured systems proxies. Staggering improves back-to-back decoder service capacity but does not erase chunk-slot refinement work or causal interaction cost.}
 \end{figure}
 
 \section{Interpretation}
-At the default condition, the causal streaming surrogate changes success from 31.2\% to 64.6\% and boundary discontinuity from 0.283 to 0.043. Future-state conditioning reaches 75.0\% success but retains isolated decoding's configured steady cadence. Thus the local mechanism supports two bounded statements: staggered scheduling can improve steady sequential throughput after a nonzero warm-up, and inter-chunk coupling can improve continuity relative to an otherwise identical independent buffer. The experiment does not establish that the coupling is sufficient in every disturbance regime or that it replaces future-state conditioning in a real VLA.
+At the default condition, causal-only streaming changes boundary discontinuity from 0.283 to 0.040, but success changes from 31.2\% to 4.2\% because chaining predicted endpoints accumulates handoff-state drift. Adding the separately labeled handoff-compensation surrogate raises success to 64.6\%. Future-state conditioning reaches 75.0\% success but retains isolated decoding's configured steady cadence. Thus staggering, inter-chunk continuity, and observation-delay compensation are distinct mechanisms: the first changes service cadence, the second can smooth boundaries, and the third is needed to control accumulated state-age error in this toy. None of these rows establishes real-VLA superiority.
 
 \section{Limitations and Follow-ups}
 \begin{itemize}[leftmargin=1.5em]
 \item Timing is configured, not measured on a GPU. Joint-pass cost, memory traffic, compilation, and kernel-launch effects are omitted.
 \item The decoder is an analytical contraction toward a PD plan. There is no learned flow field, image/language context, training, or distribution shift.
-\item The causal mechanism is endpoint/action chaining, not chunk-wise transformer attention.
+\item The causal mechanism is endpoint/action chaining, not chunk-wise transformer attention. It deliberately excludes the explicit observation rollout used by the future-state baseline.
 \item Future-state conditioning uses the same nominal dynamics as the planner, with plant mismatch but no learned predictor error.
 \item Success thresholds are toy-specific. Follow-ups should measure an actual denoiser, vary buffer span independently, and evaluate contact-rich or constrained dynamics.
 \end{itemize}
 
 \begin{thebibliography}{9}
 \bibitem{primary} Z. Li, J. Tang, and Z. Liu. \emph{Streaming Action Decoding for Fast and Asynchronous VLA Inference}. arXiv:2608.27384, 2026. \url{https://arxiv.org/abs/2608.27384}
-\bibitem{code} Z-Lab. \emph{FlashVLA official implementation}. \url{https://github.com/z-lab/flashvla}
+\bibitem{code} Z-Lab. \emph{FlashVLA official implementation}, inspected at commit \texttt{5227b039ebd4}. \url{https://github.com/z-lab/flashvla}
 \end{thebibliography}
 \end{document}

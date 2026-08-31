@@ -1,7 +1,7 @@
 {
   "all_pass": true,
   "causal_surrogate_reduces_simple_boundary_jump": {
-    "causal_jump": 0.18959109936817625,
+    "causal_jump": 0.12921727251167964,
     "no_causal_jump": 1.736881459391212,
     "pass": true
   },
@@ -23,6 +23,11 @@
     "future_error": 0.0,
     "pass": true,
     "stale_error": 0.030730209731797808
+  },
+  "handoff_compensation_is_separate_and_reduces_state_error": {
+    "causal_only_handoff_error": 0.15213722106998284,
+    "compensated_handoff_error": 0.0019693883769650246,
+    "pass": true
   },
   "stream_first_emit_after_n_passes": {
     "first_ids": [

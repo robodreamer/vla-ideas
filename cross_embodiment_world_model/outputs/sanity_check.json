@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "checks": {
+    "shared_physics_exact": true,
+    "same_raw_different_effect": true,
+    "dataset_deterministic": true,
+    "finite_dynamics": true,
+    "target_raw_dimension_distinct": true,
+    "shot_schedule_monotonic": true,
+    "planning_candidates_nontrivial": true
+  },
+  "same_raw_effect_distance": 1.186881427986186,
+  "shared_physics_max_difference": 0.0
+}

@@ -1,0 +1,223 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!50!black,
+  citecolor=blue!50!black
+}
+
+\title{Cross-Embodiment World Models:\\A CLAP Action-Harmonization and Few-Shot Reranking Toy}
+\author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
+\date{August 31, 2026}
+
+\begin{document}
+\setlength{\emergencystretch}{3em}
+\maketitle
+
+\begin{abstract}
+This note tests a narrow mechanism motivated by CLAP: whether a shared object-dynamics model can transfer across embodiments when controls are represented as padded raw actions, canonical end-effector (EE) actions, learned transition latents, or a latent-to-EE curriculum. Two source embodiments and one target embodiment apply different raw controls to the same deterministic two-dimensional object physics. The target provides 0--32 short demonstrations, and models are evaluated on one-step state prediction and ten-candidate action reranking. With four target demonstrations, canonical EE and curriculum models obtain state RMSE $0.0109$, versus $0.0247$ for raw and learned-latent interfaces, and achieve candidate top-1 agreement $0.930$ and $0.925$, versus $0.757$ and $0.749$. Direct EE is marginally stronger than curriculum on most planning rows, so this toy does not establish a curriculum advantage. It shows only that geometric action harmonization transfers shared dynamics and that latent pretraining can be grounded without losing that benefit in an extreme EE-label-sparse setting. This is a vector-state mechanism test, not a CLAP reproduction or robot result.
+\end{abstract}
+
+\section{Motivation}
+
+Action-conditioned world models face a representation problem before they face a modeling problem. Different robot joint spaces can encode physically similar end-effector motion with different dimensions and semantics. CLAP proposes that object dynamics contain embodiment-independent physical structure, while raw controls require harmonization through end-effector, language, or learned latent actions \cite{paper,project}.
+
+The local question is:
+\begin{quote}
+When two source embodiments provide shared object interactions and a novel target has few demonstrations, which action interface yields accurate target prediction and useful candidate-action rankings?
+\end{quote}
+
+This setup isolates action conditioning. It deliberately omits images, semantic instructions, video generation, contact discontinuities, and policy learning.
+
+\section{References Checked}
+
+Primary references were:
+\begin{itemize}[leftmargin=1.5em]
+  \item Liu and Shorinwa, \emph{CLAP: Cross-Embodiment Video World Models are Zero-Shot Physical Simulators} \cite{paper};
+  \item the official CLAP project page, method overview, checkpoints, and reported evaluations \cite{project};
+  \item the official open-source implementation and adaptation workflow \cite{code}.
+\end{itemize}
+
+CLAP maps robot joint positions to a normalized absolute seven-dimensional operational space for EE conditioning; in its cross-embodiment study, absolute EE conditioning outperforms the relative EE variant. Its learned latent-action model instead infers a 32-dimensional proxy action from frame pairs, enabling shared video-dynamics pretraining to include action-unlabeled data such as human video. CLAP-CURR first trains the video model with those latent actions, replaces the latent action head with a seven-dimensional EE MLP, and jointly fine-tunes the new head and retained video backbone on action-labeled robot videos. The paper also studies few-shot adaptation to bimanual YAM and G1 humanoid action spaces and uses world-model predictions to compare candidate policy proposals. Its latent-only real-world planning path requires a separately trained EE-to-latent adapter.
+
+Those are source-method descriptions, not local findings. Here, PCA residual coordinates replace the latent-action VAE, a ridge model replaces the video backbone, and two-dimensional EE motion replaces pose, orientation, and gripper commands. Any local ``zero-shot'' result assumes that the synthetic target's exact raw-to-EE map is already available; it does not reproduce the paper's real-world zero-shot evidence.
+
+\section{Toy Setup}
+
+\subsection{Embodiments and shared physics}
+
+The observable object state is
+\begin{equation}
+  s_t=[x_t,y_t,v^x_t,v^y_t].
+\end{equation}
+Three embodiments have raw action dimensions two, three, and four. Each transforms its raw command $r_t$ into a common EE command $e_t\in[-1,1]^2$ using a different fixed nonlinear map:
+\begin{equation}
+  e_t=\tanh(M_b r_t+Q_b(r_t\odot |r_t|)+c_b+\text{cross}(r_t)),
+\end{equation}
+where $b$ indexes embodiment. The target map is held out from source raw-action training but is available to methods that assume known forward kinematics.
+
+Object dynamics use only $(s_t,e_t)$, never $b$. Velocity combines damped motion, position-dependent contact gain, and weak cross-axis coupling; position integrates the new velocity with a small transverse EE term. Therefore identical state and EE commands produce identical next states across embodiments, while identical padded raw commands generally do not.
+
+Each full seed contains 3,600 source transitions: 150 episodes, 12 steps, and two source embodiments. Only 36 source transitions (1\%) expose EE labels. All source state-transition pairs remain available to latent methods. The target demonstration pool has 48 episodes, and evaluation uses 900 disjoint target transitions.
+
+\subsection{Compared representations}
+
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{Raw/padded joints.} Raw controls are padded to four coordinates and combined with embodiment-specific one-hot interaction branches. Source and upweighted target samples jointly fit a next-state residual model. With no target examples, target-specific coefficients are unconstrained.
+  \item \textbf{Canonical EE.} A shared predictor directly conditions on exact two-dimensional EE actions. It sees only EE-labeled source samples plus available target demonstrations.
+  \item \textbf{Learned latent.} A state-only predictor estimates passive motion. PCA on all source transition residuals yields a two-dimensional proxy action $z$. A shared $p(\Delta s\mid s,z)$ model uses all source transitions, while a raw-to-latent alignment model maps target controls to $z$ from few demonstrations.
+  \item \textbf{Latent-to-EE curriculum.} The same all-source latent dynamics model is retained. A small EE-to-latent bridge is trained on labeled source/target data, followed by a strongly regularized EE-conditioned residual correction. This is only a linear analogue of replacing CLAP's latent head with a seven-dimensional EE MLP and jointly refining the grounded model.
+\end{enumerate}
+
+All regressors standardize inputs and use deterministic ridge solutions. Target samples receive higher weight during joint fits so a small target branch is not numerically erased by 3,600 source rows.
+
+\subsection{Candidate reranking}
+
+Each of 320 planning queries supplies one held-out target state, a desired next-object position, and ten raw target actions. True simulator outcomes define the oracle candidate. Each learned model predicts every candidate outcome and selects the one with the smallest predicted distance to the goal. This one-step test mirrors the discrimination role of a world model in proposal planning; it does not model multi-step closed-loop execution.
+
+\section{Metrics and Sanity Checks}
+
+The experiment reports four main metrics:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{state RMSE:} root mean squared next-state error over four coordinates;
+  \item \textbf{candidate top-1:} agreement between predicted and oracle candidate indices;
+  \item \textbf{candidate regret:} selected true goal cost minus oracle true goal cost;
+  \item \textbf{planning success:} regret no greater than 0.003.
+\end{itemize}
+
+Seven checks run before the sweep. Equal state and EE commands give bitwise-equal next states across embodiments; a fixed raw command gives source EE effects separated by L2 distance 1.187; repeated data generation is bitwise deterministic; generated states are finite; target dimensionality differs from source A; shot counts are sorted and unique; and candidate pools contain at least four actions. All checks pass.
+
+\section{Results}
+
+The generated artifacts use:
+\begin{verbatim}
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  cross_embodiment_world_model/run_cross_embodiment_world_model.py \
+  --seed 23 --seeds 8 --source-episodes 150 \
+  --target-pool-episodes 48 --test-transitions 900 \
+  --planning-queries 320 --shots 0 1 2 4 8 16 32 \
+  --source-ee-label-fraction 0.01
+\end{verbatim}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/few_shot_sweep.png}
+  \caption{Mean $\pm$ one standard error across eight seeds. Exact EE conditioning transfers without target demonstrations. Raw and learned-latent target interfaces improve after enough target alignment data, but one episode is an unstable, underdetermined regime.}
+  \label{fig:sweep}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{llrrrr}
+\toprule
+Shots & Method & State RMSE $\downarrow$ & Top-1 $\uparrow$ & Regret $\downarrow$ & Success $\uparrow$ \\
+\midrule
+0 & Raw/padded & $.1061\pm.0009$ & $.099\pm.005$ & $.03526$ & $.118$ \\
+0 & Canonical EE & $.0132\pm.0009$ & $.925\pm.005$ & $.00017$ & $.981$ \\
+0 & Learned latent & $.1095\pm.0009$ & $.098\pm.007$ & $.03523$ & $.118$ \\
+0 & Latent$\rightarrow$EE & $\mathbf{.0122}\pm.0010$ & $.920\pm.005$ & $.00017$ & $.979$ \\
+\midrule
+4 & Raw/padded & $.0247\pm.0009$ & $.757\pm.009$ & $.00124$ & $.855$ \\
+4 & Canonical EE & $\mathbf{.0109}\pm.0011$ & $\mathbf{.930}\pm.006$ & $\mathbf{.00013}$ & $\mathbf{.986}$ \\
+4 & Learned latent & $.0247\pm.0009$ & $.749\pm.012$ & $.00132$ & $.848$ \\
+4 & Latent$\rightarrow$EE & $.0109\pm.0011$ & $.925\pm.004$ & $.00015$ & $.983$ \\
+\midrule
+32 & Raw/padded & $.0194\pm.0001$ & $.833\pm.003$ & $.00061$ & $.923$ \\
+32 & Canonical EE & $\mathbf{.0063}\pm.0004$ & $\mathbf{.957}\pm.004$ & $\mathbf{.00006}$ & $\mathbf{.995}$ \\
+32 & Learned latent & $.0194\pm.0001$ & $.832\pm.005$ & $.00061$ & $.923$ \\
+32 & Latent$\rightarrow$EE & $.0063\pm.0004$ & $.952\pm.002$ & $.00008$ & $.992$ \\
+\bottomrule
+\end{tabular}
+\caption{Held-out target metrics. ``Shots'' counts 12-transition target episodes. Values are mean $\pm$ SEM where displayed; regret and success are means. Bold marks the best mean within each shot block.}
+\label{tab:results}
+\end{table}
+
+At four demonstrations, EE and curriculum conditioning reduce state RMSE by approximately 56\% relative to raw controls. Candidate top-1 agreement increases from 0.757 to 0.930 and 0.925. Planning success rises from 0.855 to 0.986 and 0.983.
+
+The two-dimensional PCA latent explains 99.99\% of source residual variance, yet its target performance is close to the raw-action model after target alignment. Compressing transition effects is therefore not sufficient to remove action-interface mismatch. This matches the qualitative deployment concern motivating CLAP's grounding stage, but it is not evidence about learned video latents.
+
+Canonical EE is slightly stronger than curriculum on most reranking conditions, while their state RMSEs nearly tie after adaptation. The toy therefore does not support a claim that curriculum is universally better than direct EE training. In this synthetic setting, 36 labeled transitions are already enough for the direct model because full object state is observed and dynamics are smooth.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/representation_diagnostics.png}
+  \caption{Left: raw coordinate values have different EE effects across embodiments. Center: a shared transition latent colored by EE-x action. Right: target transitions under the same object physics. The latent diagnostic visualizes representation structure, not causal identification.}
+  \label{fig:representations}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/candidate_reranking_example.png}
+  \caption{One representative held-out query at four target demonstrations. Points are true outcomes of ten candidate target actions; each panel marks the oracle and the candidate chosen using one model's predicted outcomes. This single query is illustrative, while Table~\ref{tab:results} aggregates 2,560 queries per condition.}
+  \label{fig:planning}
+\end{figure}
+
+\section{Interpretation}
+
+The results support three bounded conclusions.
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{Canonical action semantics unlock source transfer.} When target forward kinematics expose the same EE coordinates used by source robots, useful target prediction is possible before target demonstrations.
+  \item \textbf{Latent actions need deployment alignment.} An almost lossless transition latent still performs poorly when the target raw-to-latent map is missing. Four or more episodes substantially improve it, but it remains close to the padded raw baseline in this linear construction.
+  \item \textbf{Curriculum preserves shared physics but is not locally superior.} Latent pretraining on all source transitions can be grounded with only 36 EE-labeled source rows and match direct EE prediction. Direct EE nevertheless has slightly better candidate rankings, so the local result is parity, not dominance.
+\end{enumerate}
+
+The one-shot raw and latent results are non-monotonic: fitting target-specific branches from only 12 correlated transitions can be worse than using the unadapted source/passive prediction. This is an exposed failure mode of the toy, not a claim about gradient-based CLAP adaptation.
+
+\section{Relation to Other Experiments in This Repository}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \texttt{demo\_prompted\_policy} and \texttt{video\_prompt\_shortcut\_resistance} treat a demonstration as a runtime task specification and score progress, recomposition, recovery, or prompt-swap sensitivity without target-time weight updates. This track has no task prompt: it refits target action interfaces on 0--32 episodes and isolates action coordinates through one-step prediction and candidate regret.
+  \item \texttt{force\_embodiment\_gap} also studies embodiment transfer, but through force-sensor calibration, morphology gains, and motor-versus-physical BC coordinates in contact. The present toy exposes full object state and smooth physics so that the isolated variable is world-model action conditioning: raw, exact EE, or transition latent.
+  \item \texttt{grounded\_online\_adaptation}, \texttt{local\_residual\_sim2real}, and \texttt{conflict\_aware\_replay} learn from sequential target interactions and report interaction efficiency, extrapolation, retention, or forgetting. This fixed few-shot sweep has no reward or continual task sequence and makes no online-adaptation claim.
+  \item The timing/context tracks vary stale observations, history, chunk handoff, or configured inference delay. Candidate scoring here is single-step and offline, deliberately separating action harmonization from execution scheduling.
+\end{itemize}
+
+\section{Mapping, Limitations, and Follow-ups}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.28\textwidth}>{\raggedright\arraybackslash}p{0.29\textwidth}>{\raggedright\arraybackslash}p{0.32\textwidth}}
+\toprule
+Toy component & CLAP analogue & Main simplification \\
+\midrule
+Shared object transition & embodiment-independent physics & fully observed smooth 2-D state \\
+Padded raw controls & heterogeneous joint spaces & at most four scalar coordinates \\
+2-D exact EE action & normalized absolute EE pose & no orientation or gripper \\
+PCA residual latent & learned LAM embedding & linear, continuous, future-state access \\
+Latent dynamics pretraining & unlabeled-video proxy-action stage & source state transitions only \\
+EE-to-latent bridge + correction & action-head grounding & closed-form ridge models \\
+Ten-candidate reranking & inference-time proposal planning & one-step known goal cost \\
+\bottomrule
+\end{tabular}
+\caption{Conceptual mapping.}
+\label{tab:mapping}
+\end{table}
+
+The experiment does not generate images, train a diffusion or flow model, evaluate perceptual fidelity, represent language, learn from internet video, or run a policy or robot. The exact EE map is noiseless, source and target states share a distribution, and only three embodiments are used. The 1\% EE-label fraction is an intentionally extreme mechanism probe. PCA sees the next state when creating training latents, while deployment requires an action adapter, and the resulting latent is not identifiable as a physical control coordinate. Planning evaluates a single transition and does not expose compounding rollout error or model hallucination.
+
+Useful follow-ups are to sweep EE-label fraction, add noisy or biased target kinematics, train with image observations and occlusion, evaluate multi-step model-predictive control, and attach calibrated uncertainty so reranking can abstain when candidate predictions leave the training distribution.
+
+\begin{thebibliography}{9}
+\bibitem{paper} K. Liu and O. Shorinwa. \emph{CLAP: Cross-Embodiment Video World Models are Zero-Shot Physical Simulators}. arXiv:2608.27406v1, 2026. \url{https://arxiv.org/abs/2608.27406}
+\bibitem{project} CLAP project page. \url{https://omni-clap.github.io/}
+\bibitem{code} omni-CLAP. \emph{CLAP official repository}. \url{https://github.com/omni-CLAP/clap}
+\end{thebibliography}
+
+\end{document}

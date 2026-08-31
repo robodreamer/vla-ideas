@@ -1,0 +1,24 @@
+{
+  "all_passed": true,
+  "checks": {
+    "open_loop_observation_invariance": true,
+    "prediction_error_uses_observations": true,
+    "zero_iterations_match_open_loop": true,
+    "correction_reduces_latent_rmse": true,
+    "correction_reduces_tracking_rmse": true,
+    "feedforward_is_deterministic": true,
+    "zero_disturbance_open_loop_near_oracle": true,
+    "paired_schedule_fingerprint": true
+  },
+  "values": {
+    "open_loop_observation_action_max_diff": 0.0,
+    "prediction_error_observation_action_max_diff": 4.254177162841567,
+    "zero_iteration_action_max_diff": 0.0,
+    "open_loop_latent_rmse": 5.520427415742617,
+    "prediction_error_latent_rmse": 0.10790160754526008,
+    "open_loop_tracking_rmse": 8.65910959086546,
+    "prediction_error_tracking_rmse": 0.3463061100142178,
+    "zero_disturbance_open_loop_tracking_rmse": 0.2729276256856874,
+    "zero_disturbance_oracle_tracking_rmse": 0.26976215496633954
+  }
+}

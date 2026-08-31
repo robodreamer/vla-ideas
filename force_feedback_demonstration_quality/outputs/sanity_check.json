@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "checks": {
+    "matched_scenario_count": true,
+    "matched_parameters_exact": true,
+    "matched_observations_exact": true,
+    "deterministic_generation": true,
+    "haptic_demo_force_rmse_lower": true,
+    "haptic_demo_force_variance_lower": true,
+    "haptic_demo_damage_not_higher": true
+  },
+  "values": {
+    "visual_force_rmse": 1.067342888142356,
+    "haptic_force_rmse": 0.2615408402412818,
+    "visual_force_error_variance": 0.43757563629314616,
+    "haptic_force_error_variance": 0.0103630818971887,
+    "visual_mean_retries": 0.2,
+    "haptic_mean_retries": 0.1
+  }
+}

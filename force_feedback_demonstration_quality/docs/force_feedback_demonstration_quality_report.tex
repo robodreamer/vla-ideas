@@ -1,0 +1,173 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
+
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black}
+
+\title{Force-Feedback Demonstration Quality:\\A Matched Bimanual Imitation-Learning Toy}
+\author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
+\date{August 31, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note tests a prospective mechanism inspired by PHABS: matched demonstrations collected with fingertip force feedback may contain cleaner force profiles than demonstrations collected from vision alone, and identical imitation policies trained on those force-rich data may better handle fragile-object handoff and insertion. A deterministic synthetic task compares pose-only visual demonstrations, force-annotated visual demonstrations, a crossed condition with haptic force but visual-only motion targets, noisy passive-force labels, and full haptic force-rich demonstrations. Across 720 evaluation rollouts per condition and four levels of object-property shift, the haptic force-rich policy reaches 78.3\% success, 10.4\% damage, 13.1\% slip/drop, and 0.505 force-profile RMSE. Holding visual-only motion targets fixed while substituting matched haptic force reaches 78.1\% success and the same 0.505 force RMSE, isolating the constructed force-target effect. This is not a reproduction or result of PHABS. Its three-participant pilot reports improved operator task success and confidence with force feedback, but not force-profile-quality statistics or a downstream learned-policy comparison.
+\end{abstract}
+
+\section{Source and Scope}
+
+The primary reference is \emph{PHABS: A Handheld Haptic Device for Force-Annotated Bimanual Teleoperation} by Mosier et al. \cite{phabs}. The system is motivated by the difficulty of collecting synchronized bimanual pose and force demonstrations with a portable interface while also returning force cues to the operator. Its early pilot involved three participants and addressed prototype use; it did not report the downstream matched haptics-on/off imitation-policy experiment tested here.
+
+The pilot supports the premise that returned force cues can affect teleoperation, but it does not establish the data-quality or policy-transfer mechanism studied here. The local question is therefore prospective:
+\begin{quote}
+Holding demonstrator, object, task, model class, and data budget fixed, can force feedback improve the force targets in demonstrations enough to improve fragile-object policies under distribution shift?
+\end{quote}
+
+No source outcome is treated as evidence for the local numerical result. The simulation encodes a favorable but explicit hypothesis: haptic feedback lowers force-control lag and noise and lets a demonstrator regulate against contact-dependent no-slip and no-damage limits.
+
+\section{Synthetic Task}
+
+A fragile object passes through five phases: left-hand approach/grasp, bimanual handoff, right-hand carry, two-hand insertion into packaging, and release. Each scenario contains mass $m$, friction $\mu$, a force damage limit $F_{\mathrm{fragile}}$, insertion tightness $q$, and alignment offset $e$.
+
+A phase-dependent pair of load shares $\ell_L(t),\ell_R(t)$ specifies which hand supports the object. Required grip force is represented by
+\begin{equation}
+F^{\mathrm{req}}_i(t)=0.52\frac{mg}{\max(\mu,0.25)}\ell_i(t)+0.22\,\mathbb{I}[\ell_i(t)>0].
+\end{equation}
+The insertion phase lowers the safe limit as tightness rises. The oracle target adds a small margin to required force but is capped below that safe limit. When those constraints conflict, the target uses a least-bad bounded value; the simulator does not claim physically exact contact mechanics.
+
+The policy observes polynomial/Fourier phase features, nominal load shares, visual estimates of object properties, insertion/handoff flags, and low-order interaction terms. Its four outputs are progress speed, left grip force, right grip force, and handoff balance. Every method uses the same standardized multi-output ridge regressor and regularization.
+
+\subsection{Matched demonstrations}
+
+Seventy-two training scenarios are generated with two repeats per condition. Haptic-on and haptic-off demonstrations share exact scenario parameters and visual estimates. The visual-only demonstrator uses uncertain property estimates, a larger generic grip margin, slower force corrections, and higher autoregressive noise. The haptic demonstrator corrects more quickly toward the feasible force envelope with lower noise and tighter balance.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.96\textwidth]{../outputs/matched_demo_force_profiles.png}
+\caption{Matched force profiles for one object. The dashed line is the simulator's oracle target. The haptic traces are constructed to have lower lag and variance; this figure visualizes an assumption of the mechanism test, not a PHABS measurement.}
+\label{fig:demos}
+\end{figure}
+
+Across all 288 generated demonstrations, visual-only force RMSE is 0.991 N versus 0.265 N with haptics. Force-error variance is 0.339 versus 0.010, mean retries are 0.292 versus 0.194, and generated rollout success is 82.6\% versus 87.5\%. A ten-scenario sanity suite checks exact matching, deterministic regeneration, lower haptic force error and variance, and non-increased haptic damage.
+
+\section{Training Conditions}
+
+\begin{enumerate}[leftmargin=1.5em]
+\item \textbf{Pose-only / visual:} keep visual-only speed and balance targets, but replace force with a generic pose-gated 5.35 N squeeze.
+\item \textbf{Force-annotated / visual:} retain the force executed by visual-only demonstrators.
+\item \textbf{Haptic force, visual motion:} keep visual-only observations, speed, and balance, but substitute force from the exactly matched haptic rollout.
+\item \textbf{Noisy passive-force labels:} delay those labels and add bias, noise, and sparse dropout.
+\item \textbf{Haptic force-rich:} retain all haptic-collected action targets.
+\end{enumerate}
+
+The crossed third condition is the key ablation. Comparing it with force-annotated visual changes only the force targets; comparing it with full haptic targets measures the remaining contribution of generated speed and balance. This does not remove the simulator's favorable construction, but it prevents attributing a mixed target change solely to force quality.
+
+\section{Evaluation and Metrics}
+
+Each policy is tested on 180 matched trials at shift levels $0$, $0.33$, $0.67$, and $1.0$. Shift simultaneously raises mass and insertion tightness, lowers friction and fragility, and increases visual property-estimation error. Random events use method-independent per-trial seeds.
+
+Success requires no sampled drop, object damage, or terminal insertion failure within three retries. Slip probability depends on sustained force deficit and handoff imbalance. Damage probability depends on integrated and peak force beyond the safe limit. Retries depend on insertion speed, alignment, force error, and handoff error. Robustness is reported both as hard-shift success and area under the success-versus-shift curve.
+
+\section{Results}
+
+\begin{table}[H]
+\centering
+\small
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrr}
+\toprule
+Condition & Success $\uparrow$ & Damage $\downarrow$ & Drop $\downarrow$ & Force RMSE $\downarrow$ & Retries $\downarrow$ & Hard success $\uparrow$ \\
+\midrule
+Pose-only / visual & .486 & .290 & .338 & 2.256 & .729 & .194 \\
+Force-annotated / visual & .729 & .160 & .146 & 1.024 & .314 & .461 \\
+Haptic force, visual motion & .781 & .104 & .135 & .505 & .188 & .522 \\
+Noisy passive force & .536 & .107 & .410 & .848 & .263 & .356 \\
+\textbf{Haptic force-rich} & \textbf{.783} & \textbf{.104} & \textbf{.131} & \textbf{.505} & \textbf{.189} & \textbf{.522} \\
+\bottomrule
+\end{tabular}}
+\caption{Full deterministic sweep. Each row aggregates 720 rollouts. ``Hard success'' is success at shift level 1.0.}
+\label{tab:results}
+\end{table}
+
+At fixed visual-only observations, speed, and balance, substituting matched haptic force improves average success by 5.1 percentage points and hard-shift success by 6.1 points. Force-profile RMSE falls by 50.7\%, retries by 40.3\%, damage by 5.6 points, and slip/drop by 1.1 points. Full haptic targets add only 0.3 success points beyond the crossed condition in this run, so the local separation is driven almost entirely by the constructed force targets. Relative to pose-only visual data, full haptic success improves by 29.7 points.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../outputs/policy_summary.png}
+\caption{Headline policy metrics. The haptic force-rich condition has the best success, hard-shift success, force error, retries, damage, and slip/drop in this construction.}
+\label{fig:summary}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../outputs/robustness_sweep.png}
+\caption{Success, damage, and force error as object-property shift increases. Force annotation alone helps, while delayed/noisy passive labels reduce over-force damage but create force-deficit drops.}
+\label{fig:shift}
+\end{figure}
+
+The passive-force ablation is useful because low average force error does not guarantee task success. Its phase lag causes force deficits near contact transitions, yielding 41.0\% slip/drop despite only 10.7\% damage. The crossed haptic-force condition nearly matches the full haptic condition, providing the direct within-simulator check that force-target quality, rather than the generated speed/balance difference, explains the headline gap.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.96\textwidth]{../outputs/representative_policy_rollout.png}
+\caption{Representative hard-shift commands. Gray shading marks handoff and orange marks insertion.}
+\label{fig:rollout}
+\end{figure}
+
+\section{Interpretation}
+
+The toy supports only a bounded plausibility statement. If haptic feedback causes operators to produce less delayed, less oscillatory, object-conditioned force targets, then a policy trained on those targets can learn a better safety--retention tradeoff than one trained on pose alone or on force labels generated without feedback. Recording force is not equivalent to improving the force behavior being recorded.
+
+The comparison also suggests a concrete matched-data protocol: randomize haptics order within participant, use the same objects and attempts, retain raw synchronized pose/force streams, train the same model and data budget, and report paired intervals for success, peak/excess force, drops, retries, and unseen-object robustness. The source paper motivates such a study but does not supply its outcome.
+
+\section{Relation to Other Experiments in This Repository}
+
+\path{bc_distribution_shift_mysteries} and \path{demo_prompted_policy} study policy conditioning: the former varies chunk/history/features under behavioral cloning, while the latter treats a demonstration as a runtime prompt. This experiment changes collection-time action targets instead. The crossed condition holds observations and non-force targets fixed, so its comparison is about target quality rather than adding history, prompt context, or a richer runtime sensor.
+
+\path{retry_reset_recovery} broadens recovery coverage in the training data, and \path{local_residual_sim2real} adapts a deployed prior from recent transitions. Neither mechanism exists here. Likewise, \path{constraint_manifold_action_filter} and \path{path_consistent_safety_filtering} act after a policy proposes an action: they can project, slow, or stop a bad command, but they do not recover contact targets absent from demonstrations. This package is a data/training mechanism and makes no execution-time safety guarantee.
+
+Finally, \path{force_embodiment_gap} studies runtime force observability and calibration/morphology transfer. The present policy receives no runtime force and has no handheld-to-robot embodiment change; force appears only in demonstration targets. The experiments are complementary, and their results do not imply that force-rich demonstrations automatically remain meaningful across sensors, grippers, or action frames.
+
+\section{Limitations}
+
+\begin{itemize}[leftmargin=1.5em]
+\item There is no PHABS hardware, torque sensing, bilateral controller, robot, image observation, language input, or VLA.
+\item Compact object properties and phase replace perception and state estimation.
+\item Policies do not observe runtime force; the experiment is not force-feedback control at deployment.
+\item The simulator and demonstration generator share equations, favoring regression with the supplied features.
+\item Haptic feedback is represented directly as lower lag/noise and corrective regulation toward a known envelope; this is the hypothesis being tested.
+\item Slip, damage, and insertion failure are calibrated stochastic scores rather than rigid/deformable contact dynamics.
+\item Several shift factors change together, only one model family/configuration is tested, and no uncertainty interval across training seeds is reported.
+\item The policy predicts single-step actions and cannot represent multimodal strategies or long action chunks.
+\item Local numbers must not be interpreted as empirical PHABS, participant, real-robot, packaging, or fragile-object performance.
+\end{itemize}
+
+\section{Reproduction}
+
+The full command was:
+\begin{verbatim}
+cd force_feedback_demonstration_quality
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  run_force_feedback_demonstration_quality.py \
+  --seed 37 --demo-scenarios 72 --demo-repeats 2 \
+  --eval-trials-per-shift 180
+\end{verbatim}
+The machine-readable outputs include per-demonstration and per-policy CSV files, aggregate CSV/JSON summaries, and the sanity-check JSON.
+
+\begin{thebibliography}{9}
+\bibitem{phabs} Mosier et al. \emph{PHABS: A Handheld Haptic Device for Force-Annotated Bimanual Teleoperation}. OpenReview, 2026. \url{https://openreview.net/pdf?id=Lmbnt2VNDM}
+\end{thebibliography}
+
+\end{document}

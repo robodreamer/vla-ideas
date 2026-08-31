@@ -1,16 +1,19 @@
 method,label,latency_scale,configured_pass_ms,steady_sequential_passes_per_chunk,cold_start_sequential_passes,steady_chunk_throughput_hz,steady_action_throughput_hz,configured_first_action_latency_ms,chunk_slot_updates_per_emitted_chunk,causal_pair_interactions_per_pass
 isolated_n_step,Isolated 6-step,1.0,20.0,6.0,6.0,8.333333333333334,66.66666666666667,120.0,6.0,0.0
-few_step_distilled,Few-step distilled,1.0,20.0,2.0,2.0,25.0,200.0,40.0,2.0,0.0
+few_step_distilled,Few-step degraded proxy,1.0,20.0,2.0,2.0,25.0,200.0,40.0,2.0,0.0
 streaming_no_causal,"Staggered, no coupling",1.0,20.0,1.0,6.0,50.0,400.0,120.0,6.0,0.0
-streaming_causal,Staggered + causal coupling,1.0,20.0,1.0,6.0,50.0,400.0,120.0,6.0,15.0
+streaming_causal,Staggered + causal only,1.0,20.0,1.0,6.0,50.0,400.0,120.0,6.0,15.0
+streaming_causal_compensated,Staggered + causal + handoff compensation,1.0,20.0,1.0,6.0,50.0,400.0,120.0,6.0,0.0
 future_state_conditioned,Future-state conditioned,1.0,20.0,6.0,6.0,8.333333333333334,66.66666666666667,120.0,6.0,0.0
 isolated_n_step,Isolated 6-step,1.5,30.0,6.0,6.0,5.555555555555555,44.44444444444444,180.0,6.0,0.0
-few_step_distilled,Few-step distilled,1.5,30.0,2.0,2.0,16.666666666666668,133.33333333333334,60.0,2.0,0.0
+few_step_distilled,Few-step degraded proxy,1.5,30.0,2.0,2.0,16.666666666666668,133.33333333333334,60.0,2.0,0.0
 streaming_no_causal,"Staggered, no coupling",1.5,30.0,1.0,6.0,33.333333333333336,266.6666666666667,180.0,6.0,0.0
-streaming_causal,Staggered + causal coupling,1.5,30.0,1.0,6.0,33.333333333333336,266.6666666666667,180.0,6.0,15.0
+streaming_causal,Staggered + causal only,1.5,30.0,1.0,6.0,33.333333333333336,266.6666666666667,180.0,6.0,15.0
+streaming_causal_compensated,Staggered + causal + handoff compensation,1.5,30.0,1.0,6.0,33.333333333333336,266.6666666666667,180.0,6.0,0.0
 future_state_conditioned,Future-state conditioned,1.5,30.0,6.0,6.0,5.555555555555555,44.44444444444444,180.0,6.0,0.0
 isolated_n_step,Isolated 6-step,2.0,40.0,6.0,6.0,4.166666666666667,33.333333333333336,240.0,6.0,0.0
-few_step_distilled,Few-step distilled,2.0,40.0,2.0,2.0,12.5,100.0,80.0,2.0,0.0
+few_step_distilled,Few-step degraded proxy,2.0,40.0,2.0,2.0,12.5,100.0,80.0,2.0,0.0
 streaming_no_causal,"Staggered, no coupling",2.0,40.0,1.0,6.0,25.0,200.0,240.0,6.0,0.0
-streaming_causal,Staggered + causal coupling,2.0,40.0,1.0,6.0,25.0,200.0,240.0,6.0,15.0
+streaming_causal,Staggered + causal only,2.0,40.0,1.0,6.0,25.0,200.0,240.0,6.0,15.0
+streaming_causal_compensated,Staggered + causal + handoff compensation,2.0,40.0,1.0,6.0,25.0,200.0,240.0,6.0,0.0
 future_state_conditioned,Future-state conditioned,2.0,40.0,6.0,6.0,4.166666666666667,33.333333333333336,240.0,6.0,0.0

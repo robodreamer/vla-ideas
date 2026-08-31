@@ -1,0 +1,47 @@
+{
+  "simple_recurrent": {
+    "success": 0.0,
+    "tracking_rmse": 0.5766664964305296,
+    "tail_tracking_rmse": 0.37262819428223026,
+    "final_error": 0.2813888026845172,
+    "state_rmse": 0.5407036210838357,
+    "sensory_prediction_rmse": 0.6444929842762699,
+    "max_action": 3.200000000000001
+  },
+  "finite_window_attention_like": {
+    "success": 0.0,
+    "tracking_rmse": 1.1378593710176057,
+    "tail_tracking_rmse": 1.4110479983429405,
+    "final_error": 0.5093636808784968,
+    "state_rmse": 0.6504450384339807,
+    "sensory_prediction_rmse": 0.7560262328897019,
+    "max_action": 3.2000000000000006
+  },
+  "learned_robust_observer": {
+    "success": 0.0,
+    "tracking_rmse": 0.581694536248812,
+    "tail_tracking_rmse": 0.5322080469912808,
+    "final_error": 0.3275303793272407,
+    "state_rmse": 0.34964326567851056,
+    "sensory_prediction_rmse": 0.4000025326513565,
+    "max_action": 3.200000000000001
+  },
+  "predictive_coding": {
+    "success": 0.0,
+    "tracking_rmse": 0.44839612120217953,
+    "tail_tracking_rmse": 0.30761301764428006,
+    "final_error": 0.23770878771316453,
+    "state_rmse": 0.10292638197485018,
+    "sensory_prediction_rmse": 0.09351698580954258,
+    "max_action": 3.2
+  },
+  "predictive_coding_open_loop": {
+    "success": 0.0,
+    "tracking_rmse": 1.1612487253464883,
+    "tail_tracking_rmse": 1.5916134850018226,
+    "final_error": 1.6534147526062533,
+    "state_rmse": 0.38194135852758326,
+    "sensory_prediction_rmse": 0.4317614893933335,
+    "max_action": 3.2
+  }
+}

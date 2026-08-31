@@ -1,0 +1,24 @@
+{
+  "passed": true,
+  "checks": {
+    "data_generation_deterministic": true,
+    "marker_changes_target_not_coarse_object": true,
+    "source_bc_success_above_90pct": true,
+    "frozen_policy_fails_fine_alignment": true,
+    "cached_and_uncached_logits_match": true,
+    "task_reward_prefers_alignment_mark": true,
+    "adapter_lighter_than_full_policy": true,
+    "anchor_path_lighter_than_full_policy": true,
+    "deployment_forward_needs_no_proposals": true
+  },
+  "diagnostics": {
+    "source_bc_success": 1.0,
+    "frozen_fine_success": 0.0,
+    "full_trainable_parameters": 42534,
+    "adapter_trainable_parameters": 13,
+    "anchor_trainable_parameters": 6371,
+    "optimal_reward": 1.0,
+    "two_patch_error_reward": 0.4493289291858673,
+    "cached_logit_max_abs_delta": 0.0
+  }
+}

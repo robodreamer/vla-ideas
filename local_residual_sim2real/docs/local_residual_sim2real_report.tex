@@ -1,0 +1,163 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+
+\title{Local Residual Sim-to-Real:\\A Chained Transition and Safety Toy}
+\author{Andy Park\\\texttt{andypark.purdue@gmail.com}}
+\date{August 31, 2026}
+
+\begin{document}
+\setlength{\emergencystretch}{3em}
+\maketitle
+
+\begin{abstract}
+This note isolates an adaptation mechanism suggested by AthenaZero: retain a broad prior, store short on-system transition windows, fit corrections locally, attenuate corrections when memory support is weak, and constrain chained transitions to a mutually viable set. A deterministic two-dimensional release-to-catch toy compares global model replacement, global residual fine-tuning, nearest-memory correction, and a regularized local residual with uncertainty-gated blending, each with and without a safe-set filter. The biased prior starts at zero five-transition chain success. After 240 online transitions, all methods reach at least 0.966 chain success locally, but global replacement and fine-tuning lose 0.968--1.000 source-region chain success. Nearest-memory and gated local residual reach 1.0 local chain success with zero source loss; the gated method has lower out-of-distribution control error (0.180 versus 0.259). The safe filter removes executed unsafe commands for global methods and improves their chain-success AUC, but does not guarantee zero realized violations under model error. This is an adaptation and safety mechanism probe, not juggling, a VLA result, an AthenaZero implementation, or a reproduction of the paper.
+\end{abstract}
+
+\section{Motivation and Source Mapping}
+
+Lee et al. present a framework for rapid on-robot learning of dynamic manipulation skills and demonstrate robot juggling \cite{juggling}. The system separates an offline prior from an online skill updater. Online transitions are stored in memory; nearby samples receive radial-basis weights; a local linear model is regularized toward the prior; and the updated command is itself regularized toward the prior command. For chaining, transitions are restricted to a precomputed mutually reachable set. The authors report all five canonical three-ball patterns with less than five minutes of physical interaction; cascade reached the five-cycle target after seven resets and was consistently learned by the eighth attempt across five trials. Official RAI Institute video and platform pages provide a higher-level system overview \cite{video,athenazero}.
+
+The local package translates only these structural ideas:
+\begin{enumerate}[leftmargin=1.5em]
+  \item a biased prior remains available throughout adaptation;
+  \item short ``real-like'' transition windows populate a memory;
+  \item competing update rules either replace, globally correct, retrieve, or locally regularize the prior;
+  \item an added confidence gate blends unsupported local estimates back toward the prior;
+  \item an optional filter admits commands only when their predicted transition and one-step recovery remain mutually viable.
+\end{enumerate}
+No paper data, code, robot model, juggling trajectory, or learned VLA is used.
+
+\section{Deterministic Toy}
+
+\subsection{Transition model}
+
+A state $s\in\mathbb{R}^2$ represents normalized landing-position and landing-velocity error. A context $c\in\mathbb{R}^2$ is a synthetic skill/target descriptor and $u\in\mathbb{R}^2$ is a release command. The prior predicts
+\begin{equation}
+  \hat{s}'_{\rm prior}=F s+C c+B u.
+\end{equation}
+The true transition is
+\begin{equation}
+  s'=\hat{s}'_{\rm prior}+g(c)\,r(s,c,u)+\epsilon,
+\end{equation}
+where $g(c)$ is a Gaussian gate centered on the adaptation region, $r$ contains bias, action coupling, and a weak sinusoidal term, and $\epsilon$ is seeded observation noise. The source region lies far from the gap and is nearly prior-correct. A broader out-of-distribution region tests extrapolation.
+
+The nominal command solves the prior inverse problem $Bu=-(Fs+Cc)$. Every online method begins with this command, predicts a correction, and performs three fixed-point replanning iterations. One interaction is one transition observation. Five seeded runs receive 240 interactions and are evaluated every 20 interactions.
+
+\subsection{Chained success and safety}
+
+A chain contains five transitions. Each catch succeeds when the elliptical normalized radius is at most 0.50; chain success requires all five catches. A hard state radius of 0.68 defines a violation.
+
+The optional safe filter evaluates a proposed action against three modeled conditions: predicted next-state radius at most 0.60, a conservative action bound of 0.82, and a bounded nominal recovery command. If any condition fails, bisection projects the command toward the prior command. Both variants retain a final hard actuator clip. This is a small viability proxy, not a formal invariant set.
+
+\section{Adaptation Rules}
+
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{Global replacement}: ridge-fit the full next-state map from local observations and replace the prior prediction globally.
+  \item \textbf{Residual fine-tuning}: ridge-fit a global residual on top of the prior.
+  \item \textbf{Nearest-memory correction}: kernel-average the nine closest stored residuals without an uncertainty gate.
+  \item \textbf{Regularized local residual}: kernel-average all residuals with ridge shrinkage toward zero, then multiply by a confidence gate based on effective neighbor count and nearest-memory distance. Unsupported queries revert toward the prior.
+\end{enumerate}
+
+The local estimator is a zero-order kernel ridge analogue, not the paper's weighted local linear regression and regularized command optimization. Its explicit uncertainty gate is an additional sparse-support fallback used by this toy. Global replacement is deliberately vulnerable to local-window extrapolation; it provides a useful forgetting boundary rather than a realistic neural retraining recipe.
+
+\section{Metrics and Verification}
+
+The experiment reports chain/catch success, normalized interaction AUC, first checkpoint at 70\% chain success, one-step prediction error, realized control error, mean and 10th-percentile transition margin, unsafe proposals and executed commands, hard violations, filter interventions, source-region retention, and out-of-distribution control error.
+
+Eight deterministic sanity checks verify repeatable transitions, a substantial local prior gap, a smaller source gap, learned local correction, lower confidence and correction far from memory, safe-filter intervention on a constructed risky proposal, and finite filtered actions. All checks pass.
+
+The verified commands are:
+\begin{verbatim}
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python -W error \
+  local_residual_sim2real/run_local_residual_sim2real.py --smoke \
+  --output-dir /tmp/local_residual_sim2real_smoke
+
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python -W error \
+  local_residual_sim2real/run_local_residual_sim2real.py
+\end{verbatim}
+
+\section{Results}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{llrrrrrr}
+\toprule
+Method & Safe & Chain & AUC & To 70\% & Pred. err. & Unsafe & Source ret. \\
+\midrule
+Global replacement & no  & .986 & .941 & 24 & .033 & .0156 & -.974 \\
+Global replacement & yes & .990 & .955 & 20 & .033 & .0000 & -.968 \\
+Residual fine-tune & no  & .966 & .942 & 20 & .032 & .0248 & -1.000 \\
+Residual fine-tune & yes & .990 & .956 & 20 & .032 & .0000 & -.978 \\
+Nearest-memory & no  & 1.000 & .958 & 20 & .023 & .0000 & .000 \\
+Nearest-memory & yes & 1.000 & .958 & 20 & .023 & .0000 & .000 \\
+Local residual + gate & no  & 1.000 & .958 & 20 & .071 & .0000 & .000 \\
+Local residual + gate & yes & 1.000 & .958 & 20 & .071 & .0000 & .000 \\
+\bottomrule
+\end{tabular}
+\caption{Mean endpoint and interaction metrics over five deterministic seeds. ``Source ret.'' is source chain success after adaptation minus the frozen-prior source success. Full standard deviations and SEMs are generated in \texttt{summary\_metrics.csv}.}
+\label{tab:main}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/learning_curves.png}
+  \caption{Online five-skill chain success and realized violation rate. The prior starts at zero chain success. Curves show mean $\pm$ SEM for success.}
+\end{figure}
+
+All methods solve the local transition within the short budget, so the discriminating metrics are retention, extrapolation, and safety. Global fitting is accurate locally but nearly erases source-region chain success. Both memory methods preserve source chain success, but they do not reproduce the prior exactly: source control error increases by 0.122 for nearest-memory and 0.151 for gated local residual. Nearest-memory has the best in-distribution prediction/control error (0.023), while uncertainty-gated local residual extrapolates better: out-of-distribution control error is 0.180 rather than 0.259.
+
+For global replacement, the safe set changes interaction AUC from 0.941 to 0.955 and removes executed unsafe commands. For residual fine-tuning, it changes AUC from 0.942 to 0.956 and again removes unsafe commands. Realized violations are rare. Importantly, safe global replacement has a slightly higher violation rate (0.0012) than its unconstrained counterpart (0.0004), demonstrating that predicted viability is not a guarantee under model error.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/method_tradeoffs.png}
+  \caption{Endpoint adaptation success, prediction error, and source retention. Global updates adapt but extrapolate their local fit into the source region.}
+\end{figure}
+
+\subsection{Memory, regularization, and safe-set ablations}
+
+Ablations use only 12 adaptation transitions and evaluate on a broader edge-of-memory distribution. Memory width 0.18 under-covers that distribution and reaches 0.463 chain success. Widths 0.35--2.0 reach 1.0, with the lowest prediction error near width 1.2. Ridge shrinkage is benign through 1.5, starts degrading prediction at 8.0, and at 40.0 drives chain success down to 0.330 by pulling the correction too strongly toward the biased prior. The safe-set on/off ablation is identical for the default local adapter because its commands already satisfy the modeled viable set.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/ablations.png}
+  \caption{Twelve-interaction local-residual ablations. Too-narrow memory and excessive regularization suppress useful correction. The default local policy does not activate the safe filter.}
+\end{figure}
+
+\section{Relation to Other Repository Experiments}
+
+The repository separates several correction loci that should not be merged into one ``adaptation'' claim.
+\begin{itemize}[leftmargin=1.5em]
+  \item \path{grounded_online_adaptation} also learns online, but updates a small visual-policy pathway from reward-derived targets; this package updates a transition/command model from observed outcomes. \path{predictive_error_correction} and \path{prediction_error_policy_state} keep weights fixed and correct transient latent state from sensory prediction errors.
+  \item \path{conflict_aware_replay} performs sequential/offline task training and measures negative backward transfer and continual-learning AUC. Here locality comes from kernel memory and a support gate, while retention is source chain-success and control-error change. The unchanged chain-success row does not imply exact behavior retention.
+  \item \path{retry_reset_recovery} learns perturbation bridges and reset skills offline, then routes them with an online monitor. Its recovery, false-reset, and compounding-failure metrics complement this package's interaction AUC, model error, and viable-transition metrics.
+  \item \path{anticipatory_context_chunking} predicts execution-time state/context before delayed control; this package corrects after transition outcomes arrive. \path{force_embodiment_gap} and \path{force_feedback_demonstration_quality} study upstream offline interface/data quality---calibration, morphology, and force-rich demonstrations.
+  \item Safety is modular: this one-step model-based viability filter can fail under model error. \path{constraint_manifold_action_filter} enforces known geometry by projection/retraction, \path{path_consistent_safety_filtering} preserves chunk-path geometry by slowing/stopping, and \path{configured_failure_audit} uses monitored stops and false-stop accounting.
+\end{itemize}
+
+\section{Interpretation and Limitations}
+
+The experiment supports three bounded statements. First, local transition memory can repair a localized prior gap with very few observations. Second, locality protects prior behavior outside the adaptation neighborhood; a globally accurate local fit need not be a safe global replacement. Third, a modeled safe set can suppress commands deemed unsafe by the learned model, but cannot guarantee realized safety when that model is wrong.
+
+The construction omits robot kinematics, ball flight, perception, language, VLA representations, action chunks, sparse reward, contact, latency, human interventions, and policy optimization. Outcomes are observed densely and immediately. Global baselines are linear ridge fits. The local estimator is a kernel-local constant model rather than the paper's weighted local linear model and regularized command update. The viable set is an ellipse with action/recovery bounds rather than a data-derived backward-reachable set. Five seeds characterize deterministic synthetic variability, not statistical robot reliability. Consequently, the results should not be read as evidence about juggling performance or the paper's reported sample efficiency.
+
+\begin{thebibliography}{9}
+\bibitem{juggling} T. Lee et al. \emph{Rapid On-Robot Learning for Dynamic Manipulation Skills: Robot Juggling}. arXiv:2608.26800, 2026. \url{https://arxiv.org/abs/2608.26800}
+\bibitem{video} RAI Institute. \emph{A New Benchmark in Robot Juggling}. 2026. \url{https://rai-inst.com/resources/videos/a-new-benchmark-in-robot-juggling/}
+\bibitem{athenazero} RAI Institute. \emph{AthenaZero: A Bimanual Robot for Dynamic Manipulation}. \url{https://rai-inst.com/resources/blog/bimanual-robot-for-dynamic-manipulation/}
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,18 @@
+{
+  "history_h1_chunk1_validation_action_rmse": 0.13520592504245393,
+  "history_h1_chunk1_parameter_count": 6.0,
+  "history_h2_chunk1_validation_action_rmse": 0.12886274504865067,
+  "history_h2_chunk1_parameter_count": 10.0,
+  "history_h4_chunk1_validation_action_rmse": 0.11836761542276762,
+  "history_h4_chunk1_parameter_count": 18.0,
+  "history_h8_chunk1_validation_action_rmse": 0.11510278413888714,
+  "history_h8_chunk1_parameter_count": 34.0,
+  "history_h16_chunk1_validation_action_rmse": 0.11424065649564662,
+  "history_h16_chunk1_parameter_count": 66.0,
+  "history_h16_chunk4_validation_action_rmse": 0.1324204899762001,
+  "history_h16_chunk4_parameter_count": 264.0,
+  "prediction_error_online_free_variables": 4.0,
+  "prediction_error_learned_parameter_count": 0.0,
+  "training_episodes": 180.0,
+  "training_steps": 32400.0
+}

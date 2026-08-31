@@ -1,0 +1,15 @@
+{
+  "identified_dynamics_finite": true,
+  "observer_gains_finite": true,
+  "all_actions_bounded": true,
+  "open_loop_sensor_invariance": true,
+  "closed_loop_differs_from_open_loop": true,
+  "prediction_error_finite": true,
+  "zero_iterations_matches_open_loop": true,
+  "open_loop_action_max_delta_under_sensor_changes": 0.0,
+  "closed_vs_open_mean_action_delta": 0.3327449727206071,
+  "example_closed_tail_rmse": 0.08438110718310575,
+  "example_open_tail_rmse": 0.26773288777992976,
+  "zero_iterations_action_max_delta": 0.0,
+  "all_passed": true
+}

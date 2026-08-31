@@ -1,0 +1,422 @@
+{
+  "claim_boundary": "Mechanism toy only; not a Dreamer, VLM, VLA, or paper reproduction.",
+  "config": {
+    "seed": 41,
+    "trials": 64,
+    "episode_steps": 260,
+    "dt": 0.08,
+    "max_accel": 3.4,
+    "max_speed": 1.35,
+    "damping": 0.46,
+    "station_radius": 0.135,
+    "sensor_radius": 0.58,
+    "hazard_radius": 0.145,
+    "planner_latency": 10,
+    "planner_cadence": 16,
+    "transport_delay": 4,
+    "direct_chunk": 14,
+    "direct_action_error": 0.85,
+    "direct_target_error_bonus": 0.18,
+    "planner_error_rate": 0.055,
+    "controller_noise": 0.055,
+    "wall_limit": 1.05,
+    "train_episodes": 150,
+    "ridge": 0.002
+  },
+  "exact_command": "python instruction_conditioned_async_control/run_instruction_conditioned_async_control.py --seed 41 --trials 64 --episode-steps 260",
+  "method_summary": {
+    "async_online": {
+      "method": "async_online",
+      "label": "Asynchronous online",
+      "n": 64,
+      "success_mean": 0.84375,
+      "success_sem": 0.045745315919462494,
+      "completion_steps_mean": 121.5625,
+      "completion_steps_sem": 7.717188446567913,
+      "completion_time_s_mean": 9.725,
+      "completion_time_s_sem": 0.617375075725433,
+      "idle_steps_mean": 9.0,
+      "idle_steps_sem": 0.0,
+      "idle_fraction_mean": 0.08666106769095913,
+      "idle_fraction_sem": 0.0033451912807751717,
+      "stale_instruction_errors_mean": 7.6875,
+      "stale_instruction_errors_sem": 0.7466442784696261,
+      "stale_error_fraction_mean": 0.08549620899535743,
+      "stale_error_fraction_sem": 0.009126880017419861,
+      "wrong_instruction_errors_mean": 41.09375,
+      "wrong_instruction_errors_sem": 9.722889627744092,
+      "wrong_instruction_fraction_mean": 0.21858883847742916,
+      "wrong_instruction_fraction_sem": 0.03664897091212371,
+      "control_smoothness_mean": 0.33106778708503226,
+      "control_smoothness_sem": 0.009977273142316927,
+      "safety_violations_mean": 8.3125,
+      "safety_violations_sem": 1.3958333333333333,
+      "planner_calls_mean": 3.546875,
+      "planner_calls_sem": 0.07018148066388029,
+      "path_length_mean": 5.405445777865134,
+      "path_length_sem": 0.17956317936312746
+    },
+    "controller_only": {
+      "method": "controller_only",
+      "label": "Controller only",
+      "n": 64,
+      "success_mean": 0.15625,
+      "success_sem": 0.045745315919462494,
+      "completion_steps_mean": 230.453125,
+      "completion_steps_sem": 8.660738863541054,
+      "completion_time_s_mean": 18.43625,
+      "completion_time_s_sem": 0.6928591090832844,
+      "idle_steps_mean": 0.0,
+      "idle_steps_sem": 0.0,
+      "idle_fraction_mean": 0.0,
+      "idle_fraction_sem": 0.0,
+      "stale_instruction_errors_mean": 0.0,
+      "stale_instruction_errors_sem": 0.0,
+      "stale_error_fraction_mean": 0.0,
+      "stale_error_fraction_sem": 0.0,
+      "wrong_instruction_errors_mean": 207.125,
+      "wrong_instruction_errors_sem": 11.295948933205537,
+      "wrong_instruction_fraction_mean": 0.7987387154773287,
+      "wrong_instruction_fraction_sem": 0.04283862152108819,
+      "control_smoothness_mean": 0.3838804636551555,
+      "control_smoothness_sem": 0.0024729270458515255,
+      "safety_violations_mean": 21.703125,
+      "safety_violations_sem": 1.9024680721696752,
+      "planner_calls_mean": 0.0,
+      "planner_calls_sem": 0.0,
+      "path_length_mean": 17.015316249901204,
+      "path_length_sem": 0.6918835776520913
+    },
+    "direct_blocking": {
+      "method": "direct_blocking",
+      "label": "Direct planner actions",
+      "n": 64,
+      "success_mean": 0.5625,
+      "success_sem": 0.0625,
+      "completion_steps_mean": 225.0625,
+      "completion_steps_sem": 5.223234635694993,
+      "completion_time_s_mean": 18.005,
+      "completion_time_s_sem": 0.4178587708555994,
+      "idle_steps_mean": 95.546875,
+      "idle_steps_sem": 2.1679174145752533,
+      "idle_fraction_mean": 0.4249687888479383,
+      "idle_fraction_sem": 0.0007641259516660834,
+      "stale_instruction_errors_mean": 17.28125,
+      "stale_instruction_errors_sem": 0.9259456636454482,
+      "stale_error_fraction_mean": 0.13665724996503903,
+      "stale_error_fraction_sem": 0.007427930541473044,
+      "wrong_instruction_errors_mean": 43.1875,
+      "wrong_instruction_errors_sem": 2.6147167249220904,
+      "wrong_instruction_fraction_mean": 0.3207046873278132,
+      "wrong_instruction_fraction_sem": 0.015004478329821958,
+      "control_smoothness_mean": 1.2361214650341692,
+      "control_smoothness_sem": 0.004468608405748765,
+      "safety_violations_mean": 27.625,
+      "safety_violations_sem": 1.9758587644725158,
+      "planner_calls_mean": 9.625,
+      "planner_calls_sem": 0.21187466345902006,
+      "path_length_mean": 10.667771447933998,
+      "path_length_sem": 0.35706280271389185
+    },
+    "oracle": {
+      "method": "oracle",
+      "label": "Oracle planner/controller",
+      "n": 64,
+      "success_mean": 1.0,
+      "success_sem": 0.0,
+      "completion_steps_mean": 78.828125,
+      "completion_steps_sem": 2.1784882044424387,
+      "completion_time_s_mean": 6.3062499999999995,
+      "completion_time_s_sem": 0.17427905635539512,
+      "idle_steps_mean": 0.0,
+      "idle_steps_sem": 0.0,
+      "idle_fraction_mean": 0.0,
+      "idle_fraction_sem": 0.0,
+      "stale_instruction_errors_mean": 0.0,
+      "stale_instruction_errors_sem": 0.0,
+      "stale_error_fraction_mean": 0.0,
+      "stale_error_fraction_sem": 0.0,
+      "wrong_instruction_errors_mean": 0.0,
+      "wrong_instruction_errors_sem": 0.0,
+      "wrong_instruction_fraction_mean": 0.0,
+      "wrong_instruction_fraction_sem": 0.0,
+      "control_smoothness_mean": 0.4082796900339517,
+      "control_smoothness_sem": 0.0048352777588888856,
+      "safety_violations_mean": 7.78125,
+      "safety_violations_sem": 1.2270651425606147,
+      "planner_calls_mean": 3.625,
+      "planner_calls_sem": 0.060993754559283325,
+      "path_length_mean": 5.289030280892226,
+      "path_length_sem": 0.1095428291095435
+    },
+    "sync_instruction": {
+      "method": "sync_instruction",
+      "label": "Synchronous instructions",
+      "n": 64,
+      "success_mean": 0.84375,
+      "success_sem": 0.045745315919462494,
+      "completion_steps_mean": 139.34375,
+      "completion_steps_sem": 7.012468301642983,
+      "completion_time_s_mean": 11.1475,
+      "completion_time_s_sem": 0.5609974641314387,
+      "idle_steps_mean": 33.375,
+      "idle_steps_sem": 0.9149063183892499,
+      "idle_fraction_mean": 0.2713833328600447,
+      "idle_fraction_sem": 0.010793555366782786,
+      "stale_instruction_errors_mean": 0.0,
+      "stale_instruction_errors_sem": 0.0,
+      "stale_error_fraction_mean": 0.0,
+      "stale_error_fraction_sem": 0.0,
+      "wrong_instruction_errors_mean": 31.953125,
+      "wrong_instruction_errors_sem": 9.505596453263292,
+      "wrong_instruction_fraction_mean": 0.134680523436778,
+      "wrong_instruction_fraction_sem": 0.03978675653115997,
+      "control_smoothness_mean": 0.3754784437073291,
+      "control_smoothness_sem": 0.01226583124805707,
+      "safety_violations_mean": 15.40625,
+      "safety_violations_sem": 1.612623618677301,
+      "planner_calls_mean": 3.4375,
+      "planner_calls_sem": 0.09149063183892499,
+      "path_length_mean": 6.372415148235828,
+      "path_length_sem": 0.21999150396050632
+    }
+  },
+  "planner_profiles": {
+    "balanced": {
+      "name": "balanced",
+      "dialect": "qwen",
+      "latency": 10,
+      "error_rate": 0.055,
+      "description": "moderate latency and error"
+    },
+    "strong_slow": {
+      "name": "strong_slow",
+      "dialect": "gpt",
+      "latency": 18,
+      "error_rate": 0.015,
+      "description": "more accurate but slower"
+    },
+    "fast_terse": {
+      "name": "fast_terse",
+      "dialect": "canonical",
+      "latency": 5,
+      "error_rate": 0.12,
+      "description": "fast but more error-prone"
+    },
+    "heldout_synonyms": {
+      "name": "heldout_synonyms",
+      "dialect": "heldout",
+      "latency": 10,
+      "error_rate": 0.055,
+      "description": "unseen phrasing with recognizable semantics"
+    },
+    "cipher_interface": {
+      "name": "cipher_interface",
+      "dialect": "cipher",
+      "latency": 8,
+      "error_rate": 0.02,
+      "description": "interface-breaking opaque labels"
+    }
+  },
+  "training": {
+    "small": {
+      "capacity": "small",
+      "samples": 900,
+      "feature_names": [
+        "bias",
+        "target_dx",
+        "target_dy",
+        "vel_x",
+        "vel_y"
+      ],
+      "weights": [
+        [
+          0.024246319358366252,
+          0.03342631861965262
+        ],
+        [
+          2.2420573669757617,
+          -0.03417338710208883
+        ],
+        [
+          -0.06774260996641208,
+          2.3445978885145515
+        ],
+        [
+          -1.0351701863156724,
+          0.04178539088778084
+        ],
+        [
+          0.023375360868153845,
+          -1.205582244693467
+        ]
+      ],
+      "train_mse": 0.16101895865914337,
+      "test_mse": 0.14410339633117017
+    },
+    "medium": {
+      "capacity": "medium",
+      "samples": 4200,
+      "feature_names": [
+        "bias",
+        "target_dx",
+        "target_dy",
+        "vel_x",
+        "vel_y",
+        "avoid_x",
+        "avoid_y",
+        "target_distance",
+        "dx_distance",
+        "dy_distance"
+      ],
+      "weights": [
+        [
+          0.048005939879410056,
+          0.027319570832688198
+        ],
+        [
+          3.5074250681677768,
+          0.02324905421181099
+        ],
+        [
+          0.0013885203168279956,
+          3.605587779937283
+        ],
+        [
+          -1.4438864672054277,
+          -0.0059599998178423656
+        ],
+        [
+          -0.006740707203243553,
+          -1.5242416155362228
+        ],
+        [
+          0.8261976155402848,
+          0.0486704419052569
+        ],
+        [
+          0.04867339779756955,
+          0.9018773357059566
+        ],
+        [
+          -0.05379539208240381,
+          -0.03336563722401067
+        ],
+        [
+          -0.7017740888457196,
+          -0.010999189783263473
+        ],
+        [
+          0.0008867734489555515,
+          -0.7372741196215248
+        ]
+      ],
+      "train_mse": 0.08683923766772049,
+      "test_mse": 0.08915631993818988
+    },
+    "large": {
+      "capacity": "large",
+      "samples": 9234,
+      "feature_names": [
+        "bias",
+        "target_dx",
+        "target_dy",
+        "vel_x",
+        "vel_y",
+        "avoid_x",
+        "avoid_y",
+        "target_distance",
+        "dx_distance",
+        "dy_distance",
+        "vx_distance",
+        "vy_distance",
+        "inverse_near_hazard"
+      ],
+      "weights": [
+        [
+          -0.006914209739942083,
+          -0.0013404853906185956
+        ],
+        [
+          3.854008867325255,
+          -0.046712589075248515
+        ],
+        [
+          -0.09028776315547503,
+          4.029858496791268
+        ],
+        [
+          -2.3754814481321698,
+          0.01721988401523251
+        ],
+        [
+          0.051051231849054364,
+          -2.399346241308535
+        ],
+        [
+          0.9077975284017274,
+          0.03983302513584727
+        ],
+        [
+          0.01986089849502512,
+          0.9653945395697487
+        ],
+        [
+          0.014646483734546047,
+          0.008371571829216584
+        ],
+        [
+          -1.0127198971758458,
+          0.03372738662516896
+        ],
+        [
+          0.041024092686900174,
+          -1.1136539178026947
+        ],
+        [
+          1.0530368224450088,
+          -0.004807890589106644
+        ],
+        [
+          -0.03198706283645811,
+          1.0064301952257177
+        ],
+        [
+          -0.0002572158198176004,
+          -0.0027882279067468867
+        ]
+      ],
+      "train_mse": 0.020766998890324,
+      "test_mse": 0.021301121185359633
+    }
+  },
+  "sanity_checks": {
+    "target_conditioning_all_directions": true,
+    "target_conditioning_detail": {
+      "amber": true,
+      "cobalt": true,
+      "mint": true,
+      "depot": true
+    },
+    "all_semantic_dialects_parse": true,
+    "deterministic_repeat": true,
+    "oracle_success_at_least_90pct": true,
+    "async_less_idle_than_sync": true,
+    "direct_more_planner_calls_than_async": true,
+    "extra_delay_not_less_stale": true,
+    "trial_rows": 320,
+    "all_passed": true
+  },
+  "outputs": [
+    "trial_metrics.csv",
+    "summary_metrics.csv",
+    "sweep_trial_metrics.csv",
+    "sweep_summary.csv",
+    "instruction_relabeling_segments.csv",
+    "training_metrics.json",
+    "sanity_checks.json",
+    "method_comparison.png",
+    "mechanism_sweeps.png",
+    "representative_rollout.png"
+  ]
+}

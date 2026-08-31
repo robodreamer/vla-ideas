@@ -1,0 +1,232 @@
+{
+  "config": {
+    "batch_size": 192,
+    "epochs": 220,
+    "eval_trials": 24,
+    "future_weight": 1.0,
+    "hidden_dim": 96,
+    "language_dropout": 0.15,
+    "latent_dim": 48,
+    "lr": 0.002,
+    "mode": "full",
+    "seed": 31,
+    "train_episodes": 720,
+    "weight_decay": 0.0002
+  },
+  "diagnostics": {
+    "clean_unseen_prompt_reliance": {
+      "direct_bc": {
+        "error_increase": 0.0,
+        "output_shift": 0.0,
+        "success_drop": 0.0
+      },
+      "ifp_future_chunk": {
+        "error_increase": 0.6038794363331463,
+        "output_shift": 0.661811942855517,
+        "success_drop": 0.6944444444444444
+      },
+      "ifp_shuffled_prompt": {
+        "error_increase": 0.0003605650530921088,
+        "output_shift": 0.0019663493088349546,
+        "success_drop": 0.0
+      },
+      "prompt_one_step_bc": {
+        "error_increase": 0.6222943148265282,
+        "output_shift": 0.6571534619563155,
+        "success_drop": 0.9166666666666666
+      }
+    }
+  },
+  "sanity_check": {
+    "alias": 2,
+    "methods": {
+      "direct_bc": {
+        "action_rmse": 0.8292489051818848,
+        "chunk_rmse": 3.2168867588043213,
+        "final_error": 0.16147546470165253,
+        "predicted_primitive_sequence": [
+          2,
+          3,
+          5
+        ],
+        "sequence_correct": 0.0,
+        "success": 0.0
+      },
+      "ifp_future_chunk": {
+        "action_rmse": 0.21107721328735352,
+        "chunk_rmse": 0.8325015902519226,
+        "final_error": 0.34347957372665405,
+        "predicted_primitive_sequence": [
+          2,
+          5,
+          3
+        ],
+        "sequence_correct": 1.0,
+        "success": 1.0
+      },
+      "ifp_shuffled_prompt": {
+        "action_rmse": 0.836606502532959,
+        "chunk_rmse": 3.2458302974700928,
+        "final_error": 0.40413564443588257,
+        "predicted_primitive_sequence": [
+          2,
+          3,
+          5
+        ],
+        "sequence_correct": 0.0,
+        "success": 0.0
+      },
+      "prompt_one_step_bc": {
+        "action_rmse": 0.19693006575107574,
+        "chunk_rmse": 0.7580705881118774,
+        "final_error": 0.5476418137550354,
+        "predicted_primitive_sequence": [
+          2,
+          5,
+          3
+        ],
+        "sequence_correct": 1.0,
+        "success": 1.0
+      }
+    },
+    "seen_shortcut_composition": [
+      2,
+      3,
+      5
+    ],
+    "unseen_prompted_composition": [
+      2,
+      5,
+      3
+    ]
+  },
+  "statement": "Deterministic mechanism toy; not a Zero-WAM reproduction.",
+  "summary": [
+    {
+      "hard_corruption_success": 0.0,
+      "hard_distractor_success": 0.0,
+      "method": "direct_bc",
+      "prompt_swap_error_increase": 0.0,
+      "prompt_swap_output_shift": 0.0,
+      "prompt_swap_success_drop": 0.0,
+      "seen_action_rmse": 0.059200216175263956,
+      "seen_success": 1.0,
+      "unseen_action_rmse": 0.8621043811241785,
+      "unseen_chunk_rmse": 3.3524387975533805,
+      "unseen_sequence_accuracy": 0.0,
+      "unseen_success": 0.0
+    },
+    {
+      "hard_corruption_success": 0.006944444444444444,
+      "hard_distractor_success": 0.7986111111111112,
+      "method": "prompt_one_step_bc",
+      "prompt_swap_error_increase": 0.6222943148265282,
+      "prompt_swap_output_shift": 0.6571534619563155,
+      "prompt_swap_success_drop": 0.9166666666666666,
+      "seen_action_rmse": 0.03128527483851132,
+      "seen_success": 1.0,
+      "unseen_action_rmse": 0.24425655831065443,
+      "unseen_chunk_rmse": 0.931364847968022,
+      "unseen_sequence_accuracy": 0.9513888888888888,
+      "unseen_success": 0.9166666666666666
+    },
+    {
+      "hard_corruption_success": 0.027777777777777776,
+      "hard_distractor_success": 0.6805555555555556,
+      "method": "ifp_future_chunk",
+      "prompt_swap_error_increase": 0.6038794363331463,
+      "prompt_swap_output_shift": 0.661811942855517,
+      "prompt_swap_success_drop": 0.6944444444444444,
+      "seen_action_rmse": 0.029339398820108425,
+      "seen_success": 1.0,
+      "unseen_action_rmse": 0.26495099698917735,
+      "unseen_chunk_rmse": 1.0146037936210632,
+      "unseen_sequence_accuracy": 0.7013888888888888,
+      "unseen_success": 0.6944444444444444
+    },
+    {
+      "hard_corruption_success": 0.0,
+      "hard_distractor_success": 0.0,
+      "method": "ifp_shuffled_prompt",
+      "prompt_swap_error_increase": 0.0003605650530921088,
+      "prompt_swap_output_shift": 0.0019663493088349546,
+      "prompt_swap_success_drop": 0.0,
+      "seen_action_rmse": 0.0668952305180331,
+      "seen_success": 0.9861111111111112,
+      "unseen_action_rmse": 0.8680805452167988,
+      "unseen_chunk_rmse": 3.3757909619145923,
+      "unseen_sequence_accuracy": 0.0,
+      "unseen_success": 0.0
+    }
+  ],
+  "task_design": {
+    "chunk_len": 4,
+    "future_steps": 6,
+    "horizon": 12,
+    "seen": {
+      "0": [
+        0,
+        1,
+        3
+      ],
+      "1": [
+        1,
+        2,
+        4
+      ],
+      "2": [
+        2,
+        3,
+        5
+      ],
+      "3": [
+        3,
+        4,
+        0
+      ],
+      "4": [
+        4,
+        5,
+        1
+      ],
+      "5": [
+        5,
+        0,
+        2
+      ]
+    },
+    "text_alias": "first primitive only; each unseen suffix reuses the corresponding seen alias",
+    "unseen": {
+      "0": [
+        0,
+        3,
+        1
+      ],
+      "1": [
+        1,
+        4,
+        2
+      ],
+      "2": [
+        2,
+        5,
+        3
+      ],
+      "3": [
+        3,
+        0,
+        4
+      ],
+      "4": [
+        4,
+        1,
+        5
+      ],
+      "5": [
+        5,
+        2,
+        0
+      ]
+    }
+  }
+}

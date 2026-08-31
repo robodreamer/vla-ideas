@@ -1,0 +1,21 @@
+{
+  "all_passed": true,
+  "checks": {
+    "biased_prior_has_local_gap": true,
+    "deterministic_transition": true,
+    "far_correction_is_suppressed": true,
+    "local_adapter_learns_nonzero_correction": true,
+    "safe_filter_intervenes_on_risky_case": true,
+    "safe_filter_returns_finite_action": true,
+    "source_prior_gap_is_smaller": true,
+    "uncertainty_gate_is_local": true
+  },
+  "diagnostics": {
+    "adapt_prior_error": 0.5979475852143492,
+    "far_gate": 0.14322814182082189,
+    "filtered_action_max_abs": 0.15997103407522154,
+    "local_gate": 0.7584210686025934,
+    "risky_action_max_abs": 1.7202036147675028,
+    "source_prior_error": 0.0637940999687642
+  }
+}

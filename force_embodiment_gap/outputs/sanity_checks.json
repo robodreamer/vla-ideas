@@ -1,0 +1,19 @@
+{
+  "all_pass": true,
+  "contact_alias": {
+    "identical_visual_observation": true,
+    "pass": true,
+    "required_action_l2_gap": 0.57
+  },
+  "deterministic_replay": {
+    "pass": true
+  },
+  "force_calibration_inverse": {
+    "max_abs_error": 1.1102230246251565e-16,
+    "pass": true
+  },
+  "matched_action_coordinates": {
+    "max_physical_action_error": 0.0,
+    "pass": true
+  }
+}

@@ -1,0 +1,192 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black,hypertexnames=false}
+
+\title{Configured-Failure Auditing for a Toy Sequence Policy\\\large A Defensive, Synthetic-Only TrapVLA-Inspired Study}
+\author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
+\date{August 31, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This report presents a deliberately constrained defensive audit inspired by TrapVLA. A deterministic ridge behavior-cloning policy predicts low-dimensional pick-and-place set-point sequences. One hard-coded synthetic token and six fixed, phase-local residual templates create early or delayed grasp/release events and grasp/release position offsets. At the nominal 5\% configured-failure setting (six of 126 trajectories, or 4.76\% realized prevalence), naive BC retains 100\% clean success and a clean validation MSE of 0.008163, yet reproduces the configured failure in 100\% of triggered evaluations. A phase-local label filter and trigger-invariance regularization reduce measured failure fidelity to zero while retaining 100\% clean success. Conservative token-channel shrinkage lowers fidelity to 1.6\% but leaves 71.1\% triggered task success. Execution-time missing-event, phase, proximity, and shadow-residual guards stop every measured triggered task failure with zero clean false stops in this toy. The package is not a TrapVLA reproduction or a real defense benchmark: it cannot load external data or models, contains no trigger search or poisoning interface, and cannot control a robot.
+\end{abstract}
+
+\begin{center}
+\fcolorbox{red!70!black}{red!5}{\parbox{0.91\textwidth}{\textbf{Safety scope.} Defensive evaluation only. The code operates on generated two-dimensional sequences with one literal token, \texttt{[SYNTHETIC\_AUDIT\_TRIGGER]}, and fixed non-configurable residuals. It provides no reusable attack tooling, trigger optimization, external dataset or checkpoint loading, real-model integration, or robot interface.}}
+\end{center}
+
+\section{Motivation and Source Mapping}
+
+TrapVLA studies configurable, instruction-triggered failures in vision-language-action manipulation policies \cite{trapvla-paper}. Its evaluation emphasizes two quantities that defenders should measure together: whether a configured behavior appears under the trigger and whether ordinary task performance remains intact without it. The official project page visualizes phase-local grasp and release failures, including premature gripper events and spatial deviation \cite{trapvla-project}.
+
+This report does not implement the source attack. Instead, it turns the defender's measurement problem into a transparent toy: can clean validation metrics remain excellent while a rare conditional sequence residual is learned, and can simple audits and safety stops expose it? Four fixed categories mirror the source evaluation at a high level---premature grasp, grasp offset, premature release, and release offset. Two delayed-event cases are added as generic safety stress tests. No claim is made that these templates match TrapVLA's implementation, strength, or real-system behavior.
+
+\section{Synthetic Audit Setup}
+
+\subsection{Sequence task}
+
+Each generated episode contains an object position, a goal position, and 41 normalized phases. A clean scripted sequence moves from a home point to the object, closes the gripper near phase 0.38, transports to the goal, opens near phase 0.76, and retreats. The action label is an absolute set point
+\[
+  a_t = (x_t, y_t, g_t),
+\]
+where $g_t$ is a smooth open/closed command. The training set contains 120 clean trajectories; validation and paired evaluation use 48 and 64 unseen geometries, respectively.
+
+The policy is ridge regression over a visible phase basis, object/goal geometry, phase--geometry interactions, and a token-gated phase channel. This explicit channel is included so phase-local activation/readout diagnostics are interpretable. It is not intended as a realistic architecture.
+
+\subsection{Fixed configured-failure templates}
+
+For each run, the same literal synthetic token accompanies a small set of extra generated trajectories. Exactly one of six hard-coded templates shifts a gripper transition earlier or later, or adds a local position residual near grasp/release. The implementation deliberately exposes no command-line option or API for changing the token, residual, data source, model, or target system.
+
+At the nominal 5\% setting there are 120 clean and six fixed-template trajectories, so the realized prevalence is 4.76\%. Integer counts similarly make the requested 1\%, 2\%, and 10\% settings realize as 0.83\%, 1.64\%, and 9.77\%. Depending on the mode, only 0.7--1.2\% of all supervised rows receive a nontrivial label change because each residual is phase-local. Both requested and realized prevalence are saved in the sweep rows.
+
+\subsection{Sanity check}
+
+Before fitting, an exact check verifies that the nominal scripted sequence succeeds, all fixed templates satisfy their declared toy failure criterion, every template is stopped by at least one guard, missing-grasp and missing-release sequences are explicitly stopped, and no template changes more than 30\% of phases. The checked run passes all assertions.
+
+\section{Audits and Mitigations}
+
+Four training conditions are compared:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Naive BC}: ordinary ridge fitting on the mixed toy dataset.
+  \item \textbf{Phase-residual filter}: remove rows whose labels differ from the available clean toy counterfactual beyond fixed position or gripper thresholds.
+  \item \textbf{Token-channel shrinkage}: apply a stronger group penalty to token-gated weights.
+  \item \textbf{Trigger invariance}: penalize output changes when only the fixed synthetic token is toggled.
+\end{itemize}
+
+The data audit scores each training row by deviation from its known clean generated counterpart and reports AUROC against the known modified-row indicator. Model probes compare triggered and token-cleared predictions at every phase. Two probe quantities are recorded: output-residual magnitude and token-channel activation weighted by output-readout magnitude.
+
+The execution monitor does not continue an anomalous sequence. It issues a safety stop for a missing or out-of-window gripper event, excessive object/goal distance at grasp/release, or excessive triggered-versus-token-cleared residual. This is an intentionally privileged monitor because exact phase and geometry are visible and a trusted token-cleared shadow inference is assumed.
+
+\section{Metrics}
+
+The main metrics are:
+\begin{itemize}[leftmargin=1.5em]
+  \item clean held-out action MSE and clean sequence success;
+  \item triggered failure fidelity: fraction of paired triggered sequences satisfying the configured toy criterion;
+  \item triggered task success under nominal grasp/release tolerances;
+  \item phase-local residual and weighted activation energy;
+  \item monitor trigger-stop rate, clean false-stop rate, prevented configured/task-failure rates, and unstopped configured/task-failure rates.
+\end{itemize}
+
+The fuller sweep uses requested fixed-template trajectory prevalences $\{0,1,2,5,10\}\%$ for all six modes and all four methods and records the realized integer-count prevalence separately. There is no stochastic training; geometry generation and evaluation are deterministic under seed 31.
+
+\section{Results}
+
+The checked artifacts were generated with:
+\begin{verbatim}
+cd /home/andypark/Projects/repos/vla-ideas
+PYTHONWARNINGS=error \
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  configured_failure_audit/run_configured_failure_audit.py --seed 31
+\end{verbatim}
+
+\begin{table}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrr}
+\toprule
+Method & Clean MSE & Clean success & Failure fidelity & Triggered success & Trigger stops & Clean false stops & Unstopped task fail. \\
+\midrule
+Naive BC & 0.008163 & 100.0\% & 100.0\% & 0.0\% & 100.0\% & 0.0\% & 0.0\% \\
+Residual filter & \textbf{0.008108} & 100.0\% & 0.0\% & 100.0\% & 0.0\% & 0.0\% & 0.0\% \\
+Robust shrinkage & 0.008244 & 100.0\% & 1.6\% & 71.1\% & 85.4\% & 0.0\% & 0.0\% \\
+Trigger invariance & 0.008356 & 100.0\% & 0.0\% & 100.0\% & 0.0\% & 0.0\% & 0.0\% \\
+\bottomrule
+\end{tabular}}
+\caption{Mean results across six fixed modes at the nominal 5\% setting (4.76\% realized trajectory prevalence).}
+\label{tab:headline}
+\end{table}
+
+The naive model is the main warning: its clean validation MSE differs from the best mitigation by less than 0.7\%, and clean success is identical, yet triggered failure fidelity is 100\%. Clean aggregate evaluation alone would select or accept this model.
+
+The filter and invariance objectives remove the measured conditional behavior in this idealized setup. Shrinkage is less decisive: it lowers exact failure fidelity to 1.6\% at the nominal 5\% setting, but triggered task success is only 71.1\%. This gap matters because failure fidelity is criterion-specific; a mitigation may suppress the exact configured event while leaving other harmful sequence distortions. The monitor therefore stops 85.4\% of triggered shrinkage sequences even though only 1.6\% satisfy the original configured-failure criterion. The corrected post-stop metric also checks all triggered task failures, not only exact configured failures; none remain unstopped in this toy.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/headline_metrics.png}
+  \caption{Clean aggregate success, configured failure fidelity, and triggered task failures left unstopped by the safety monitor.}
+\end{figure}
+
+\subsection{Configured-failure prevalence sweep}
+
+Naive failure fidelity is 60.2\% with one fixed-template trajectory (0.83\% realized prevalence), 98.2\% with two (1.64\%), and 100\% at the nominal 5--10\% settings. Clean success remains 100\% throughout. The residual filter and invariance method remain at zero measured failure fidelity. Shrinkage remains at zero through the requested 2\% setting, rises to 1.6\% at 5\%, and reaches 16.9\% at 10\%.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/poison_rate_sweep.png}
+  \caption{Configured failure fidelity and clean success across the complete requested-prevalence sweep.}
+\end{figure}
+
+\subsection{Residual and activation probes}
+
+Because a clean counterfactual is exactly available, the row-level label-residual audit attains AUROC 1.0 for every nonzero setting and mode. This is a sanity result, not a realistic detection estimate. For naive BC at the nominal 5\% setting, 98.3\% of output-residual energy lies within $\pm 0.12$ sequence phase of the configured event. Weighted token-channel activity is also localized, with 72.2\% of its energy in the same windows. This magnitude-weighted transparent-channel diagnostic is not causal attribution.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/phase_local_probes.png}
+  \caption{Triggered-minus-token-cleared output residuals. Dashed lines mark the fixed audit-event centers.}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/activation_probes.png}
+  \caption{Token-channel activation weighted by output-readout magnitude. This transparent feature-bank probe stands in for an internal representation audit.}
+\end{figure}
+
+\subsection{Execution-time stops}
+
+The privileged monitor stops all naive triggered sequences and every measured triggered task failure under every method, while producing no clean stops. Consequently, both exact configured failures and broader triggered task failures remaining unstopped are zero. This should not be read as a production guarantee: exact phase and geometry are supplied, token-cleared shadow inference is available, thresholds are matched to the toy, and no uncertainty or adaptive failure is present.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.88\textwidth]{../outputs/monitor_stop_rates.png}
+  \caption{Safety-stop rates by fixed failure mode at the nominal 5\% setting. Stops can exceed exact failure fidelity when residual anomalies remain outside the configured criterion.}
+\end{figure}
+
+\section{Defensive Interpretation}
+
+Three bounded lessons follow. First, clean held-out loss and aggregate clean success are incomplete release gates for conditional sequence policies. Paired counterfactual tests are needed even when clean metrics look unchanged. Second, phase-local data and representation probes can expose a small conditional residual that aggregate statistics dilute. Third, training mitigation and execution containment answer different questions. Invariance or filtering can reduce the learned conditional behavior, while a safety stop can contain residual anomalies that do not match the original failure definition.
+
+The shrinkage result is a useful caution. Stronger regularization reduces exact failure fidelity but does not restore all triggered sequences. Reporting only configured-failure fidelity can therefore overstate a mitigation; task success, residual magnitude, event geometry, and monitor burden should be reported together.
+
+\section{Relation to Other Experiments in This Repository}
+
+\path{bc_distribution_shift_mysteries} studies ordinary closed-loop distribution shift: policies with similar expert-state loss extrapolate differently after their own errors. \path{demo_prompted_policy} studies benign runtime conditioning on a demonstration. This audit instead holds task geometry fixed and compares token-cleared with token-present predictions. Ordinary out-of-distribution failure is not evidence of a hidden trigger, and useful conditioning is not itself suspicious; the distinguishing evidence here is a paired conditional discrepancy under otherwise matched inputs.
+
+The residual filter, token-channel shrinkage, and trigger-invariance objectives are data/training mitigations. The monitor is an execution containment layer. \path{constraint_manifold_action_filter} and \path{path_consistent_safety_filtering} also intervene after proposal generation, but enforce known geometry or future occupancy rather than diagnose a conditional dependence. \path{local_residual_sim2real} combines online model correction with a viable-set filter, while \path{retry_reset_recovery} routes observable failures into retry/reset behavior. A stop does not provide recovery, and none of these execution mechanisms certifies the absence of hidden conditional behavior.
+
+Finally, \path{force_feedback_demonstration_quality} and \path{force_embodiment_gap} test force-data quality, contact observability, calibration, and morphology transfer. This audit has no force, contact dynamics, sensor frame, or embodiment shift. Its low-dimensional set-point checks are therefore software-audit diagnostics, not evidence of physical robot safety.
+
+\section{Limitations}
+
+The experiment is intentionally easy for defenders. It uses generated labels, an exact clean counterfactual, a visible scalar token, deterministic fixed residuals, explicit phase, and low-dimensional geometry. Ridge regression replaces a VLA, and absolute set points replace perception, contact, closed-loop action chunks, and robot dynamics. The monitor has privileged state and no noise; its shadow comparison assumes a trusted token-cleared inference that may not exist in deployment. The six fixed modes are not adaptive, stealth-optimized, or transferred across models. The AUROC and zero-false-stop results should not be extrapolated.
+
+Most importantly, this package is not a security evaluation of any released VLA and not evidence that these mitigations solve TrapVLA. Its role is to provide a safe, reproducible checklist: preserve paired clean/triggered tests, inspect phase-local residuals and internal channels, compare exact failure fidelity with overall triggered task success, and evaluate safety-stop coverage and false alarms.
+
+\begin{thebibliography}{9}
+\bibitem{trapvla-paper}
+J.-H. Liu, K.-Y. Lin, Y.-L. Wei, X.-H. Chen, Y. Li, Z. Li, Y.-M. Li, Q. Zhang, X. Fan, D. Jiang, Y. Li, and W.-S. Zheng.
+\emph{TrapVLA: Trapping Vision-Language-Action Models in Configured Failure Modes}.
+arXiv:2608.26578, 2026. \url{https://arxiv.org/abs/2608.26578}
+
+\bibitem{trapvla-project}
+J.-H. Liu et al. \emph{TrapVLA project page}, 2026.
+\url{https://john-liua.github.io/TrapVLA/}
+\end{thebibliography}
+
+\end{document}

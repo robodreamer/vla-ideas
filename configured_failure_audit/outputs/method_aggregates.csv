@@ -1,0 +1,5 @@
+method,clean_validation_mse,clean_success,triggered_success,triggered_failure_fidelity,monitor_trigger_stop_rate,monitor_clean_false_stop_rate,configured_failure_after_monitor,task_failure_after_monitor
+naive_bc,0.008162944300257532,1.0,0.0,1.0,1.0,0.0,0.0,0.0
+phase_residual_filter,0.008108362850376936,1.0,1.0,0.0,0.0,0.0,0.0,0.0
+token_channel_shrinkage,0.008244178862556661,1.0,0.7109375,0.015625,0.8541666666666666,0.0,0.0,0.0
+trigger_invariance,0.008356313660385806,1.0,1.0,0.0,0.0,0.0,0.0,0.0

@@ -31,13 +31,15 @@ METHOD_ORDER = [
     "few_step_distilled",
     "streaming_no_causal",
     "streaming_causal",
+    "streaming_causal_compensated",
     "future_state_conditioned",
 ]
 LABELS = {
     "isolated_n_step": "Isolated 6-step",
-    "few_step_distilled": "Few-step distilled",
+    "few_step_distilled": "Few-step degraded proxy",
     "streaming_no_causal": "Staggered, no coupling",
-    "streaming_causal": "Staggered + causal coupling",
+    "streaming_causal": "Staggered + causal only",
+    "streaming_causal_compensated": "Staggered + causal + handoff compensation",
     "future_state_conditioned": "Future-state conditioned",
 }
 COLORS = {
@@ -45,16 +47,18 @@ COLORS = {
     "few_step_distilled": "#f58518",
     "streaming_no_causal": "#eeca3b",
     "streaming_causal": "#54a24b",
+    "streaming_causal_compensated": "#2a9d8f",
     "future_state_conditioned": "#b279a2",
 }
 PLOT_LABELS = {
     "isolated_n_step": "Isolated\n6-step",
-    "few_step_distilled": "Few-step\ndistilled",
+    "few_step_distilled": "Few-step\ndegraded proxy",
     "streaming_no_causal": "Staggered\nno coupling",
-    "streaming_causal": "Staggered\n+ causal",
+    "streaming_causal": "Staggered\n+ causal only",
+    "streaming_causal_compensated": "Staggered\n+ causal + comp.",
     "future_state_conditioned": "Future-state\nconditioned",
 }
-MARKERS = {method: marker for method, marker in zip(METHOD_ORDER, ["o", "s", "^", "D", "P"])}
+MARKERS = {method: marker for method, marker in zip(METHOD_ORDER, ["o", "s", "^", "D", "v", "P"])}
 
 
 @dataclass(frozen=True)
@@ -315,8 +319,9 @@ def isolated_decode(
 
 
 class StreamingDecoder:
-    def __init__(self, causal: bool, trial_seed: int, cfg: Config):
+    def __init__(self, causal: bool, trial_seed: int, cfg: Config, compensate_handoff: bool = False):
         self.causal = causal
+        self.compensate_handoff = compensate_handoff
         self.trial_seed = trial_seed
         self.cfg = cfg
         self.slots: list[StreamSlot] = []
@@ -346,21 +351,23 @@ class StreamingDecoder:
         steps_to_boundary: int,
     ) -> Chunk | None:
         self.slots.append(self._new_slot(obs, context_step))
-        if predecessor_action is not None:
+        # Keep decoder-level continuation separate from observation-delay
+        # compensation.  The causal-only row starts from the cleaner
+        # predecessor's endpoint.  A separate diagnostic row blends that
+        # endpoint with a simple rollout of the latest observation.
+        if self.compensate_handoff and predecessor_action is not None:
             fresh_boundary = rollout_robot(
                 obs.robot,
                 np.tile(predecessor_action[None, :], (max(steps_to_boundary, 1), 1)),
                 self.cfg,
             )
+            causal_start = (
+                0.85 * fresh_boundary + 0.15 * predecessor_end
+                if predecessor_end is not None
+                else fresh_boundary
+            )
         else:
-            fresh_boundary = obs.robot.copy()
-        # Cleaner-chunk context supplies a continuation prior, while the latest observation
-        # prevents open-loop endpoint drift from accumulating across the whole buffer.
-        causal_start = (
-            0.85 * fresh_boundary + 0.15 * predecessor_end
-            if predecessor_end is not None
-            else fresh_boundary
-        )
+            causal_start = predecessor_end.copy() if predecessor_end is not None else obs.robot.copy()
         causal_anchor = predecessor_action.copy() if predecessor_action is not None else None
 
         for index, slot in enumerate(self.slots):
@@ -423,7 +430,16 @@ def simulate_trial(
     trace = make_trace(cfg, trial_seed, disturbance_scale)
     robot = np.array([0.0, -0.15, 0.0, 0.0], dtype=np.float64)
     target = np.array([1.15, 0.35, 0.18, -0.06], dtype=np.float64)
-    stream = StreamingDecoder(method == "streaming_causal", trial_seed, cfg) if method.startswith("streaming") else None
+    stream = (
+        StreamingDecoder(
+            method in ("streaming_causal", "streaming_causal_compensated"),
+            trial_seed,
+            cfg,
+            compensate_handoff=method == "streaming_causal_compensated",
+        )
+        if method.startswith("streaming")
+        else None
+    )
 
     latency_ms = method_latency_ms(method, cfg, latency_scale)
     latency_steps = max(1, int(math.ceil(latency_ms / (1000.0 * cfg.dt))))
@@ -673,6 +689,14 @@ def run_sanity_checks(cfg: Config) -> dict[str, Any]:
 
     metric_a, traj_a = simulate_trial("streaming_causal", replace(cfg, episode_steps=80, success_tail_steps=24), 777, 1.0, 1.0, True)
     metric_b, traj_b = simulate_trial("streaming_causal", replace(cfg, episode_steps=80, success_tail_steps=24), 777, 1.0, 1.0, True)
+    compensated_metric, _ = simulate_trial(
+        "streaming_causal_compensated",
+        replace(cfg, episode_steps=80, success_tail_steps=24),
+        777,
+        1.0,
+        1.0,
+        False,
+    )
     assert traj_a is not None and traj_b is not None
     deterministic_delta = float(np.max(np.abs(traj_a["robot"] - traj_b["robot"])))
 
@@ -681,6 +705,11 @@ def run_sanity_checks(cfg: Config) -> dict[str, Any]:
         "future_projection_removes_nominal_staleness": {"pass": future_error < stale_error, "stale_error": stale_error, "future_error": future_error},
         "stream_first_emit_after_n_passes": {"pass": causal_chunks[0].chunk_id == 0 and causal_chunks[1].chunk_id == 1, "first_ids": [c.chunk_id for c in causal_chunks[:2]]},
         "causal_surrogate_reduces_simple_boundary_jump": {"pass": causal_jump < no_jump, "causal_jump": causal_jump, "no_causal_jump": no_jump},
+        "handoff_compensation_is_separate_and_reduces_state_error": {
+            "pass": float(compensated_metric["handoff_staleness"]) < float(metric_a["handoff_staleness"]),
+            "causal_only_handoff_error": float(metric_a["handoff_staleness"]),
+            "compensated_handoff_error": float(compensated_metric["handoff_staleness"]),
+        },
         "streaming_steady_throughput_exceeds_isolated": {
             "pass": systems_row("streaming_causal", cfg, 1.0)["steady_chunk_throughput_hz"] > systems_row("isolated_n_step", cfg, 1.0)["steady_chunk_throughput_hz"],
             "streaming_hz": systems_row("streaming_causal", cfg, 1.0)["steady_chunk_throughput_hz"],
@@ -796,6 +825,7 @@ def write_tex_report(cfg: Config, summary: list[dict[str, float | str]], systems
             f"{float(s['steady_chunk_throughput_hz']):.2f} & {float(s['configured_first_action_latency_ms']):.0f} \\\\"
         )
     causal = get_summary(summary, "streaming_causal", 1.0, 1.0)
+    compensated = get_summary(summary, "streaming_causal_compensated", 1.0, 1.0)
     no_causal = get_summary(summary, "streaming_no_causal", 1.0, 1.0)
     future = get_summary(summary, "future_state_conditioned", 1.0, 1.0)
     tex = rf"""\documentclass[11pt]{{article}}
@@ -816,13 +846,14 @@ def write_tex_report(cfg: Config, summary: list[dict[str, float | str]], systems
 \hypersetup{{hypertexnames=false,colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black}}
 \title{{Streaming Action Denoising:\\A Deterministic Throughput--Continuity Control Toy}}
 \author{{Andy Park\\\href{{mailto:andypark.purdue@gmail.com}}{{andypark.purdue@gmail.com}}}}
-\date{{August 28, 2026}}
+\date{{August 31, 2026}}
 
 \begin{{document}}
+\setlength{{\emergencystretch}}{{3em}}
 \maketitle
 
 \begin{{abstract}}
-This note tests a narrow systems/control question inspired by FlashVLA: can staggered chunk refinement separate steady-state decoder throughput from per-chunk denoising depth, and can a causal chunk-continuation surrogate reduce asynchronous boundary mismatch? In this configured deterministic toy, streaming emits one chunk per pass after warm-up and causal coupling improves boundary continuity relative to the same buffer without coupling. This is not a VLA reproduction, learned flow matching, or a hardware benchmark.
+This note tests a narrow systems/control question inspired by FlashVLA: can staggered chunk refinement separate steady-state decoder throughput from per-chunk denoising depth, and can a causal chunk-continuation surrogate reduce asynchronous boundary mismatch? In this configured deterministic toy, streaming emits one chunk per pass after warm-up and causal continuation improves boundary smoothness, but causal-only endpoint chaining accumulates handoff-state drift. A separately labeled compensation surrogate repairs much of that drift. This is not a VLA reproduction, learned flow matching, or a hardware benchmark.
 \end{{abstract}}
 
 \section{{Motivation}}
@@ -832,15 +863,29 @@ Isolated iterative decoding concentrates all denoising passes before one chunk b
 Primary references were the FlashVLA paper \cite{{primary}} and official repository \cite{{code}}. The paper reports measured VLA/GPU results, including one emitted action chunk per steady streaming step, causal attention ablations, and real/simulated task results. None of those reported numbers are treated as local measurements here.
 
 \section{{Toy Setup}}
-A two-dimensional disturbed point mass tracks a maneuvering target with an analytical PD chunk planner. Each chunk contains {cfg.chunk_size} low-level accelerations. The configured action-expert pass cost is {cfg.pass_ms:.0f} ms, the isolated depth is {cfg.denoise_steps}, and the few-step proxy uses {cfg.distilled_steps} passes. Five methods are compared:
+A two-dimensional disturbed point mass tracks a maneuvering target with an analytical PD chunk planner. Each chunk contains {cfg.chunk_size} low-level accelerations. The configured action-expert pass cost is {cfg.pass_ms:.0f} ms, the isolated depth is {cfg.denoise_steps}, and the few-step proxy uses {cfg.distilled_steps} passes. Six methods are compared:
 \begin{{itemize}}[leftmargin=1.5em]
 \item isolated {cfg.denoise_steps}-step chunks;
 \item a {cfg.distilled_steps}-step quality/capacity proxy;
 \item a staggered buffer with independent chunk refinement;
-\item the same buffer with analytical cleaner-to-noisier continuation coupling; and
+\item the same buffer with analytical cleaner-to-noisier continuation coupling only;
+\item causal continuation plus a separately labeled handoff-state compensation surrogate; and
 \item isolated decoding conditioned on a nominal rollout of committed actions.
 \end{{itemize}}
 The causal update is only a mechanism surrogate: it chains predicted endpoints and blends boundary actions. It is not transformer attention. The fixed pass time assumes one joint streaming pass costs the same wall-clock time as one isolated pass; the script therefore calls throughput and work values \emph{{proxies}}, not benchmarks.
+
+\section{{Relation to other experiments in this repository}}
+\begin{{itemize}}[leftmargin=1.5em]
+\item \texttt{{instruction\_conditioned\_async\_control}} separates a slow semantic planner from a high-rate controller. FlashVLA instead pipelines refinement inside the action decoder; there is no sparse instruction handoff here.
+\item \texttt{{async\_chunking\_compare}} and \texttt{{anticipatory\_context\_chunking}} estimate execution-time robot and observation context after inference delay. This toy isolates decoder scheduling and cleaner-to-noisier continuation; \texttt{{future\_state\_conditioned}} is the separate observation-delay-compensation control.
+\item \path{{context_chunk_tradeoff}} varies temporal context and action horizon, and \path{{openvla_oft_systems_toy}} varies parallel chunk availability and refresh cadence. Here chunk size is fixed while denoising depth, slot staggering, and configured decoder latency vary.
+\item \texttt{{turbo\_vla\_direct\_control}} changes the execution architecture to a compact direct V+L$\rightarrow$A path. FlashVLA changes iterative action decoding and can in principle sit on either a direct or larger VLA backbone.
+\item \texttt{{prefix\_rl\_chunking}} preserves committed action prefixes during RL training. The causal surrogate here supplies predicted endpoint/action context between denoising slots at inference and has no prefix-copy loss.
+\item \path{{demo_prompted_policy}} and \path{{video_prompt_shortcut_resistance}} study task grounding and shortcut resistance. This package has no prompt input and makes no prompt-reliance claim.
+\end{{itemize}}
+
+\paragraph{{Baseline fairness.}}
+The clean decoder-only ablation is staggered decoding without versus with causal continuation: scheduler, slot count, refinement rule, decoder noise, launch policy, and environment traces are shared. The compensated streaming row then adds handoff-state correction as a separate factor. The isolated, few-step, and future-state rows are diagnostic controls, not training- or architecture-matched learned baselines. The few-step row includes hand-coded smoothing and attenuation. Reported chunks/s is configured back-to-back decoder service capacity under the equal-cost joint-pass assumption, not measured GPU throughput or the simulator's consumed chunk rate.
 
 \section{{Metrics}}
 The experiment reports success from terminal tracking thresholds, full and tail tracking RMSE, handoff state error, action jump at chunk boundaries, jerk, idle/deadline-miss time, configured steady-state throughput, configured and tick-quantized first-action latency, sequential-pass counts, chunk-slot updates, and causal pair-interaction counts.
@@ -881,24 +926,24 @@ Method & Success (\%) & Track RMSE & Boundary jump & Handoff error & Chunks/s & 
 \begin{{figure}}[H]
 \centering
 \includegraphics[width=\textwidth]{{../outputs/systems_proxies.png}}
-\caption{{Configured systems proxies. Staggering improves sequential output cadence but does not erase chunk-slot refinement work or causal interaction cost.}}
+\caption{{Configured systems proxies. Staggering improves back-to-back decoder service capacity but does not erase chunk-slot refinement work or causal interaction cost.}}
 \end{{figure}}
 
 \section{{Interpretation}}
-At the default condition, the causal streaming surrogate changes success from {100*float(no_causal['success_mean']):.1f}\% to {100*float(causal['success_mean']):.1f}\% and boundary discontinuity from {float(no_causal['boundary_discontinuity_mean']):.3f} to {float(causal['boundary_discontinuity_mean']):.3f}. Future-state conditioning reaches {100*float(future['success_mean']):.1f}\% success but retains isolated decoding's configured steady cadence. Thus the local mechanism supports two bounded statements: staggered scheduling can improve steady sequential throughput after a nonzero warm-up, and inter-chunk coupling can improve continuity relative to an otherwise identical independent buffer. The experiment does not establish that the coupling is sufficient in every disturbance regime or that it replaces future-state conditioning in a real VLA.
+At the default condition, causal-only streaming changes boundary discontinuity from {float(no_causal['boundary_discontinuity_mean']):.3f} to {float(causal['boundary_discontinuity_mean']):.3f}, but success changes from {100*float(no_causal['success_mean']):.1f}\% to {100*float(causal['success_mean']):.1f}\% because chaining predicted endpoints accumulates handoff-state drift. Adding the separately labeled handoff-compensation surrogate raises success to {100*float(compensated['success_mean']):.1f}\%. Future-state conditioning reaches {100*float(future['success_mean']):.1f}\% success but retains isolated decoding's configured steady cadence. Thus staggering, inter-chunk continuity, and observation-delay compensation are distinct mechanisms: the first changes service cadence, the second can smooth boundaries, and the third is needed to control accumulated state-age error in this toy. None of these rows establishes real-VLA superiority.
 
 \section{{Limitations and Follow-ups}}
 \begin{{itemize}}[leftmargin=1.5em]
 \item Timing is configured, not measured on a GPU. Joint-pass cost, memory traffic, compilation, and kernel-launch effects are omitted.
 \item The decoder is an analytical contraction toward a PD plan. There is no learned flow field, image/language context, training, or distribution shift.
-\item The causal mechanism is endpoint/action chaining, not chunk-wise transformer attention.
+\item The causal mechanism is endpoint/action chaining, not chunk-wise transformer attention. It deliberately excludes the explicit observation rollout used by the future-state baseline.
 \item Future-state conditioning uses the same nominal dynamics as the planner, with plant mismatch but no learned predictor error.
 \item Success thresholds are toy-specific. Follow-ups should measure an actual denoiser, vary buffer span independently, and evaluate contact-rich or constrained dynamics.
 \end{{itemize}}
 
 \begin{{thebibliography}}{{9}}
 \bibitem{{primary}} Z. Li, J. Tang, and Z. Liu. \emph{{Streaming Action Decoding for Fast and Asynchronous VLA Inference}}. arXiv:2608.27384, 2026. \url{{https://arxiv.org/abs/2608.27384}}
-\bibitem{{code}} Z-Lab. \emph{{FlashVLA official implementation}}. \url{{https://github.com/z-lab/flashvla}}
+\bibitem{{code}} Z-Lab. \emph{{FlashVLA official implementation}}, inspected at commit \texttt{{5227b039ebd4}}. \url{{https://github.com/z-lab/flashvla}}
 \end{{thebibliography}}
 \end{{document}}
 """
@@ -973,7 +1018,7 @@ def main() -> None:
     )
     metrics_json = {
         "experiment": "streaming_action_denoising",
-        "generated_date": "2026-08-28",
+        "generated_date": "2026-08-31",
         "command": command,
         "config": asdict(cfg),
         "latency_scales": latency_scales,
@@ -985,6 +1030,7 @@ def main() -> None:
         "claims_boundary": {
             "timing": "Configured fixed-cost scheduling proxy; not wall-clock hardware measurement.",
             "causal": "Endpoint/action continuation surrogate; not learned chunk-wise attention.",
+            "handoff_compensation": "Separate analytical rollout/blend diagnostic; not attributed to FlashVLA's decoder mechanism.",
             "distillation": "Deterministic few-refinement quality proxy; not a trained distilled policy.",
         },
     }
