@@ -1,0 +1,7 @@
+lineage,label_error_rate,guard_transition_abs_error,reward_target_drift,success_false_positive_rate
+compiled_spec,0.0,0.0,0.0,0.0
+copied_demo_labels,0.3012933262389784,0.0,0.0,0.0
+copied_stage_guards,0.0,0.8875,0.0,0.0
+copied_rewards,0.0,0.0,0.07929489363276378,0.0
+copied_success_check,0.0,0.0,0.0,0.3333333333333333
+copied_all,0.3012933262389784,0.8875,0.07929489363276378,0.3333333333333333

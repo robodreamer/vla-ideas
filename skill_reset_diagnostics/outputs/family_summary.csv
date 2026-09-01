@@ -1,0 +1,8 @@
+family,exact_stsr,pose_jitter_stsr,realistic_stsr,offnominal_stsr
+articulation,0.0,0.0,0.0,0.0
+contact-rich,0.4166666666666667,0.06481481481481481,0.0,0.0
+navigation,1.0,1.0,1.0,0.9888888888888889
+placement,0.4722222222222222,0.05555555555555555,0.0,0.0
+precise placement,0.0,0.0,0.0,0.0
+release,1.0,1.0,0.9074074074074074,0.6666666666666666
+tool use,0.0,0.0,0.0,0.0

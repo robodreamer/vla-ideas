@@ -1,0 +1,108 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black,hypertexnames=false}
+\title{Semantic Program Lineage Toy\\\large Hand-Copied Interfaces vs. a Single Typed Specification}
+\author{VLA Ideas}
+\date{September 1, 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+This report studies one narrow mechanism inspired by SUN: semantic interfaces that are defined once and compiled together versus hand-copied interfaces that drift apart. A deterministic pick-carry-release toy compiles stage guards, reward shaping, demonstration labels, and success checks from one typed task program, then compares that baseline against small copied inconsistencies in each interface. With the checked configuration, the compiled lineage attains 100.0\% true success with zero rollout overclaim, while the fully copied lineage drops to 0.0\% true success and reaches a 66.8\% execution-stage mismatch rate. The copied success checker does not change nominal behavior, but a crafted near-miss probe exposes a 33.3\% false-positive rate on the three diagnostic states. The package is a transparent lineage stress test, not a SUN, Kuafu, MPC, RL, or robot reproduction.
+\end{abstract}
+
+\section{Source mapping}
+The SUN paper introduces typed executables whose semantics are written once and compiled into aligned MPC costs, satisfaction predicates, RL rewards, transition guards, and diagnostics. This toy isolates only that semantic-lineage idea. Instead of language parsing, MPC, or robot learning, it uses a scripted 2-D task and stage-conditioned linear controllers so that interface drift is easy to inspect.
+
+\section{Toy construction}
+The typed task program contains five stages: approach object, close gripper, carry to goal, open at goal, and retreat. Each stage specifies a target entity, tolerance, gripper target, holding requirement, dwell time, and reward weight. The compiled lineage derives all of the following from that one program:
+\begin{itemize}[leftmargin=1.5em]
+  \item demonstration stage labels for supervised training,
+  \item execution-time transition guards,
+  \item dense reward targets used to choose a residual gain on validation rollouts,
+  \item terminal success checks and diagnostics.
+\end{itemize}
+
+The copied baselines manually perturb those interfaces with small mistakes: demonstration labels advance 1--2 frames early, guards use slightly looser thresholds and sometimes the wrong entity, reward targets are offset from the true goal/object relations, and the copied success checker allows a short drop that the compiled checker rejects.
+
+\section{Checked configuration}
+The full run used 48 training, 20 validation, and 36 test geometries; a horizon of 44 steps; ridge-regularized stagewise regression; and reward residual gains in $\{0.00, 0.25, 0.50, 0.75\}$.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Lineage & True success & Reported success & Overclaim & Stage mismatch \\
+\midrule
+Compiled spec & 100.0\% & 100.0\% & 0.0 pp & 9.1\% \\
+Copied demo labels & 0.0\% & 0.0\% & 0.0 pp & 1.1\% \\
+Copied stage guards & 100.0\% & 100.0\% & 0.0 pp & 88.3\% \\
+Copied rewards & 0.0\% & 0.0\% & 0.0 pp & 1.0\% \\
+Copied success check & 100.0\% & 100.0\% & 0.0 pp & 9.1\% \\
+Copied all & 0.0\% & 0.0\% & 0.0 pp & 66.8\% \\
+\bottomrule
+\end{tabular}
+\caption{Aggregate test metrics. Overclaim is reported success minus compiled semantic success.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Lineage & Label drift & Guard error & Reward drift & Success false positives \\
+\midrule
+Compiled spec & 0.0\% & 0.00 & 0.000 & 0.0\% \\
+Copied demo labels & 30.1\% & 0.00 & 0.000 & 0.0\% \\
+Copied stage guards & 0.0\% & 0.89 & 0.000 & 0.0\% \\
+Copied rewards & 0.0\% & 0.00 & 0.079 & 0.0\% \\
+Copied success check & 0.0\% & 0.00 & 0.000 & 33.3\% \\
+Copied all & 30.1\% & 0.89 & 0.079 & 33.3\% \\
+\bottomrule
+\end{tabular}
+\caption{Direct interface-drift diagnostics computed against the compiled source program.}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/headline_metrics.png}
+  \caption{True success, reported-vs-true success, and stage mismatch by lineage.}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/interface_drift.png}
+  \caption{How much each copied interface departs from the compiled source program.}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.82\textwidth]{../outputs/reward_selection.png}
+  \caption{Validation model selection under compiled and copied reward definitions.}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/trajectory_examples.png}
+  \caption{Representative compiled-spec and copied-all rollouts on the same held-out geometry.}
+\end{figure}
+
+\section{Interpretation}
+Three bounded lessons appear. First, semantic lineage matters even in a toy: the copied-all pipeline loses true success relative to the compiled lineage because training labels, runtime guards, and reward-guided corrections no longer describe the same task. Second, evaluation drift can exist even when nominal rollouts do not expose it: the copied success checker leaves the controller unchanged and matches nominal rollout outcomes, yet accepts one of three crafted near-miss terminal states that the compiled checker rejects. Third, guard and reward drift interact. Once the policy switches stages early, an offset copied reward further reinforces the wrong behavior.
+
+\section{Sanity checks}
+The checked run passed all built-in assertions, including a successful compiled expert rollout, nonzero copied-interface drift, and a crafted short-drop false positive for the copied success checker.
+
+\section{Limitations}
+This experiment has no language parser, typed planner, MPC, reinforcement learning, diffusion policy, vision encoder, domain randomization, or robot embodiment. Reward shaping is only a validation-time residual selector, not policy optimization. Demonstrations are scripted and deterministic. The copied bugs are hand-designed and observable. Results should therefore be read as mechanism evidence for semantic-lineage preservation, not as evidence about SUN's benchmark numbers or deployment performance.
+
+\end{document}

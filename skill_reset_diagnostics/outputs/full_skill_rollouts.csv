@@ -1,0 +1,523 @@
+trajectory_id,task_name,task_short_name,skill_index,skill_type,family,instruction,profile,attempted,executed,success,valid_preconditions,precondition_gap,margin,steps_used,mismatch_total
+0,Store mug in cabinet,mug_cabinet,0,MoveTo,navigation,move to the mug,full_rollout,1,1,1,1,0.0,0.5359576724964723,10,0.0
+0,Store mug in cabinet,mug_cabinet,1,PickUpFrom,contact-rich,pick up the mug from the counter,full_rollout,1,1,0,1,0.0,-0.0172425751626058,28,0.055357319836933094
+0,Store mug in cabinet,mug_cabinet,2,MoveTo,navigation,carry the mug to the cabinet,full_rollout,0,0,0,0,,,0,
+0,Store mug in cabinet,mug_cabinet,3,OpenDoor,articulation,open the cabinet door,full_rollout,0,0,0,0,,,0,
+0,Store mug in cabinet,mug_cabinet,4,PlaceIn,precise placement,place the mug inside the cabinet,full_rollout,0,0,0,0,,,0,
+0,Store mug in cabinet,mug_cabinet,5,CloseDoor,articulation,close the cabinet door,full_rollout,0,0,0,0,,,0,
+1,Store mug in cabinet,mug_cabinet,0,MoveTo,navigation,move to the mug,full_rollout,1,1,1,1,0.0,0.6098714281878245,10,0.0
+1,Store mug in cabinet,mug_cabinet,1,PickUpFrom,contact-rich,pick up the mug from the counter,full_rollout,1,1,1,1,0.0,0.030968449267840197,14,0.055383050857109845
+1,Store mug in cabinet,mug_cabinet,2,MoveTo,navigation,carry the mug to the cabinet,full_rollout,1,1,1,1,0.0,0.5593757202273095,10,0.15797403096379353
+1,Store mug in cabinet,mug_cabinet,3,OpenDoor,articulation,open the cabinet door,full_rollout,1,1,0,1,0.0,-0.5798671999792642,28,0.13168956020245892
+1,Store mug in cabinet,mug_cabinet,4,PlaceIn,precise placement,place the mug inside the cabinet,full_rollout,0,0,0,0,,,0,
+1,Store mug in cabinet,mug_cabinet,5,CloseDoor,articulation,close the cabinet door,full_rollout,0,0,0,0,,,0,
+2,Store mug in cabinet,mug_cabinet,0,MoveTo,navigation,move to the mug,full_rollout,1,1,1,1,0.0,0.5802306254066372,10,0.0
+2,Store mug in cabinet,mug_cabinet,1,PickUpFrom,contact-rich,pick up the mug from the counter,full_rollout,1,1,1,1,0.0,0.15288177870351422,14,0.05465730299954703
+2,Store mug in cabinet,mug_cabinet,2,MoveTo,navigation,carry the mug to the cabinet,full_rollout,1,1,1,1,0.0,0.4212136735633517,10,0.15670901844758384
+2,Store mug in cabinet,mug_cabinet,3,OpenDoor,articulation,open the cabinet door,full_rollout,1,1,0,1,0.0,-0.5210048064422287,28,0.12990389664367227
+2,Store mug in cabinet,mug_cabinet,4,PlaceIn,precise placement,place the mug inside the cabinet,full_rollout,0,0,0,0,,,0,
+2,Store mug in cabinet,mug_cabinet,5,CloseDoor,articulation,close the cabinet door,full_rollout,0,0,0,0,,,0,
+3,Store mug in cabinet,mug_cabinet,0,MoveTo,navigation,move to the mug,full_rollout,1,1,1,1,0.0,0.6720982139823508,10,0.0
+3,Store mug in cabinet,mug_cabinet,1,PickUpFrom,contact-rich,pick up the mug from the counter,full_rollout,1,1,0,1,0.0,-0.13659883159711034,28,0.0536491236776716
+3,Store mug in cabinet,mug_cabinet,2,MoveTo,navigation,carry the mug to the cabinet,full_rollout,0,0,0,0,,,0,
+3,Store mug in cabinet,mug_cabinet,3,OpenDoor,articulation,open the cabinet door,full_rollout,0,0,0,0,,,0,
+3,Store mug in cabinet,mug_cabinet,4,PlaceIn,precise placement,place the mug inside the cabinet,full_rollout,0,0,0,0,,,0,
+3,Store mug in cabinet,mug_cabinet,5,CloseDoor,articulation,close the cabinet door,full_rollout,0,0,0,0,,,0,
+4,Store mug in cabinet,mug_cabinet,0,MoveTo,navigation,move to the mug,full_rollout,1,1,1,1,0.0,0.6621081856686446,10,0.0
+4,Store mug in cabinet,mug_cabinet,1,PickUpFrom,contact-rich,pick up the mug from the counter,full_rollout,1,1,1,1,0.0,0.012153058997700496,14,0.05492865359300923
+4,Store mug in cabinet,mug_cabinet,2,MoveTo,navigation,carry the mug to the cabinet,full_rollout,1,1,1,1,0.0,0.5980652074243832,10,0.15951211442781435
+4,Store mug in cabinet,mug_cabinet,3,OpenDoor,articulation,open the cabinet door,full_rollout,1,1,0,1,0.0,-0.44089055467964067,28,0.13087409743717926
+4,Store mug in cabinet,mug_cabinet,4,PlaceIn,precise placement,place the mug inside the cabinet,full_rollout,0,0,0,0,,,0,
+4,Store mug in cabinet,mug_cabinet,5,CloseDoor,articulation,close the cabinet door,full_rollout,0,0,0,0,,,0,
+5,Store mug in cabinet,mug_cabinet,0,MoveTo,navigation,move to the mug,full_rollout,1,1,1,1,0.0,0.5776223301050213,10,0.0
+5,Store mug in cabinet,mug_cabinet,1,PickUpFrom,contact-rich,pick up the mug from the counter,full_rollout,1,1,1,1,0.0,0.04117567252058274,14,0.05795884620226499
+5,Store mug in cabinet,mug_cabinet,2,MoveTo,navigation,carry the mug to the cabinet,full_rollout,1,1,1,1,0.0,0.5309976868718913,10,0.16152149404593646
+5,Store mug in cabinet,mug_cabinet,3,OpenDoor,articulation,open the cabinet door,full_rollout,1,1,0,1,0.0,-0.3504442657920883,28,0.13482626727237534
+5,Store mug in cabinet,mug_cabinet,4,PlaceIn,precise placement,place the mug inside the cabinet,full_rollout,0,0,0,0,,,0,
+5,Store mug in cabinet,mug_cabinet,5,CloseDoor,articulation,close the cabinet door,full_rollout,0,0,0,0,,,0,
+6,Store mug in cabinet,mug_cabinet,0,MoveTo,navigation,move to the mug,full_rollout,1,1,1,1,0.0,0.5318254665002365,10,0.0
+6,Store mug in cabinet,mug_cabinet,1,PickUpFrom,contact-rich,pick up the mug from the counter,full_rollout,1,1,1,1,0.0,0.08911259778838854,14,0.05598721371597236
+6,Store mug in cabinet,mug_cabinet,2,MoveTo,navigation,carry the mug to the cabinet,full_rollout,1,1,1,1,0.0,0.5431242460797514,10,0.16061719005218406
+6,Store mug in cabinet,mug_cabinet,3,OpenDoor,articulation,open the cabinet door,full_rollout,1,1,0,1,0.0,-0.3419661987317517,26,0.13071852599635747
+6,Store mug in cabinet,mug_cabinet,4,PlaceIn,precise placement,place the mug inside the cabinet,full_rollout,0,0,0,0,,,0,
+6,Store mug in cabinet,mug_cabinet,5,CloseDoor,articulation,close the cabinet door,full_rollout,0,0,0,0,,,0,
+7,Store mug in cabinet,mug_cabinet,0,MoveTo,navigation,move to the mug,full_rollout,1,1,1,1,0.0,0.5988605782940296,10,0.0
+7,Store mug in cabinet,mug_cabinet,1,PickUpFrom,contact-rich,pick up the mug from the counter,full_rollout,1,1,0,1,0.0,-0.06723519529172456,30,0.054510633520165
+7,Store mug in cabinet,mug_cabinet,2,MoveTo,navigation,carry the mug to the cabinet,full_rollout,0,0,0,0,,,0,
+7,Store mug in cabinet,mug_cabinet,3,OpenDoor,articulation,open the cabinet door,full_rollout,0,0,0,0,,,0,
+7,Store mug in cabinet,mug_cabinet,4,PlaceIn,precise placement,place the mug inside the cabinet,full_rollout,0,0,0,0,,,0,
+7,Store mug in cabinet,mug_cabinet,5,CloseDoor,articulation,close the cabinet door,full_rollout,0,0,0,0,,,0,
+8,Store mug in cabinet,mug_cabinet,0,MoveTo,navigation,move to the mug,full_rollout,1,1,1,1,0.0,0.6176175581273338,10,0.0
+8,Store mug in cabinet,mug_cabinet,1,PickUpFrom,contact-rich,pick up the mug from the counter,full_rollout,1,1,0,1,0.0,-0.15208389820675255,30,0.05824928255482844
+8,Store mug in cabinet,mug_cabinet,2,MoveTo,navigation,carry the mug to the cabinet,full_rollout,0,0,0,0,,,0,
+8,Store mug in cabinet,mug_cabinet,3,OpenDoor,articulation,open the cabinet door,full_rollout,0,0,0,0,,,0,
+8,Store mug in cabinet,mug_cabinet,4,PlaceIn,precise placement,place the mug inside the cabinet,full_rollout,0,0,0,0,,,0,
+8,Store mug in cabinet,mug_cabinet,5,CloseDoor,articulation,close the cabinet door,full_rollout,0,0,0,0,,,0,
+9,Store mug in cabinet,mug_cabinet,0,MoveTo,navigation,move to the mug,full_rollout,1,1,1,1,0.0,0.8477564968901862,10,0.0
+9,Store mug in cabinet,mug_cabinet,1,PickUpFrom,contact-rich,pick up the mug from the counter,full_rollout,1,1,1,1,0.0,0.13532795788222027,14,0.05229854479592318
+9,Store mug in cabinet,mug_cabinet,2,MoveTo,navigation,carry the mug to the cabinet,full_rollout,1,1,1,1,0.0,0.4503308021850725,10,0.15347867707940024
+9,Store mug in cabinet,mug_cabinet,3,OpenDoor,articulation,open the cabinet door,full_rollout,1,1,0,1,0.0,-0.3242661907655843,28,0.12790814404423706
+9,Store mug in cabinet,mug_cabinet,4,PlaceIn,precise placement,place the mug inside the cabinet,full_rollout,0,0,0,0,,,0,
+9,Store mug in cabinet,mug_cabinet,5,CloseDoor,articulation,close the cabinet door,full_rollout,0,0,0,0,,,0,
+10,Store mug in cabinet,mug_cabinet,0,MoveTo,navigation,move to the mug,full_rollout,1,1,1,1,0.0,0.7170993571648544,10,0.0
+10,Store mug in cabinet,mug_cabinet,1,PickUpFrom,contact-rich,pick up the mug from the counter,full_rollout,1,1,1,1,0.0,0.08332636940659825,14,0.0550556451891251
+10,Store mug in cabinet,mug_cabinet,2,MoveTo,navigation,carry the mug to the cabinet,full_rollout,1,1,1,1,0.0,0.5749515400685401,10,0.15777648935746819
+10,Store mug in cabinet,mug_cabinet,3,OpenDoor,articulation,open the cabinet door,full_rollout,1,1,0,1,0.0,-0.3510387154142086,26,0.1277227430080589
+10,Store mug in cabinet,mug_cabinet,4,PlaceIn,precise placement,place the mug inside the cabinet,full_rollout,0,0,0,0,,,0,
+10,Store mug in cabinet,mug_cabinet,5,CloseDoor,articulation,close the cabinet door,full_rollout,0,0,0,0,,,0,
+11,Store mug in cabinet,mug_cabinet,0,MoveTo,navigation,move to the mug,full_rollout,1,1,1,1,0.0,0.639161605147881,10,0.0
+11,Store mug in cabinet,mug_cabinet,1,PickUpFrom,contact-rich,pick up the mug from the counter,full_rollout,1,1,1,1,0.0,0.1793983943894522,14,0.055714398217565124
+11,Store mug in cabinet,mug_cabinet,2,MoveTo,navigation,carry the mug to the cabinet,full_rollout,1,1,1,1,0.0,0.3850411902291509,10,0.1601638756193145
+11,Store mug in cabinet,mug_cabinet,3,OpenDoor,articulation,open the cabinet door,full_rollout,1,1,0,1,0.0,-0.5249849413089742,28,0.13399392286269618
+11,Store mug in cabinet,mug_cabinet,4,PlaceIn,precise placement,place the mug inside the cabinet,full_rollout,0,0,0,0,,,0,
+11,Store mug in cabinet,mug_cabinet,5,CloseDoor,articulation,close the cabinet door,full_rollout,0,0,0,0,,,0,
+12,Store mug in cabinet,mug_cabinet,0,MoveTo,navigation,move to the mug,full_rollout,1,1,1,1,0.0,0.6226587212483956,10,0.0
+12,Store mug in cabinet,mug_cabinet,1,PickUpFrom,contact-rich,pick up the mug from the counter,full_rollout,1,1,1,1,0.0,0.10447074922654939,14,0.05596264221167461
+12,Store mug in cabinet,mug_cabinet,2,MoveTo,navigation,carry the mug to the cabinet,full_rollout,1,1,1,1,0.0,0.5583899432737939,10,0.1595946402172439
+12,Store mug in cabinet,mug_cabinet,3,OpenDoor,articulation,open the cabinet door,full_rollout,1,1,0,1,0.0,-0.38548090952398867,26,0.13267730756044066
+12,Store mug in cabinet,mug_cabinet,4,PlaceIn,precise placement,place the mug inside the cabinet,full_rollout,0,0,0,0,,,0,
+12,Store mug in cabinet,mug_cabinet,5,CloseDoor,articulation,close the cabinet door,full_rollout,0,0,0,0,,,0,
+13,Store mug in cabinet,mug_cabinet,0,MoveTo,navigation,move to the mug,full_rollout,1,1,1,1,0.0,0.7217435662402081,10,0.0
+13,Store mug in cabinet,mug_cabinet,1,PickUpFrom,contact-rich,pick up the mug from the counter,full_rollout,1,1,0,1,0.0,-0.026434571409843323,28,0.05483453984951013
+13,Store mug in cabinet,mug_cabinet,2,MoveTo,navigation,carry the mug to the cabinet,full_rollout,0,0,0,0,,,0,
+13,Store mug in cabinet,mug_cabinet,3,OpenDoor,articulation,open the cabinet door,full_rollout,0,0,0,0,,,0,
+13,Store mug in cabinet,mug_cabinet,4,PlaceIn,precise placement,place the mug inside the cabinet,full_rollout,0,0,0,0,,,0,
+13,Store mug in cabinet,mug_cabinet,5,CloseDoor,articulation,close the cabinet door,full_rollout,0,0,0,0,,,0,
+14,Store mug in cabinet,mug_cabinet,0,MoveTo,navigation,move to the mug,full_rollout,1,1,1,1,0.0,0.6311447304508349,10,0.0
+14,Store mug in cabinet,mug_cabinet,1,PickUpFrom,contact-rich,pick up the mug from the counter,full_rollout,1,1,1,1,0.0,0.028018179184663414,14,0.05500298687628954
+14,Store mug in cabinet,mug_cabinet,2,MoveTo,navigation,carry the mug to the cabinet,full_rollout,1,1,1,1,0.0,0.5173865510767064,10,0.1562699682758658
+14,Store mug in cabinet,mug_cabinet,3,OpenDoor,articulation,open the cabinet door,full_rollout,1,1,0,1,0.0,-0.44411672436506194,26,0.1294742818137315
+14,Store mug in cabinet,mug_cabinet,4,PlaceIn,precise placement,place the mug inside the cabinet,full_rollout,0,0,0,0,,,0,
+14,Store mug in cabinet,mug_cabinet,5,CloseDoor,articulation,close the cabinet door,full_rollout,0,0,0,0,,,0,
+15,Store mug in cabinet,mug_cabinet,0,MoveTo,navigation,move to the mug,full_rollout,1,1,1,1,0.0,0.5209709050294933,10,0.0
+15,Store mug in cabinet,mug_cabinet,1,PickUpFrom,contact-rich,pick up the mug from the counter,full_rollout,1,1,0,1,0.0,-0.11282897446647865,28,0.05448159737491386
+15,Store mug in cabinet,mug_cabinet,2,MoveTo,navigation,carry the mug to the cabinet,full_rollout,0,0,0,0,,,0,
+15,Store mug in cabinet,mug_cabinet,3,OpenDoor,articulation,open the cabinet door,full_rollout,0,0,0,0,,,0,
+15,Store mug in cabinet,mug_cabinet,4,PlaceIn,precise placement,place the mug inside the cabinet,full_rollout,0,0,0,0,,,0,
+15,Store mug in cabinet,mug_cabinet,5,CloseDoor,articulation,close the cabinet door,full_rollout,0,0,0,0,,,0,
+16,Store mug in cabinet,mug_cabinet,0,MoveTo,navigation,move to the mug,full_rollout,1,1,1,1,0.0,0.5250467858734061,10,0.0
+16,Store mug in cabinet,mug_cabinet,1,PickUpFrom,contact-rich,pick up the mug from the counter,full_rollout,1,1,0,1,0.0,-0.12363585227985181,30,0.057151439352812236
+16,Store mug in cabinet,mug_cabinet,2,MoveTo,navigation,carry the mug to the cabinet,full_rollout,0,0,0,0,,,0,
+16,Store mug in cabinet,mug_cabinet,3,OpenDoor,articulation,open the cabinet door,full_rollout,0,0,0,0,,,0,
+16,Store mug in cabinet,mug_cabinet,4,PlaceIn,precise placement,place the mug inside the cabinet,full_rollout,0,0,0,0,,,0,
+16,Store mug in cabinet,mug_cabinet,5,CloseDoor,articulation,close the cabinet door,full_rollout,0,0,0,0,,,0,
+17,Store mug in cabinet,mug_cabinet,0,MoveTo,navigation,move to the mug,full_rollout,1,1,1,1,0.0,0.6707100514557133,10,0.0
+17,Store mug in cabinet,mug_cabinet,1,PickUpFrom,contact-rich,pick up the mug from the counter,full_rollout,1,1,0,1,0.0,-0.08437938096613581,30,0.05653129528005011
+17,Store mug in cabinet,mug_cabinet,2,MoveTo,navigation,carry the mug to the cabinet,full_rollout,0,0,0,0,,,0,
+17,Store mug in cabinet,mug_cabinet,3,OpenDoor,articulation,open the cabinet door,full_rollout,0,0,0,0,,,0,
+17,Store mug in cabinet,mug_cabinet,4,PlaceIn,precise placement,place the mug inside the cabinet,full_rollout,0,0,0,0,,,0,
+17,Store mug in cabinet,mug_cabinet,5,CloseDoor,articulation,close the cabinet door,full_rollout,0,0,0,0,,,0,
+18,Microwave the popcorn bag,popcorn_microwave,0,MoveTo,navigation,move to the popcorn bag,full_rollout,1,1,1,1,0.0,0.5845588865807178,10,0.0
+18,Microwave the popcorn bag,popcorn_microwave,1,PickUpFrom,contact-rich,pick up the popcorn bag,full_rollout,1,1,0,1,0.0,-0.08367776182877677,28,0.0551673886533473
+18,Microwave the popcorn bag,popcorn_microwave,2,MoveTo,navigation,carry the popcorn bag to the microwave,full_rollout,0,0,0,0,,,0,
+18,Microwave the popcorn bag,popcorn_microwave,3,OpenDoor,articulation,open the microwave door,full_rollout,0,0,0,0,,,0,
+18,Microwave the popcorn bag,popcorn_microwave,4,PlaceIn,precise placement,place the popcorn bag inside the microwave,full_rollout,0,0,0,0,,,0,
+18,Microwave the popcorn bag,popcorn_microwave,5,CloseDoor,articulation,close the microwave door,full_rollout,0,0,0,0,,,0,
+19,Microwave the popcorn bag,popcorn_microwave,0,MoveTo,navigation,move to the popcorn bag,full_rollout,1,1,1,1,0.0,0.5972918602577922,10,0.0
+19,Microwave the popcorn bag,popcorn_microwave,1,PickUpFrom,contact-rich,pick up the popcorn bag,full_rollout,1,1,1,1,0.0,0.049936272275707225,14,0.05373657099725125
+19,Microwave the popcorn bag,popcorn_microwave,2,MoveTo,navigation,carry the popcorn bag to the microwave,full_rollout,1,1,1,1,0.0,0.5169306344283617,10,0.15683879468328082
+19,Microwave the popcorn bag,popcorn_microwave,3,OpenDoor,articulation,open the microwave door,full_rollout,1,1,0,1,0.0,-0.5869554946973281,26,0.12910527240980604
+19,Microwave the popcorn bag,popcorn_microwave,4,PlaceIn,precise placement,place the popcorn bag inside the microwave,full_rollout,0,0,0,0,,,0,
+19,Microwave the popcorn bag,popcorn_microwave,5,CloseDoor,articulation,close the microwave door,full_rollout,0,0,0,0,,,0,
+20,Microwave the popcorn bag,popcorn_microwave,0,MoveTo,navigation,move to the popcorn bag,full_rollout,1,1,1,1,0.0,0.5727569618050703,10,0.0
+20,Microwave the popcorn bag,popcorn_microwave,1,PickUpFrom,contact-rich,pick up the popcorn bag,full_rollout,1,1,1,1,0.0,0.03211103789453902,14,0.05402171961734162
+20,Microwave the popcorn bag,popcorn_microwave,2,MoveTo,navigation,carry the popcorn bag to the microwave,full_rollout,1,1,1,1,0.0,0.4316935392057193,10,0.15700407118493706
+20,Microwave the popcorn bag,popcorn_microwave,3,OpenDoor,articulation,open the microwave door,full_rollout,1,1,0,1,0.0,-0.5088406266269796,26,0.13037193101965389
+20,Microwave the popcorn bag,popcorn_microwave,4,PlaceIn,precise placement,place the popcorn bag inside the microwave,full_rollout,0,0,0,0,,,0,
+20,Microwave the popcorn bag,popcorn_microwave,5,CloseDoor,articulation,close the microwave door,full_rollout,0,0,0,0,,,0,
+21,Microwave the popcorn bag,popcorn_microwave,0,MoveTo,navigation,move to the popcorn bag,full_rollout,1,1,1,1,0.0,0.32807206219561946,11,0.0
+21,Microwave the popcorn bag,popcorn_microwave,1,PickUpFrom,contact-rich,pick up the popcorn bag,full_rollout,1,1,0,1,0.0,-0.14773103144220898,30,0.06260821946235477
+21,Microwave the popcorn bag,popcorn_microwave,2,MoveTo,navigation,carry the popcorn bag to the microwave,full_rollout,0,0,0,0,,,0,
+21,Microwave the popcorn bag,popcorn_microwave,3,OpenDoor,articulation,open the microwave door,full_rollout,0,0,0,0,,,0,
+21,Microwave the popcorn bag,popcorn_microwave,4,PlaceIn,precise placement,place the popcorn bag inside the microwave,full_rollout,0,0,0,0,,,0,
+21,Microwave the popcorn bag,popcorn_microwave,5,CloseDoor,articulation,close the microwave door,full_rollout,0,0,0,0,,,0,
+22,Microwave the popcorn bag,popcorn_microwave,0,MoveTo,navigation,move to the popcorn bag,full_rollout,1,1,1,1,0.0,0.5331028515081677,10,0.0
+22,Microwave the popcorn bag,popcorn_microwave,1,PickUpFrom,contact-rich,pick up the popcorn bag,full_rollout,1,1,0,1,0.0,-0.15178702499766017,28,0.054506901193361164
+22,Microwave the popcorn bag,popcorn_microwave,2,MoveTo,navigation,carry the popcorn bag to the microwave,full_rollout,0,0,0,0,,,0,
+22,Microwave the popcorn bag,popcorn_microwave,3,OpenDoor,articulation,open the microwave door,full_rollout,0,0,0,0,,,0,
+22,Microwave the popcorn bag,popcorn_microwave,4,PlaceIn,precise placement,place the popcorn bag inside the microwave,full_rollout,0,0,0,0,,,0,
+22,Microwave the popcorn bag,popcorn_microwave,5,CloseDoor,articulation,close the microwave door,full_rollout,0,0,0,0,,,0,
+23,Microwave the popcorn bag,popcorn_microwave,0,MoveTo,navigation,move to the popcorn bag,full_rollout,1,1,1,1,0.0,0.6685279475553737,10,0.0
+23,Microwave the popcorn bag,popcorn_microwave,1,PickUpFrom,contact-rich,pick up the popcorn bag,full_rollout,1,1,0,1,0.0,-0.060110835933265404,28,0.05360394741752493
+23,Microwave the popcorn bag,popcorn_microwave,2,MoveTo,navigation,carry the popcorn bag to the microwave,full_rollout,0,0,0,0,,,0,
+23,Microwave the popcorn bag,popcorn_microwave,3,OpenDoor,articulation,open the microwave door,full_rollout,0,0,0,0,,,0,
+23,Microwave the popcorn bag,popcorn_microwave,4,PlaceIn,precise placement,place the popcorn bag inside the microwave,full_rollout,0,0,0,0,,,0,
+23,Microwave the popcorn bag,popcorn_microwave,5,CloseDoor,articulation,close the microwave door,full_rollout,0,0,0,0,,,0,
+24,Microwave the popcorn bag,popcorn_microwave,0,MoveTo,navigation,move to the popcorn bag,full_rollout,1,1,1,1,0.0,0.49014801206169306,10,0.0
+24,Microwave the popcorn bag,popcorn_microwave,1,PickUpFrom,contact-rich,pick up the popcorn bag,full_rollout,1,1,0,1,0.0,-0.0032054434993246082,28,0.053596978945878414
+24,Microwave the popcorn bag,popcorn_microwave,2,MoveTo,navigation,carry the popcorn bag to the microwave,full_rollout,0,0,0,0,,,0,
+24,Microwave the popcorn bag,popcorn_microwave,3,OpenDoor,articulation,open the microwave door,full_rollout,0,0,0,0,,,0,
+24,Microwave the popcorn bag,popcorn_microwave,4,PlaceIn,precise placement,place the popcorn bag inside the microwave,full_rollout,0,0,0,0,,,0,
+24,Microwave the popcorn bag,popcorn_microwave,5,CloseDoor,articulation,close the microwave door,full_rollout,0,0,0,0,,,0,
+25,Microwave the popcorn bag,popcorn_microwave,0,MoveTo,navigation,move to the popcorn bag,full_rollout,1,1,1,1,0.0,0.599407631586545,10,0.0
+25,Microwave the popcorn bag,popcorn_microwave,1,PickUpFrom,contact-rich,pick up the popcorn bag,full_rollout,1,1,0,1,0.0,-0.007724396570105083,28,0.05622007554491345
+25,Microwave the popcorn bag,popcorn_microwave,2,MoveTo,navigation,carry the popcorn bag to the microwave,full_rollout,0,0,0,0,,,0,
+25,Microwave the popcorn bag,popcorn_microwave,3,OpenDoor,articulation,open the microwave door,full_rollout,0,0,0,0,,,0,
+25,Microwave the popcorn bag,popcorn_microwave,4,PlaceIn,precise placement,place the popcorn bag inside the microwave,full_rollout,0,0,0,0,,,0,
+25,Microwave the popcorn bag,popcorn_microwave,5,CloseDoor,articulation,close the microwave door,full_rollout,0,0,0,0,,,0,
+26,Microwave the popcorn bag,popcorn_microwave,0,MoveTo,navigation,move to the popcorn bag,full_rollout,1,1,1,1,0.0,0.6682460339593955,10,0.0
+26,Microwave the popcorn bag,popcorn_microwave,1,PickUpFrom,contact-rich,pick up the popcorn bag,full_rollout,1,1,1,1,0.0,0.10660488517358774,14,0.052718166806990555
+26,Microwave the popcorn bag,popcorn_microwave,2,MoveTo,navigation,carry the popcorn bag to the microwave,full_rollout,1,1,1,1,0.0,0.3458827819111766,10,0.15300907686903223
+26,Microwave the popcorn bag,popcorn_microwave,3,OpenDoor,articulation,open the microwave door,full_rollout,1,1,0,1,0.0,-0.552320086045101,26,0.12391049525245389
+26,Microwave the popcorn bag,popcorn_microwave,4,PlaceIn,precise placement,place the popcorn bag inside the microwave,full_rollout,0,0,0,0,,,0,
+26,Microwave the popcorn bag,popcorn_microwave,5,CloseDoor,articulation,close the microwave door,full_rollout,0,0,0,0,,,0,
+27,Microwave the popcorn bag,popcorn_microwave,0,MoveTo,navigation,move to the popcorn bag,full_rollout,1,1,1,1,0.0,0.6105923868643859,10,0.0
+27,Microwave the popcorn bag,popcorn_microwave,1,PickUpFrom,contact-rich,pick up the popcorn bag,full_rollout,1,1,0,1,0.0,-0.02844148972277931,28,0.057331011049664725
+27,Microwave the popcorn bag,popcorn_microwave,2,MoveTo,navigation,carry the popcorn bag to the microwave,full_rollout,0,0,0,0,,,0,
+27,Microwave the popcorn bag,popcorn_microwave,3,OpenDoor,articulation,open the microwave door,full_rollout,0,0,0,0,,,0,
+27,Microwave the popcorn bag,popcorn_microwave,4,PlaceIn,precise placement,place the popcorn bag inside the microwave,full_rollout,0,0,0,0,,,0,
+27,Microwave the popcorn bag,popcorn_microwave,5,CloseDoor,articulation,close the microwave door,full_rollout,0,0,0,0,,,0,
+28,Microwave the popcorn bag,popcorn_microwave,0,MoveTo,navigation,move to the popcorn bag,full_rollout,1,1,1,1,0.0,0.6387896138225932,10,0.0
+28,Microwave the popcorn bag,popcorn_microwave,1,PickUpFrom,contact-rich,pick up the popcorn bag,full_rollout,1,1,0,1,0.0,-0.1356625233001913,28,0.05796611223894429
+28,Microwave the popcorn bag,popcorn_microwave,2,MoveTo,navigation,carry the popcorn bag to the microwave,full_rollout,0,0,0,0,,,0,
+28,Microwave the popcorn bag,popcorn_microwave,3,OpenDoor,articulation,open the microwave door,full_rollout,0,0,0,0,,,0,
+28,Microwave the popcorn bag,popcorn_microwave,4,PlaceIn,precise placement,place the popcorn bag inside the microwave,full_rollout,0,0,0,0,,,0,
+28,Microwave the popcorn bag,popcorn_microwave,5,CloseDoor,articulation,close the microwave door,full_rollout,0,0,0,0,,,0,
+29,Microwave the popcorn bag,popcorn_microwave,0,MoveTo,navigation,move to the popcorn bag,full_rollout,1,1,1,1,0.0,0.4969769342837642,10,0.0
+29,Microwave the popcorn bag,popcorn_microwave,1,PickUpFrom,contact-rich,pick up the popcorn bag,full_rollout,1,1,0,1,0.0,-0.06868362384389859,30,0.05891906188318402
+29,Microwave the popcorn bag,popcorn_microwave,2,MoveTo,navigation,carry the popcorn bag to the microwave,full_rollout,0,0,0,0,,,0,
+29,Microwave the popcorn bag,popcorn_microwave,3,OpenDoor,articulation,open the microwave door,full_rollout,0,0,0,0,,,0,
+29,Microwave the popcorn bag,popcorn_microwave,4,PlaceIn,precise placement,place the popcorn bag inside the microwave,full_rollout,0,0,0,0,,,0,
+29,Microwave the popcorn bag,popcorn_microwave,5,CloseDoor,articulation,close the microwave door,full_rollout,0,0,0,0,,,0,
+30,Microwave the popcorn bag,popcorn_microwave,0,MoveTo,navigation,move to the popcorn bag,full_rollout,1,1,1,1,0.0,0.5587136047806364,10,0.0
+30,Microwave the popcorn bag,popcorn_microwave,1,PickUpFrom,contact-rich,pick up the popcorn bag,full_rollout,1,1,1,1,0.0,0.0408357599637522,14,0.06011755653974399
+30,Microwave the popcorn bag,popcorn_microwave,2,MoveTo,navigation,carry the popcorn bag to the microwave,full_rollout,1,1,1,1,0.0,0.36679183361618173,10,0.15988752176646068
+30,Microwave the popcorn bag,popcorn_microwave,3,OpenDoor,articulation,open the microwave door,full_rollout,1,1,0,1,0.0,-0.4042832918142919,28,0.13334483412005238
+30,Microwave the popcorn bag,popcorn_microwave,4,PlaceIn,precise placement,place the popcorn bag inside the microwave,full_rollout,0,0,0,0,,,0,
+30,Microwave the popcorn bag,popcorn_microwave,5,CloseDoor,articulation,close the microwave door,full_rollout,0,0,0,0,,,0,
+31,Microwave the popcorn bag,popcorn_microwave,0,MoveTo,navigation,move to the popcorn bag,full_rollout,1,1,1,1,0.0,0.532109549947264,10,0.0
+31,Microwave the popcorn bag,popcorn_microwave,1,PickUpFrom,contact-rich,pick up the popcorn bag,full_rollout,1,1,1,1,0.0,0.03869859227740168,14,0.05672780180782158
+31,Microwave the popcorn bag,popcorn_microwave,2,MoveTo,navigation,carry the popcorn bag to the microwave,full_rollout,1,1,1,1,0.0,0.4839076125651445,10,0.15956969716086036
+31,Microwave the popcorn bag,popcorn_microwave,3,OpenDoor,articulation,open the microwave door,full_rollout,1,1,0,1,0.0,-0.38308822865794195,26,0.1304278586501587
+31,Microwave the popcorn bag,popcorn_microwave,4,PlaceIn,precise placement,place the popcorn bag inside the microwave,full_rollout,0,0,0,0,,,0,
+31,Microwave the popcorn bag,popcorn_microwave,5,CloseDoor,articulation,close the microwave door,full_rollout,0,0,0,0,,,0,
+32,Microwave the popcorn bag,popcorn_microwave,0,MoveTo,navigation,move to the popcorn bag,full_rollout,1,1,1,1,0.0,0.6260077931426763,10,0.0
+32,Microwave the popcorn bag,popcorn_microwave,1,PickUpFrom,contact-rich,pick up the popcorn bag,full_rollout,1,1,0,1,0.0,-0.028701966582136584,28,0.05654665227864632
+32,Microwave the popcorn bag,popcorn_microwave,2,MoveTo,navigation,carry the popcorn bag to the microwave,full_rollout,0,0,0,0,,,0,
+32,Microwave the popcorn bag,popcorn_microwave,3,OpenDoor,articulation,open the microwave door,full_rollout,0,0,0,0,,,0,
+32,Microwave the popcorn bag,popcorn_microwave,4,PlaceIn,precise placement,place the popcorn bag inside the microwave,full_rollout,0,0,0,0,,,0,
+32,Microwave the popcorn bag,popcorn_microwave,5,CloseDoor,articulation,close the microwave door,full_rollout,0,0,0,0,,,0,
+33,Microwave the popcorn bag,popcorn_microwave,0,MoveTo,navigation,move to the popcorn bag,full_rollout,1,1,1,1,0.0,0.5852735671948983,10,0.0
+33,Microwave the popcorn bag,popcorn_microwave,1,PickUpFrom,contact-rich,pick up the popcorn bag,full_rollout,1,1,0,1,0.0,-0.06784349849667495,30,0.05785804701839513
+33,Microwave the popcorn bag,popcorn_microwave,2,MoveTo,navigation,carry the popcorn bag to the microwave,full_rollout,0,0,0,0,,,0,
+33,Microwave the popcorn bag,popcorn_microwave,3,OpenDoor,articulation,open the microwave door,full_rollout,0,0,0,0,,,0,
+33,Microwave the popcorn bag,popcorn_microwave,4,PlaceIn,precise placement,place the popcorn bag inside the microwave,full_rollout,0,0,0,0,,,0,
+33,Microwave the popcorn bag,popcorn_microwave,5,CloseDoor,articulation,close the microwave door,full_rollout,0,0,0,0,,,0,
+34,Microwave the popcorn bag,popcorn_microwave,0,MoveTo,navigation,move to the popcorn bag,full_rollout,1,1,1,1,0.0,0.663047357942864,10,0.0
+34,Microwave the popcorn bag,popcorn_microwave,1,PickUpFrom,contact-rich,pick up the popcorn bag,full_rollout,1,1,0,1,0.0,-0.015003400873661143,28,0.05561220627722354
+34,Microwave the popcorn bag,popcorn_microwave,2,MoveTo,navigation,carry the popcorn bag to the microwave,full_rollout,0,0,0,0,,,0,
+34,Microwave the popcorn bag,popcorn_microwave,3,OpenDoor,articulation,open the microwave door,full_rollout,0,0,0,0,,,0,
+34,Microwave the popcorn bag,popcorn_microwave,4,PlaceIn,precise placement,place the popcorn bag inside the microwave,full_rollout,0,0,0,0,,,0,
+34,Microwave the popcorn bag,popcorn_microwave,5,CloseDoor,articulation,close the microwave door,full_rollout,0,0,0,0,,,0,
+35,Microwave the popcorn bag,popcorn_microwave,0,MoveTo,navigation,move to the popcorn bag,full_rollout,1,1,1,1,0.0,0.49555858362338556,10,0.0
+35,Microwave the popcorn bag,popcorn_microwave,1,PickUpFrom,contact-rich,pick up the popcorn bag,full_rollout,1,1,0,1,0.0,-0.05662858122595211,28,0.056482763667998065
+35,Microwave the popcorn bag,popcorn_microwave,2,MoveTo,navigation,carry the popcorn bag to the microwave,full_rollout,0,0,0,0,,,0,
+35,Microwave the popcorn bag,popcorn_microwave,3,OpenDoor,articulation,open the microwave door,full_rollout,0,0,0,0,,,0,
+35,Microwave the popcorn bag,popcorn_microwave,4,PlaceIn,precise placement,place the popcorn bag inside the microwave,full_rollout,0,0,0,0,,,0,
+35,Microwave the popcorn bag,popcorn_microwave,5,CloseDoor,articulation,close the microwave door,full_rollout,0,0,0,0,,,0,
+36,Serve water into a bowl,serve_water,0,MoveTo,navigation,move to the cup,full_rollout,1,1,1,1,0.0,0.5629813809568776,10,0.0
+36,Serve water into a bowl,serve_water,1,PickUpFrom,contact-rich,pick up the cup,full_rollout,1,1,0,1,0.0,-0.12611076203745503,30,0.05667156998743426
+36,Serve water into a bowl,serve_water,2,MoveTo,navigation,carry the cup to the bowl,full_rollout,0,0,0,0,,,0,
+36,Serve water into a bowl,serve_water,3,Pour,tool use,pour water from the cup into the bowl,full_rollout,0,0,0,0,,,0,
+36,Serve water into a bowl,serve_water,4,PlaceOn,placement,place the cup back on the coaster,full_rollout,0,0,0,0,,,0,
+36,Serve water into a bowl,serve_water,5,Release,release,release the cup,full_rollout,0,0,0,0,,,0,
+37,Serve water into a bowl,serve_water,0,MoveTo,navigation,move to the cup,full_rollout,1,1,1,1,0.0,0.6090944548378597,10,0.0
+37,Serve water into a bowl,serve_water,1,PickUpFrom,contact-rich,pick up the cup,full_rollout,1,1,0,1,0.0,-0.017872028207565366,30,0.056319290410896755
+37,Serve water into a bowl,serve_water,2,MoveTo,navigation,carry the cup to the bowl,full_rollout,0,0,0,0,,,0,
+37,Serve water into a bowl,serve_water,3,Pour,tool use,pour water from the cup into the bowl,full_rollout,0,0,0,0,,,0,
+37,Serve water into a bowl,serve_water,4,PlaceOn,placement,place the cup back on the coaster,full_rollout,0,0,0,0,,,0,
+37,Serve water into a bowl,serve_water,5,Release,release,release the cup,full_rollout,0,0,0,0,,,0,
+38,Serve water into a bowl,serve_water,0,MoveTo,navigation,move to the cup,full_rollout,1,1,1,1,0.0,0.5822077252294224,10,0.0
+38,Serve water into a bowl,serve_water,1,PickUpFrom,contact-rich,pick up the cup,full_rollout,1,1,0,1,0.0,-0.10667233319722938,30,0.055767312270527766
+38,Serve water into a bowl,serve_water,2,MoveTo,navigation,carry the cup to the bowl,full_rollout,0,0,0,0,,,0,
+38,Serve water into a bowl,serve_water,3,Pour,tool use,pour water from the cup into the bowl,full_rollout,0,0,0,0,,,0,
+38,Serve water into a bowl,serve_water,4,PlaceOn,placement,place the cup back on the coaster,full_rollout,0,0,0,0,,,0,
+38,Serve water into a bowl,serve_water,5,Release,release,release the cup,full_rollout,0,0,0,0,,,0,
+39,Serve water into a bowl,serve_water,0,MoveTo,navigation,move to the cup,full_rollout,1,1,1,1,0.0,0.5152992286106313,10,0.0
+39,Serve water into a bowl,serve_water,1,PickUpFrom,contact-rich,pick up the cup,full_rollout,1,1,0,1,0.0,-0.099522542023382,30,0.05894723849866883
+39,Serve water into a bowl,serve_water,2,MoveTo,navigation,carry the cup to the bowl,full_rollout,0,0,0,0,,,0,
+39,Serve water into a bowl,serve_water,3,Pour,tool use,pour water from the cup into the bowl,full_rollout,0,0,0,0,,,0,
+39,Serve water into a bowl,serve_water,4,PlaceOn,placement,place the cup back on the coaster,full_rollout,0,0,0,0,,,0,
+39,Serve water into a bowl,serve_water,5,Release,release,release the cup,full_rollout,0,0,0,0,,,0,
+40,Serve water into a bowl,serve_water,0,MoveTo,navigation,move to the cup,full_rollout,1,1,1,1,0.0,0.6406022145024968,10,0.0
+40,Serve water into a bowl,serve_water,1,PickUpFrom,contact-rich,pick up the cup,full_rollout,1,1,1,1,0.0,0.021446371068866314,15,0.05620358179516234
+40,Serve water into a bowl,serve_water,2,MoveTo,navigation,carry the cup to the bowl,full_rollout,1,1,1,1,0.0,0.33959695870665696,11,0.1617458670554074
+40,Serve water into a bowl,serve_water,3,Pour,tool use,pour water from the cup into the bowl,full_rollout,1,1,0,1,0.0,-0.7540407109684569,36,0.13433502340508657
+40,Serve water into a bowl,serve_water,4,PlaceOn,placement,place the cup back on the coaster,full_rollout,0,0,0,0,,,0,
+40,Serve water into a bowl,serve_water,5,Release,release,release the cup,full_rollout,0,0,0,0,,,0,
+41,Serve water into a bowl,serve_water,0,MoveTo,navigation,move to the cup,full_rollout,1,1,1,1,0.0,0.6217786914769593,10,0.0
+41,Serve water into a bowl,serve_water,1,PickUpFrom,contact-rich,pick up the cup,full_rollout,1,1,0,1,0.0,-0.08698832013304643,30,0.057514070777166755
+41,Serve water into a bowl,serve_water,2,MoveTo,navigation,carry the cup to the bowl,full_rollout,0,0,0,0,,,0,
+41,Serve water into a bowl,serve_water,3,Pour,tool use,pour water from the cup into the bowl,full_rollout,0,0,0,0,,,0,
+41,Serve water into a bowl,serve_water,4,PlaceOn,placement,place the cup back on the coaster,full_rollout,0,0,0,0,,,0,
+41,Serve water into a bowl,serve_water,5,Release,release,release the cup,full_rollout,0,0,0,0,,,0,
+42,Serve water into a bowl,serve_water,0,MoveTo,navigation,move to the cup,full_rollout,1,1,1,1,0.0,0.5079866778155657,11,0.0
+42,Serve water into a bowl,serve_water,1,PickUpFrom,contact-rich,pick up the cup,full_rollout,1,1,0,1,0.0,-0.14192614008473356,30,0.058765763951891925
+42,Serve water into a bowl,serve_water,2,MoveTo,navigation,carry the cup to the bowl,full_rollout,0,0,0,0,,,0,
+42,Serve water into a bowl,serve_water,3,Pour,tool use,pour water from the cup into the bowl,full_rollout,0,0,0,0,,,0,
+42,Serve water into a bowl,serve_water,4,PlaceOn,placement,place the cup back on the coaster,full_rollout,0,0,0,0,,,0,
+42,Serve water into a bowl,serve_water,5,Release,release,release the cup,full_rollout,0,0,0,0,,,0,
+43,Serve water into a bowl,serve_water,0,MoveTo,navigation,move to the cup,full_rollout,1,1,1,1,0.0,0.6818535103673808,10,0.0
+43,Serve water into a bowl,serve_water,1,PickUpFrom,contact-rich,pick up the cup,full_rollout,1,1,1,1,0.0,0.13637576034699772,14,0.05323070740381695
+43,Serve water into a bowl,serve_water,2,MoveTo,navigation,carry the cup to the bowl,full_rollout,1,1,1,1,0.0,0.5300782502051805,10,0.1512061612935697
+43,Serve water into a bowl,serve_water,3,Pour,tool use,pour water from the cup into the bowl,full_rollout,1,1,0,1,0.0,-0.7393535436156674,34,0.12575356647301505
+43,Serve water into a bowl,serve_water,4,PlaceOn,placement,place the cup back on the coaster,full_rollout,0,0,0,0,,,0,
+43,Serve water into a bowl,serve_water,5,Release,release,release the cup,full_rollout,0,0,0,0,,,0,
+44,Serve water into a bowl,serve_water,0,MoveTo,navigation,move to the cup,full_rollout,1,1,1,1,0.0,0.5540912221027015,10,0.0
+44,Serve water into a bowl,serve_water,1,PickUpFrom,contact-rich,pick up the cup,full_rollout,1,1,0,1,0.0,-0.07152048244913689,28,0.05642673212000148
+44,Serve water into a bowl,serve_water,2,MoveTo,navigation,carry the cup to the bowl,full_rollout,0,0,0,0,,,0,
+44,Serve water into a bowl,serve_water,3,Pour,tool use,pour water from the cup into the bowl,full_rollout,0,0,0,0,,,0,
+44,Serve water into a bowl,serve_water,4,PlaceOn,placement,place the cup back on the coaster,full_rollout,0,0,0,0,,,0,
+44,Serve water into a bowl,serve_water,5,Release,release,release the cup,full_rollout,0,0,0,0,,,0,
+45,Serve water into a bowl,serve_water,0,MoveTo,navigation,move to the cup,full_rollout,1,1,1,1,0.0,0.5142380248456606,10,0.0
+45,Serve water into a bowl,serve_water,1,PickUpFrom,contact-rich,pick up the cup,full_rollout,1,1,0,1,0.0,-0.1635756540070227,30,0.05567875950543659
+45,Serve water into a bowl,serve_water,2,MoveTo,navigation,carry the cup to the bowl,full_rollout,0,0,0,0,,,0,
+45,Serve water into a bowl,serve_water,3,Pour,tool use,pour water from the cup into the bowl,full_rollout,0,0,0,0,,,0,
+45,Serve water into a bowl,serve_water,4,PlaceOn,placement,place the cup back on the coaster,full_rollout,0,0,0,0,,,0,
+45,Serve water into a bowl,serve_water,5,Release,release,release the cup,full_rollout,0,0,0,0,,,0,
+46,Serve water into a bowl,serve_water,0,MoveTo,navigation,move to the cup,full_rollout,1,1,1,1,0.0,0.6031016944747404,10,0.0
+46,Serve water into a bowl,serve_water,1,PickUpFrom,contact-rich,pick up the cup,full_rollout,1,1,0,1,0.0,-0.18374353395445533,30,0.05609260665519859
+46,Serve water into a bowl,serve_water,2,MoveTo,navigation,carry the cup to the bowl,full_rollout,0,0,0,0,,,0,
+46,Serve water into a bowl,serve_water,3,Pour,tool use,pour water from the cup into the bowl,full_rollout,0,0,0,0,,,0,
+46,Serve water into a bowl,serve_water,4,PlaceOn,placement,place the cup back on the coaster,full_rollout,0,0,0,0,,,0,
+46,Serve water into a bowl,serve_water,5,Release,release,release the cup,full_rollout,0,0,0,0,,,0,
+47,Serve water into a bowl,serve_water,0,MoveTo,navigation,move to the cup,full_rollout,1,1,1,1,0.0,0.6154015792824183,10,0.0
+47,Serve water into a bowl,serve_water,1,PickUpFrom,contact-rich,pick up the cup,full_rollout,1,1,0,1,0.0,-0.09082142956041886,28,0.055494073101024596
+47,Serve water into a bowl,serve_water,2,MoveTo,navigation,carry the cup to the bowl,full_rollout,0,0,0,0,,,0,
+47,Serve water into a bowl,serve_water,3,Pour,tool use,pour water from the cup into the bowl,full_rollout,0,0,0,0,,,0,
+47,Serve water into a bowl,serve_water,4,PlaceOn,placement,place the cup back on the coaster,full_rollout,0,0,0,0,,,0,
+47,Serve water into a bowl,serve_water,5,Release,release,release the cup,full_rollout,0,0,0,0,,,0,
+48,Serve water into a bowl,serve_water,0,MoveTo,navigation,move to the cup,full_rollout,1,1,1,1,0.0,0.6864877813698522,10,0.0
+48,Serve water into a bowl,serve_water,1,PickUpFrom,contact-rich,pick up the cup,full_rollout,1,1,0,1,0.0,-0.08897959560556652,30,0.0505555052460135
+48,Serve water into a bowl,serve_water,2,MoveTo,navigation,carry the cup to the bowl,full_rollout,0,0,0,0,,,0,
+48,Serve water into a bowl,serve_water,3,Pour,tool use,pour water from the cup into the bowl,full_rollout,0,0,0,0,,,0,
+48,Serve water into a bowl,serve_water,4,PlaceOn,placement,place the cup back on the coaster,full_rollout,0,0,0,0,,,0,
+48,Serve water into a bowl,serve_water,5,Release,release,release the cup,full_rollout,0,0,0,0,,,0,
+49,Serve water into a bowl,serve_water,0,MoveTo,navigation,move to the cup,full_rollout,1,1,1,1,0.0,0.5602588758971276,10,0.0
+49,Serve water into a bowl,serve_water,1,PickUpFrom,contact-rich,pick up the cup,full_rollout,1,1,0,1,0.0,-0.16991623470758713,28,0.05821369487212446
+49,Serve water into a bowl,serve_water,2,MoveTo,navigation,carry the cup to the bowl,full_rollout,0,0,0,0,,,0,
+49,Serve water into a bowl,serve_water,3,Pour,tool use,pour water from the cup into the bowl,full_rollout,0,0,0,0,,,0,
+49,Serve water into a bowl,serve_water,4,PlaceOn,placement,place the cup back on the coaster,full_rollout,0,0,0,0,,,0,
+49,Serve water into a bowl,serve_water,5,Release,release,release the cup,full_rollout,0,0,0,0,,,0,
+50,Serve water into a bowl,serve_water,0,MoveTo,navigation,move to the cup,full_rollout,1,1,1,1,0.0,0.5916394749431192,10,0.0
+50,Serve water into a bowl,serve_water,1,PickUpFrom,contact-rich,pick up the cup,full_rollout,1,1,0,1,0.0,-0.03601122287766695,28,0.057232530409790275
+50,Serve water into a bowl,serve_water,2,MoveTo,navigation,carry the cup to the bowl,full_rollout,0,0,0,0,,,0,
+50,Serve water into a bowl,serve_water,3,Pour,tool use,pour water from the cup into the bowl,full_rollout,0,0,0,0,,,0,
+50,Serve water into a bowl,serve_water,4,PlaceOn,placement,place the cup back on the coaster,full_rollout,0,0,0,0,,,0,
+50,Serve water into a bowl,serve_water,5,Release,release,release the cup,full_rollout,0,0,0,0,,,0,
+51,Serve water into a bowl,serve_water,0,MoveTo,navigation,move to the cup,full_rollout,1,1,1,1,0.0,0.6225366184645202,10,0.0
+51,Serve water into a bowl,serve_water,1,PickUpFrom,contact-rich,pick up the cup,full_rollout,1,1,0,1,0.0,-0.04887761618190796,28,0.0516179769715539
+51,Serve water into a bowl,serve_water,2,MoveTo,navigation,carry the cup to the bowl,full_rollout,0,0,0,0,,,0,
+51,Serve water into a bowl,serve_water,3,Pour,tool use,pour water from the cup into the bowl,full_rollout,0,0,0,0,,,0,
+51,Serve water into a bowl,serve_water,4,PlaceOn,placement,place the cup back on the coaster,full_rollout,0,0,0,0,,,0,
+51,Serve water into a bowl,serve_water,5,Release,release,release the cup,full_rollout,0,0,0,0,,,0,
+52,Serve water into a bowl,serve_water,0,MoveTo,navigation,move to the cup,full_rollout,1,1,1,1,0.0,0.5922185900650386,10,0.0
+52,Serve water into a bowl,serve_water,1,PickUpFrom,contact-rich,pick up the cup,full_rollout,1,1,0,1,0.0,-0.042808716102916713,28,0.053523356129712464
+52,Serve water into a bowl,serve_water,2,MoveTo,navigation,carry the cup to the bowl,full_rollout,0,0,0,0,,,0,
+52,Serve water into a bowl,serve_water,3,Pour,tool use,pour water from the cup into the bowl,full_rollout,0,0,0,0,,,0,
+52,Serve water into a bowl,serve_water,4,PlaceOn,placement,place the cup back on the coaster,full_rollout,0,0,0,0,,,0,
+52,Serve water into a bowl,serve_water,5,Release,release,release the cup,full_rollout,0,0,0,0,,,0,
+53,Serve water into a bowl,serve_water,0,MoveTo,navigation,move to the cup,full_rollout,1,1,1,1,0.0,0.5562540680712291,10,0.0
+53,Serve water into a bowl,serve_water,1,PickUpFrom,contact-rich,pick up the cup,full_rollout,1,1,0,1,0.0,-0.004820136559252475,30,0.05860287482974602
+53,Serve water into a bowl,serve_water,2,MoveTo,navigation,carry the cup to the bowl,full_rollout,0,0,0,0,,,0,
+53,Serve water into a bowl,serve_water,3,Pour,tool use,pour water from the cup into the bowl,full_rollout,0,0,0,0,,,0,
+53,Serve water into a bowl,serve_water,4,PlaceOn,placement,place the cup back on the coaster,full_rollout,0,0,0,0,,,0,
+53,Serve water into a bowl,serve_water,5,Release,release,release the cup,full_rollout,0,0,0,0,,,0,
+54,Wipe the table and return the sponge,wipe_table,0,MoveTo,navigation,move to the sponge,full_rollout,1,1,1,1,0.0,0.6098373518590514,10,0.0
+54,Wipe the table and return the sponge,wipe_table,1,PickUpFrom,contact-rich,pick up the sponge,full_rollout,1,1,0,1,0.0,-0.07012831196956945,28,0.05611361818665739
+54,Wipe the table and return the sponge,wipe_table,2,SweepSurface,contact-rich,wipe the marked table area,full_rollout,0,0,0,0,,,0,
+54,Wipe the table and return the sponge,wipe_table,3,MoveTo,navigation,carry the sponge to the tray,full_rollout,0,0,0,0,,,0,
+54,Wipe the table and return the sponge,wipe_table,4,PlaceOn,placement,place the sponge on the tray,full_rollout,0,0,0,0,,,0,
+54,Wipe the table and return the sponge,wipe_table,5,Release,release,release the sponge,full_rollout,0,0,0,0,,,0,
+55,Wipe the table and return the sponge,wipe_table,0,MoveTo,navigation,move to the sponge,full_rollout,1,1,1,1,0.0,0.513519606419048,10,0.0
+55,Wipe the table and return the sponge,wipe_table,1,PickUpFrom,contact-rich,pick up the sponge,full_rollout,1,1,0,1,0.0,-0.0666714801029424,28,0.05149724107760062
+55,Wipe the table and return the sponge,wipe_table,2,SweepSurface,contact-rich,wipe the marked table area,full_rollout,0,0,0,0,,,0,
+55,Wipe the table and return the sponge,wipe_table,3,MoveTo,navigation,carry the sponge to the tray,full_rollout,0,0,0,0,,,0,
+55,Wipe the table and return the sponge,wipe_table,4,PlaceOn,placement,place the sponge on the tray,full_rollout,0,0,0,0,,,0,
+55,Wipe the table and return the sponge,wipe_table,5,Release,release,release the sponge,full_rollout,0,0,0,0,,,0,
+56,Wipe the table and return the sponge,wipe_table,0,MoveTo,navigation,move to the sponge,full_rollout,1,1,1,1,0.0,0.5883867275565295,10,0.0
+56,Wipe the table and return the sponge,wipe_table,1,PickUpFrom,contact-rich,pick up the sponge,full_rollout,1,1,0,1,0.0,-0.09000105337806355,28,0.05561116254699655
+56,Wipe the table and return the sponge,wipe_table,2,SweepSurface,contact-rich,wipe the marked table area,full_rollout,0,0,0,0,,,0,
+56,Wipe the table and return the sponge,wipe_table,3,MoveTo,navigation,carry the sponge to the tray,full_rollout,0,0,0,0,,,0,
+56,Wipe the table and return the sponge,wipe_table,4,PlaceOn,placement,place the sponge on the tray,full_rollout,0,0,0,0,,,0,
+56,Wipe the table and return the sponge,wipe_table,5,Release,release,release the sponge,full_rollout,0,0,0,0,,,0,
+57,Wipe the table and return the sponge,wipe_table,0,MoveTo,navigation,move to the sponge,full_rollout,1,1,1,1,0.0,0.5617945533732899,10,0.0
+57,Wipe the table and return the sponge,wipe_table,1,PickUpFrom,contact-rich,pick up the sponge,full_rollout,1,1,0,1,0.0,-0.05266043432524027,28,0.055283122452910366
+57,Wipe the table and return the sponge,wipe_table,2,SweepSurface,contact-rich,wipe the marked table area,full_rollout,0,0,0,0,,,0,
+57,Wipe the table and return the sponge,wipe_table,3,MoveTo,navigation,carry the sponge to the tray,full_rollout,0,0,0,0,,,0,
+57,Wipe the table and return the sponge,wipe_table,4,PlaceOn,placement,place the sponge on the tray,full_rollout,0,0,0,0,,,0,
+57,Wipe the table and return the sponge,wipe_table,5,Release,release,release the sponge,full_rollout,0,0,0,0,,,0,
+58,Wipe the table and return the sponge,wipe_table,0,MoveTo,navigation,move to the sponge,full_rollout,1,1,1,1,0.0,0.5979899582680892,10,0.0
+58,Wipe the table and return the sponge,wipe_table,1,PickUpFrom,contact-rich,pick up the sponge,full_rollout,1,1,0,1,0.0,-0.03202902248259965,30,0.05267927579141676
+58,Wipe the table and return the sponge,wipe_table,2,SweepSurface,contact-rich,wipe the marked table area,full_rollout,0,0,0,0,,,0,
+58,Wipe the table and return the sponge,wipe_table,3,MoveTo,navigation,carry the sponge to the tray,full_rollout,0,0,0,0,,,0,
+58,Wipe the table and return the sponge,wipe_table,4,PlaceOn,placement,place the sponge on the tray,full_rollout,0,0,0,0,,,0,
+58,Wipe the table and return the sponge,wipe_table,5,Release,release,release the sponge,full_rollout,0,0,0,0,,,0,
+59,Wipe the table and return the sponge,wipe_table,0,MoveTo,navigation,move to the sponge,full_rollout,1,1,1,1,0.0,0.6648784020996705,10,0.0
+59,Wipe the table and return the sponge,wipe_table,1,PickUpFrom,contact-rich,pick up the sponge,full_rollout,1,1,0,1,0.0,-0.029099109357969354,28,0.05603033848166351
+59,Wipe the table and return the sponge,wipe_table,2,SweepSurface,contact-rich,wipe the marked table area,full_rollout,0,0,0,0,,,0,
+59,Wipe the table and return the sponge,wipe_table,3,MoveTo,navigation,carry the sponge to the tray,full_rollout,0,0,0,0,,,0,
+59,Wipe the table and return the sponge,wipe_table,4,PlaceOn,placement,place the sponge on the tray,full_rollout,0,0,0,0,,,0,
+59,Wipe the table and return the sponge,wipe_table,5,Release,release,release the sponge,full_rollout,0,0,0,0,,,0,
+60,Wipe the table and return the sponge,wipe_table,0,MoveTo,navigation,move to the sponge,full_rollout,1,1,1,1,0.0,0.556223702852579,10,0.0
+60,Wipe the table and return the sponge,wipe_table,1,PickUpFrom,contact-rich,pick up the sponge,full_rollout,1,1,1,1,0.0,0.004082390287374175,14,0.05326761876762742
+60,Wipe the table and return the sponge,wipe_table,2,SweepSurface,contact-rich,wipe the marked table area,full_rollout,1,1,0,1,0.0,-0.21097047017602816,30,0.16001852366153468
+60,Wipe the table and return the sponge,wipe_table,3,MoveTo,navigation,carry the sponge to the tray,full_rollout,0,0,0,0,,,0,
+60,Wipe the table and return the sponge,wipe_table,4,PlaceOn,placement,place the sponge on the tray,full_rollout,0,0,0,0,,,0,
+60,Wipe the table and return the sponge,wipe_table,5,Release,release,release the sponge,full_rollout,0,0,0,0,,,0,
+61,Wipe the table and return the sponge,wipe_table,0,MoveTo,navigation,move to the sponge,full_rollout,1,1,1,1,0.0,0.6447052830981825,10,0.0
+61,Wipe the table and return the sponge,wipe_table,1,PickUpFrom,contact-rich,pick up the sponge,full_rollout,1,1,1,1,0.0,0.01295680747850653,14,0.055576128001713236
+61,Wipe the table and return the sponge,wipe_table,2,SweepSurface,contact-rich,wipe the marked table area,full_rollout,1,1,0,1,0.0,-0.0817969130442413,30,0.15968338420904052
+61,Wipe the table and return the sponge,wipe_table,3,MoveTo,navigation,carry the sponge to the tray,full_rollout,0,0,0,0,,,0,
+61,Wipe the table and return the sponge,wipe_table,4,PlaceOn,placement,place the sponge on the tray,full_rollout,0,0,0,0,,,0,
+61,Wipe the table and return the sponge,wipe_table,5,Release,release,release the sponge,full_rollout,0,0,0,0,,,0,
+62,Wipe the table and return the sponge,wipe_table,0,MoveTo,navigation,move to the sponge,full_rollout,1,1,1,1,0.0,0.623346154190176,10,0.0
+62,Wipe the table and return the sponge,wipe_table,1,PickUpFrom,contact-rich,pick up the sponge,full_rollout,1,1,1,1,0.0,0.019049480460127846,14,0.057223753828288024
+62,Wipe the table and return the sponge,wipe_table,2,SweepSurface,contact-rich,wipe the marked table area,full_rollout,1,1,0,1,0.0,-0.2318625136202426,30,0.16420891051738082
+62,Wipe the table and return the sponge,wipe_table,3,MoveTo,navigation,carry the sponge to the tray,full_rollout,0,0,0,0,,,0,
+62,Wipe the table and return the sponge,wipe_table,4,PlaceOn,placement,place the sponge on the tray,full_rollout,0,0,0,0,,,0,
+62,Wipe the table and return the sponge,wipe_table,5,Release,release,release the sponge,full_rollout,0,0,0,0,,,0,
+63,Wipe the table and return the sponge,wipe_table,0,MoveTo,navigation,move to the sponge,full_rollout,1,1,1,1,0.0,0.4535693334046622,10,0.0
+63,Wipe the table and return the sponge,wipe_table,1,PickUpFrom,contact-rich,pick up the sponge,full_rollout,1,1,0,1,0.0,-0.022300558861594974,30,0.05747794428899249
+63,Wipe the table and return the sponge,wipe_table,2,SweepSurface,contact-rich,wipe the marked table area,full_rollout,0,0,0,0,,,0,
+63,Wipe the table and return the sponge,wipe_table,3,MoveTo,navigation,carry the sponge to the tray,full_rollout,0,0,0,0,,,0,
+63,Wipe the table and return the sponge,wipe_table,4,PlaceOn,placement,place the sponge on the tray,full_rollout,0,0,0,0,,,0,
+63,Wipe the table and return the sponge,wipe_table,5,Release,release,release the sponge,full_rollout,0,0,0,0,,,0,
+64,Wipe the table and return the sponge,wipe_table,0,MoveTo,navigation,move to the sponge,full_rollout,1,1,1,1,0.0,0.610361524410234,10,0.0
+64,Wipe the table and return the sponge,wipe_table,1,PickUpFrom,contact-rich,pick up the sponge,full_rollout,1,1,1,1,0.0,0.042648044307948725,14,0.053835025873430774
+64,Wipe the table and return the sponge,wipe_table,2,SweepSurface,contact-rich,wipe the marked table area,full_rollout,1,1,0,1,0.0,-0.17414945497923912,32,0.1613520695723069
+64,Wipe the table and return the sponge,wipe_table,3,MoveTo,navigation,carry the sponge to the tray,full_rollout,0,0,0,0,,,0,
+64,Wipe the table and return the sponge,wipe_table,4,PlaceOn,placement,place the sponge on the tray,full_rollout,0,0,0,0,,,0,
+64,Wipe the table and return the sponge,wipe_table,5,Release,release,release the sponge,full_rollout,0,0,0,0,,,0,
+65,Wipe the table and return the sponge,wipe_table,0,MoveTo,navigation,move to the sponge,full_rollout,1,1,1,1,0.0,0.5255567705088893,10,0.0
+65,Wipe the table and return the sponge,wipe_table,1,PickUpFrom,contact-rich,pick up the sponge,full_rollout,1,1,1,1,0.0,0.020807014695837407,14,0.0526450277560719
+65,Wipe the table and return the sponge,wipe_table,2,SweepSurface,contact-rich,wipe the marked table area,full_rollout,1,1,0,1,0.0,-0.2708866936323841,32,0.16133249333772354
+65,Wipe the table and return the sponge,wipe_table,3,MoveTo,navigation,carry the sponge to the tray,full_rollout,0,0,0,0,,,0,
+65,Wipe the table and return the sponge,wipe_table,4,PlaceOn,placement,place the sponge on the tray,full_rollout,0,0,0,0,,,0,
+65,Wipe the table and return the sponge,wipe_table,5,Release,release,release the sponge,full_rollout,0,0,0,0,,,0,
+66,Wipe the table and return the sponge,wipe_table,0,MoveTo,navigation,move to the sponge,full_rollout,1,1,1,1,0.0,0.666529923755398,10,0.0
+66,Wipe the table and return the sponge,wipe_table,1,PickUpFrom,contact-rich,pick up the sponge,full_rollout,1,1,1,1,0.0,0.027921061570617738,14,0.05130524762729953
+66,Wipe the table and return the sponge,wipe_table,2,SweepSurface,contact-rich,wipe the marked table area,full_rollout,1,1,0,1,0.0,-0.20672207983363444,30,0.15667430044437738
+66,Wipe the table and return the sponge,wipe_table,3,MoveTo,navigation,carry the sponge to the tray,full_rollout,0,0,0,0,,,0,
+66,Wipe the table and return the sponge,wipe_table,4,PlaceOn,placement,place the sponge on the tray,full_rollout,0,0,0,0,,,0,
+66,Wipe the table and return the sponge,wipe_table,5,Release,release,release the sponge,full_rollout,0,0,0,0,,,0,
+67,Wipe the table and return the sponge,wipe_table,0,MoveTo,navigation,move to the sponge,full_rollout,1,1,1,1,0.0,0.6379031241273704,10,0.0
+67,Wipe the table and return the sponge,wipe_table,1,PickUpFrom,contact-rich,pick up the sponge,full_rollout,1,1,1,1,0.0,0.03718420323608837,14,0.05620910198217653
+67,Wipe the table and return the sponge,wipe_table,2,SweepSurface,contact-rich,wipe the marked table area,full_rollout,1,1,0,1,0.0,-0.1583893883649914,30,0.16481681567052348
+67,Wipe the table and return the sponge,wipe_table,3,MoveTo,navigation,carry the sponge to the tray,full_rollout,0,0,0,0,,,0,
+67,Wipe the table and return the sponge,wipe_table,4,PlaceOn,placement,place the sponge on the tray,full_rollout,0,0,0,0,,,0,
+67,Wipe the table and return the sponge,wipe_table,5,Release,release,release the sponge,full_rollout,0,0,0,0,,,0,
+68,Wipe the table and return the sponge,wipe_table,0,MoveTo,navigation,move to the sponge,full_rollout,1,1,1,1,0.0,0.607252426700422,10,0.0
+68,Wipe the table and return the sponge,wipe_table,1,PickUpFrom,contact-rich,pick up the sponge,full_rollout,1,1,1,1,0.0,0.009814350183211175,14,0.05459021796853071
+68,Wipe the table and return the sponge,wipe_table,2,SweepSurface,contact-rich,wipe the marked table area,full_rollout,1,1,0,1,0.0,-0.28362984893715115,30,0.16172771793465174
+68,Wipe the table and return the sponge,wipe_table,3,MoveTo,navigation,carry the sponge to the tray,full_rollout,0,0,0,0,,,0,
+68,Wipe the table and return the sponge,wipe_table,4,PlaceOn,placement,place the sponge on the tray,full_rollout,0,0,0,0,,,0,
+68,Wipe the table and return the sponge,wipe_table,5,Release,release,release the sponge,full_rollout,0,0,0,0,,,0,
+69,Wipe the table and return the sponge,wipe_table,0,MoveTo,navigation,move to the sponge,full_rollout,1,1,1,1,0.0,0.41291020861479005,10,0.0
+69,Wipe the table and return the sponge,wipe_table,1,PickUpFrom,contact-rich,pick up the sponge,full_rollout,1,1,1,1,0.0,0.029481079865423532,15,0.056229252126085746
+69,Wipe the table and return the sponge,wipe_table,2,SweepSurface,contact-rich,wipe the marked table area,full_rollout,1,1,0,1,0.0,-0.28149626651140885,30,0.16490571259081163
+69,Wipe the table and return the sponge,wipe_table,3,MoveTo,navigation,carry the sponge to the tray,full_rollout,0,0,0,0,,,0,
+69,Wipe the table and return the sponge,wipe_table,4,PlaceOn,placement,place the sponge on the tray,full_rollout,0,0,0,0,,,0,
+69,Wipe the table and return the sponge,wipe_table,5,Release,release,release the sponge,full_rollout,0,0,0,0,,,0,
+70,Wipe the table and return the sponge,wipe_table,0,MoveTo,navigation,move to the sponge,full_rollout,1,1,1,1,0.0,0.6410824052357703,10,0.0
+70,Wipe the table and return the sponge,wipe_table,1,PickUpFrom,contact-rich,pick up the sponge,full_rollout,1,1,0,1,0.0,-0.0022262262698283034,28,0.05512982855926847
+70,Wipe the table and return the sponge,wipe_table,2,SweepSurface,contact-rich,wipe the marked table area,full_rollout,0,0,0,0,,,0,
+70,Wipe the table and return the sponge,wipe_table,3,MoveTo,navigation,carry the sponge to the tray,full_rollout,0,0,0,0,,,0,
+70,Wipe the table and return the sponge,wipe_table,4,PlaceOn,placement,place the sponge on the tray,full_rollout,0,0,0,0,,,0,
+70,Wipe the table and return the sponge,wipe_table,5,Release,release,release the sponge,full_rollout,0,0,0,0,,,0,
+71,Wipe the table and return the sponge,wipe_table,0,MoveTo,navigation,move to the sponge,full_rollout,1,1,1,1,0.0,0.7028032863221376,10,0.0
+71,Wipe the table and return the sponge,wipe_table,1,PickUpFrom,contact-rich,pick up the sponge,full_rollout,1,1,1,1,0.0,0.06814561872590758,14,0.05558360038280497
+71,Wipe the table and return the sponge,wipe_table,2,SweepSurface,contact-rich,wipe the marked table area,full_rollout,1,1,0,1,0.0,-0.14350016081885758,30,0.16021318824245256
+71,Wipe the table and return the sponge,wipe_table,3,MoveTo,navigation,carry the sponge to the tray,full_rollout,0,0,0,0,,,0,
+71,Wipe the table and return the sponge,wipe_table,4,PlaceOn,placement,place the sponge on the tray,full_rollout,0,0,0,0,,,0,
+71,Wipe the table and return the sponge,wipe_table,5,Release,release,release the sponge,full_rollout,0,0,0,0,,,0,
+72,Attach the camera to the tripod,camera_tripod,0,MoveTo,navigation,move to the camera,full_rollout,1,1,1,1,0.0,0.6731505538315395,10,0.0
+72,Attach the camera to the tripod,camera_tripod,1,PickUpFrom,contact-rich,pick up the camera,full_rollout,1,1,0,1,0.0,-0.003018514439863045,30,0.06035799529090113
+72,Attach the camera to the tripod,camera_tripod,2,MoveTo,navigation,carry the camera to the tripod,full_rollout,0,0,0,0,,,0,
+72,Attach the camera to the tripod,camera_tripod,3,Attach,tool use,attach the camera to the tripod,full_rollout,0,0,0,0,,,0,
+72,Attach the camera to the tripod,camera_tripod,4,Release,release,release the camera,full_rollout,0,0,0,0,,,0,
+73,Attach the camera to the tripod,camera_tripod,0,MoveTo,navigation,move to the camera,full_rollout,1,1,1,1,0.0,0.4560977892722384,11,0.0
+73,Attach the camera to the tripod,camera_tripod,1,PickUpFrom,contact-rich,pick up the camera,full_rollout,1,1,0,1,0.0,-0.1460137145354543,30,0.057000637600906866
+73,Attach the camera to the tripod,camera_tripod,2,MoveTo,navigation,carry the camera to the tripod,full_rollout,0,0,0,0,,,0,
+73,Attach the camera to the tripod,camera_tripod,3,Attach,tool use,attach the camera to the tripod,full_rollout,0,0,0,0,,,0,
+73,Attach the camera to the tripod,camera_tripod,4,Release,release,release the camera,full_rollout,0,0,0,0,,,0,
+74,Attach the camera to the tripod,camera_tripod,0,MoveTo,navigation,move to the camera,full_rollout,1,1,1,1,0.0,0.6098462685731534,10,0.0
+74,Attach the camera to the tripod,camera_tripod,1,PickUpFrom,contact-rich,pick up the camera,full_rollout,1,1,0,1,0.0,-0.19339076576310088,30,0.05803351387013583
+74,Attach the camera to the tripod,camera_tripod,2,MoveTo,navigation,carry the camera to the tripod,full_rollout,0,0,0,0,,,0,
+74,Attach the camera to the tripod,camera_tripod,3,Attach,tool use,attach the camera to the tripod,full_rollout,0,0,0,0,,,0,
+74,Attach the camera to the tripod,camera_tripod,4,Release,release,release the camera,full_rollout,0,0,0,0,,,0,
+75,Attach the camera to the tripod,camera_tripod,0,MoveTo,navigation,move to the camera,full_rollout,1,1,1,1,0.0,0.5789867918264724,10,0.0
+75,Attach the camera to the tripod,camera_tripod,1,PickUpFrom,contact-rich,pick up the camera,full_rollout,1,1,0,1,0.0,-0.2468371801762823,30,0.0606234640864616
+75,Attach the camera to the tripod,camera_tripod,2,MoveTo,navigation,carry the camera to the tripod,full_rollout,0,0,0,0,,,0,
+75,Attach the camera to the tripod,camera_tripod,3,Attach,tool use,attach the camera to the tripod,full_rollout,0,0,0,0,,,0,
+75,Attach the camera to the tripod,camera_tripod,4,Release,release,release the camera,full_rollout,0,0,0,0,,,0,
+76,Attach the camera to the tripod,camera_tripod,0,MoveTo,navigation,move to the camera,full_rollout,1,1,1,1,0.0,0.5636039736586126,11,0.0
+76,Attach the camera to the tripod,camera_tripod,1,PickUpFrom,contact-rich,pick up the camera,full_rollout,1,1,0,1,0.0,-0.16849483011607064,30,0.06305269883054179
+76,Attach the camera to the tripod,camera_tripod,2,MoveTo,navigation,carry the camera to the tripod,full_rollout,0,0,0,0,,,0,
+76,Attach the camera to the tripod,camera_tripod,3,Attach,tool use,attach the camera to the tripod,full_rollout,0,0,0,0,,,0,
+76,Attach the camera to the tripod,camera_tripod,4,Release,release,release the camera,full_rollout,0,0,0,0,,,0,
+77,Attach the camera to the tripod,camera_tripod,0,MoveTo,navigation,move to the camera,full_rollout,1,1,1,1,0.0,0.462389793829563,11,0.0
+77,Attach the camera to the tripod,camera_tripod,1,PickUpFrom,contact-rich,pick up the camera,full_rollout,1,1,0,1,0.0,-0.3153015175713376,30,0.05993425063593645
+77,Attach the camera to the tripod,camera_tripod,2,MoveTo,navigation,carry the camera to the tripod,full_rollout,0,0,0,0,,,0,
+77,Attach the camera to the tripod,camera_tripod,3,Attach,tool use,attach the camera to the tripod,full_rollout,0,0,0,0,,,0,
+77,Attach the camera to the tripod,camera_tripod,4,Release,release,release the camera,full_rollout,0,0,0,0,,,0,
+78,Attach the camera to the tripod,camera_tripod,0,MoveTo,navigation,move to the camera,full_rollout,1,1,1,1,0.0,0.6072396197378107,10,0.0
+78,Attach the camera to the tripod,camera_tripod,1,PickUpFrom,contact-rich,pick up the camera,full_rollout,1,1,0,1,0.0,-0.08697296313107977,30,0.05767679887085285
+78,Attach the camera to the tripod,camera_tripod,2,MoveTo,navigation,carry the camera to the tripod,full_rollout,0,0,0,0,,,0,
+78,Attach the camera to the tripod,camera_tripod,3,Attach,tool use,attach the camera to the tripod,full_rollout,0,0,0,0,,,0,
+78,Attach the camera to the tripod,camera_tripod,4,Release,release,release the camera,full_rollout,0,0,0,0,,,0,
+79,Attach the camera to the tripod,camera_tripod,0,MoveTo,navigation,move to the camera,full_rollout,1,1,1,1,0.0,0.44962100273094996,10,0.0
+79,Attach the camera to the tripod,camera_tripod,1,PickUpFrom,contact-rich,pick up the camera,full_rollout,1,1,0,1,0.0,-0.08820127559191379,30,0.0586888837532706
+79,Attach the camera to the tripod,camera_tripod,2,MoveTo,navigation,carry the camera to the tripod,full_rollout,0,0,0,0,,,0,
+79,Attach the camera to the tripod,camera_tripod,3,Attach,tool use,attach the camera to the tripod,full_rollout,0,0,0,0,,,0,
+79,Attach the camera to the tripod,camera_tripod,4,Release,release,release the camera,full_rollout,0,0,0,0,,,0,
+80,Attach the camera to the tripod,camera_tripod,0,MoveTo,navigation,move to the camera,full_rollout,1,1,1,1,0.0,0.4726925167827293,11,0.0
+80,Attach the camera to the tripod,camera_tripod,1,PickUpFrom,contact-rich,pick up the camera,full_rollout,1,1,0,1,0.0,-0.136901678085055,30,0.059016866613189056
+80,Attach the camera to the tripod,camera_tripod,2,MoveTo,navigation,carry the camera to the tripod,full_rollout,0,0,0,0,,,0,
+80,Attach the camera to the tripod,camera_tripod,3,Attach,tool use,attach the camera to the tripod,full_rollout,0,0,0,0,,,0,
+80,Attach the camera to the tripod,camera_tripod,4,Release,release,release the camera,full_rollout,0,0,0,0,,,0,
+81,Attach the camera to the tripod,camera_tripod,0,MoveTo,navigation,move to the camera,full_rollout,1,1,1,1,0.0,0.4307210868329344,10,0.0
+81,Attach the camera to the tripod,camera_tripod,1,PickUpFrom,contact-rich,pick up the camera,full_rollout,1,1,0,1,0.0,-0.009080979018189191,30,0.05553959066738061
+81,Attach the camera to the tripod,camera_tripod,2,MoveTo,navigation,carry the camera to the tripod,full_rollout,0,0,0,0,,,0,
+81,Attach the camera to the tripod,camera_tripod,3,Attach,tool use,attach the camera to the tripod,full_rollout,0,0,0,0,,,0,
+81,Attach the camera to the tripod,camera_tripod,4,Release,release,release the camera,full_rollout,0,0,0,0,,,0,
+82,Attach the camera to the tripod,camera_tripod,0,MoveTo,navigation,move to the camera,full_rollout,1,1,1,1,0.0,0.44015276752906324,11,0.0
+82,Attach the camera to the tripod,camera_tripod,1,PickUpFrom,contact-rich,pick up the camera,full_rollout,1,1,0,1,0.0,-0.15947627101947331,30,0.062095344803052004
+82,Attach the camera to the tripod,camera_tripod,2,MoveTo,navigation,carry the camera to the tripod,full_rollout,0,0,0,0,,,0,
+82,Attach the camera to the tripod,camera_tripod,3,Attach,tool use,attach the camera to the tripod,full_rollout,0,0,0,0,,,0,
+82,Attach the camera to the tripod,camera_tripod,4,Release,release,release the camera,full_rollout,0,0,0,0,,,0,
+83,Attach the camera to the tripod,camera_tripod,0,MoveTo,navigation,move to the camera,full_rollout,1,1,1,1,0.0,0.5574334580998132,11,0.0
+83,Attach the camera to the tripod,camera_tripod,1,PickUpFrom,contact-rich,pick up the camera,full_rollout,1,1,0,1,0.0,-0.18522396564943483,30,0.06150023775114603
+83,Attach the camera to the tripod,camera_tripod,2,MoveTo,navigation,carry the camera to the tripod,full_rollout,0,0,0,0,,,0,
+83,Attach the camera to the tripod,camera_tripod,3,Attach,tool use,attach the camera to the tripod,full_rollout,0,0,0,0,,,0,
+83,Attach the camera to the tripod,camera_tripod,4,Release,release,release the camera,full_rollout,0,0,0,0,,,0,
+84,Attach the camera to the tripod,camera_tripod,0,MoveTo,navigation,move to the camera,full_rollout,1,1,1,1,0.0,0.5479655997267697,10,0.0
+84,Attach the camera to the tripod,camera_tripod,1,PickUpFrom,contact-rich,pick up the camera,full_rollout,1,1,0,1,0.0,-0.11180096229404853,30,0.05698409640983608
+84,Attach the camera to the tripod,camera_tripod,2,MoveTo,navigation,carry the camera to the tripod,full_rollout,0,0,0,0,,,0,
+84,Attach the camera to the tripod,camera_tripod,3,Attach,tool use,attach the camera to the tripod,full_rollout,0,0,0,0,,,0,
+84,Attach the camera to the tripod,camera_tripod,4,Release,release,release the camera,full_rollout,0,0,0,0,,,0,
+85,Attach the camera to the tripod,camera_tripod,0,MoveTo,navigation,move to the camera,full_rollout,1,1,1,1,0.0,0.49279184086969585,11,0.0
+85,Attach the camera to the tripod,camera_tripod,1,PickUpFrom,contact-rich,pick up the camera,full_rollout,1,1,1,1,0.0,0.03347429009450596,15,0.057111186065462796
+85,Attach the camera to the tripod,camera_tripod,2,MoveTo,navigation,carry the camera to the tripod,full_rollout,1,1,1,1,0.0,0.41652346181007216,12,0.16844700709610017
+85,Attach the camera to the tripod,camera_tripod,3,Attach,tool use,attach the camera to the tripod,full_rollout,1,1,0,1,0.0,-0.9610837957808576,38,0.14166872690972274
+85,Attach the camera to the tripod,camera_tripod,4,Release,release,release the camera,full_rollout,0,0,0,0,,,0,
+86,Attach the camera to the tripod,camera_tripod,0,MoveTo,navigation,move to the camera,full_rollout,1,1,1,1,0.0,0.5110535497197898,11,0.0
+86,Attach the camera to the tripod,camera_tripod,1,PickUpFrom,contact-rich,pick up the camera,full_rollout,1,1,0,1,0.0,-0.2304890619550608,30,0.060793262564438344
+86,Attach the camera to the tripod,camera_tripod,2,MoveTo,navigation,carry the camera to the tripod,full_rollout,0,0,0,0,,,0,
+86,Attach the camera to the tripod,camera_tripod,3,Attach,tool use,attach the camera to the tripod,full_rollout,0,0,0,0,,,0,
+86,Attach the camera to the tripod,camera_tripod,4,Release,release,release the camera,full_rollout,0,0,0,0,,,0,
+87,Attach the camera to the tripod,camera_tripod,0,MoveTo,navigation,move to the camera,full_rollout,1,1,1,1,0.0,0.4938997408034221,11,0.0
+87,Attach the camera to the tripod,camera_tripod,1,PickUpFrom,contact-rich,pick up the camera,full_rollout,1,1,0,1,0.0,-0.0775755824307199,30,0.061536129924608475
+87,Attach the camera to the tripod,camera_tripod,2,MoveTo,navigation,carry the camera to the tripod,full_rollout,0,0,0,0,,,0,
+87,Attach the camera to the tripod,camera_tripod,3,Attach,tool use,attach the camera to the tripod,full_rollout,0,0,0,0,,,0,
+87,Attach the camera to the tripod,camera_tripod,4,Release,release,release the camera,full_rollout,0,0,0,0,,,0,
+88,Attach the camera to the tripod,camera_tripod,0,MoveTo,navigation,move to the camera,full_rollout,1,1,1,1,0.0,0.3268005254332308,11,0.0
+88,Attach the camera to the tripod,camera_tripod,1,PickUpFrom,contact-rich,pick up the camera,full_rollout,1,1,0,1,0.0,-0.19125013159770227,30,0.05865562580589122
+88,Attach the camera to the tripod,camera_tripod,2,MoveTo,navigation,carry the camera to the tripod,full_rollout,0,0,0,0,,,0,
+88,Attach the camera to the tripod,camera_tripod,3,Attach,tool use,attach the camera to the tripod,full_rollout,0,0,0,0,,,0,
+88,Attach the camera to the tripod,camera_tripod,4,Release,release,release the camera,full_rollout,0,0,0,0,,,0,
+89,Attach the camera to the tripod,camera_tripod,0,MoveTo,navigation,move to the camera,full_rollout,1,1,1,1,0.0,0.4968476702643206,11,0.0
+89,Attach the camera to the tripod,camera_tripod,1,PickUpFrom,contact-rich,pick up the camera,full_rollout,1,1,0,1,0.0,-0.09049519705257715,30,0.0611205476129212
+89,Attach the camera to the tripod,camera_tripod,2,MoveTo,navigation,carry the camera to the tripod,full_rollout,0,0,0,0,,,0,
+89,Attach the camera to the tripod,camera_tripod,3,Attach,tool use,attach the camera to the tripod,full_rollout,0,0,0,0,,,0,
+89,Attach the camera to the tripod,camera_tripod,4,Release,release,release the camera,full_rollout,0,0,0,0,,,0,

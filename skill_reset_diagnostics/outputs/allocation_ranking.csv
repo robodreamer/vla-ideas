@@ -1,0 +1,21 @@
+intervention,kind,skill_type,skill_label,family,baseline_full_attempt_rate,baseline_full_conditional_success,baseline_exact_stsr,baseline_realistic_stsr,heuristic_full,heuristic_reset,delta_task_success,delta_chain_completion,delta_exact_tscr,delta_realistic_tscr,actual_rank,heuristic_full_rank,heuristic_reset_rank,full_rank_gap,reset_rank_gap
+demo:MoveTo,demo,MoveTo,Move To,navigation,0.6,1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,6.5,8.0,9.5,1.5,3.0
+recovery:MoveTo,recovery,MoveTo,Move To,navigation,0.6,1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,6.0,6.5,7.5,0.5,1.5
+demo:PickUpFrom,demo,PickUpFrom,Pick Up From,contact-rich,1.0,0.3111111111111111,0.4888888888888889,0.0,0.6888888888888889,0.5111111111111111,0.0,0.13407407407407412,0.0637037037037037,0.0018518518518519378,1.0,1.0,8.0,0.0,7.0
+recovery:PickUpFrom,recovery,PickUpFrom,Pick Up From,contact-rich,1.0,0.3111111111111111,0.4888888888888889,0.0,0.4888888888888889,0.4888888888888889,0.0,0.049629629629629635,0.00925925925925919,0.0018518518518519378,1.0,1.0,1.0,0.0,0.0
+demo:OpenDoor,demo,OpenDoor,Open Door,articulation,0.4166666666666667,0.0,0.0,0.0,0.4166666666666667,1.0,0.0,0.0,0.0,0.0,6.5,3.0,3.0,-3.5,-3.5
+recovery:OpenDoor,recovery,OpenDoor,Open Door,articulation,0.4166666666666667,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,6.0,6.5,7.5,0.5,1.5
+demo:PlaceIn,demo,PlaceIn,Place In,precise placement,0.0,,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,6.5,8.0,3.0,1.5,-3.5
+recovery:PlaceIn,recovery,PlaceIn,Place In,precise placement,0.0,,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,6.0,6.5,7.5,0.5,1.5
+demo:CloseDoor,demo,CloseDoor,Close Door,articulation,0.0,,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,6.5,8.0,3.0,1.5,-3.5
+recovery:CloseDoor,recovery,CloseDoor,Close Door,articulation,0.0,,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,6.0,6.5,7.5,0.5,1.5
+demo:Pour,demo,Pour,Pour,tool use,0.1111111111111111,0.0,0.0,0.0,0.1111111111111111,1.0,0.0,0.0,0.0,0.0,6.5,4.0,3.0,-2.5,-3.5
+recovery:Pour,recovery,Pour,Pour,tool use,0.1111111111111111,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,6.0,6.5,7.5,0.5,1.5
+demo:PlaceOn,demo,PlaceOn,Place On,placement,0.0,,0.4722222222222222,0.0,0.0,0.5277777777777778,0.0,0.0,0.01851851851851849,0.0018518518518518268,6.5,8.0,7.0,1.5,0.5
+recovery:PlaceOn,recovery,PlaceOn,Place On,placement,0.0,,0.4722222222222222,0.0,0.0,0.4722222222222222,0.0,0.0,0.007407407407407307,0.0018518518518518268,6.0,6.5,2.0,0.5,-4.0
+demo:SweepSurface,demo,SweepSurface,Sweep Surface,contact-rich,0.5555555555555556,0.0,0.05555555555555555,0.0,0.5555555555555556,0.9444444444444444,0.0,0.003703703703703709,0.012962962962962954,0.0,2.0,2.0,6.0,0.0,4.0
+recovery:SweepSurface,recovery,SweepSurface,Sweep Surface,contact-rich,0.5555555555555556,0.0,0.05555555555555555,0.0,0.030864197530864196,0.05555555555555555,0.0,0.0,0.0018518518518517713,0.0,6.0,2.0,4.0,-4.0,-2.0
+demo:Attach,demo,Attach,Attach,tool use,0.05555555555555555,0.0,0.0,0.0,0.05555555555555555,1.0,0.0,0.0,0.0,0.0,6.5,5.0,3.0,-1.5,-3.5
+recovery:Attach,recovery,Attach,Attach,tool use,0.05555555555555555,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,6.0,6.5,7.5,0.5,1.5
+demo:Release,demo,Release,Release,release,0.0,,1.0,0.9074074074074074,0.0,0.0,0.0,0.0,0.0,0.00888888888888889,6.5,8.0,9.5,1.5,3.0
+recovery:Release,recovery,Release,Release,release,0.0,,1.0,0.9074074074074074,0.0,0.09259259259259256,0.0,0.0,0.0,0.00888888888888889,6.0,6.5,3.0,0.5,-3.0

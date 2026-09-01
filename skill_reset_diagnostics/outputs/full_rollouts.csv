@@ -1,0 +1,91 @@
+trajectory_id,task_name,task_short_name,task_success,executed_skills,total_skills,executed_fraction,successful_skill_fraction,stopped_at_skill_index,total_steps
+0,Store mug in cabinet,mug_cabinet,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+1,Store mug in cabinet,mug_cabinet,0,4,6,0.6666666666666666,0.5,3,62
+2,Store mug in cabinet,mug_cabinet,0,4,6,0.6666666666666666,0.5,3,62
+3,Store mug in cabinet,mug_cabinet,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+4,Store mug in cabinet,mug_cabinet,0,4,6,0.6666666666666666,0.5,3,62
+5,Store mug in cabinet,mug_cabinet,0,4,6,0.6666666666666666,0.5,3,62
+6,Store mug in cabinet,mug_cabinet,0,4,6,0.6666666666666666,0.5,3,60
+7,Store mug in cabinet,mug_cabinet,0,2,6,0.3333333333333333,0.16666666666666666,1,40
+8,Store mug in cabinet,mug_cabinet,0,2,6,0.3333333333333333,0.16666666666666666,1,40
+9,Store mug in cabinet,mug_cabinet,0,4,6,0.6666666666666666,0.5,3,62
+10,Store mug in cabinet,mug_cabinet,0,4,6,0.6666666666666666,0.5,3,60
+11,Store mug in cabinet,mug_cabinet,0,4,6,0.6666666666666666,0.5,3,62
+12,Store mug in cabinet,mug_cabinet,0,4,6,0.6666666666666666,0.5,3,60
+13,Store mug in cabinet,mug_cabinet,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+14,Store mug in cabinet,mug_cabinet,0,4,6,0.6666666666666666,0.5,3,60
+15,Store mug in cabinet,mug_cabinet,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+16,Store mug in cabinet,mug_cabinet,0,2,6,0.3333333333333333,0.16666666666666666,1,40
+17,Store mug in cabinet,mug_cabinet,0,2,6,0.3333333333333333,0.16666666666666666,1,40
+18,Microwave the popcorn bag,popcorn_microwave,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+19,Microwave the popcorn bag,popcorn_microwave,0,4,6,0.6666666666666666,0.5,3,60
+20,Microwave the popcorn bag,popcorn_microwave,0,4,6,0.6666666666666666,0.5,3,60
+21,Microwave the popcorn bag,popcorn_microwave,0,2,6,0.3333333333333333,0.16666666666666666,1,41
+22,Microwave the popcorn bag,popcorn_microwave,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+23,Microwave the popcorn bag,popcorn_microwave,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+24,Microwave the popcorn bag,popcorn_microwave,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+25,Microwave the popcorn bag,popcorn_microwave,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+26,Microwave the popcorn bag,popcorn_microwave,0,4,6,0.6666666666666666,0.5,3,60
+27,Microwave the popcorn bag,popcorn_microwave,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+28,Microwave the popcorn bag,popcorn_microwave,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+29,Microwave the popcorn bag,popcorn_microwave,0,2,6,0.3333333333333333,0.16666666666666666,1,40
+30,Microwave the popcorn bag,popcorn_microwave,0,4,6,0.6666666666666666,0.5,3,62
+31,Microwave the popcorn bag,popcorn_microwave,0,4,6,0.6666666666666666,0.5,3,60
+32,Microwave the popcorn bag,popcorn_microwave,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+33,Microwave the popcorn bag,popcorn_microwave,0,2,6,0.3333333333333333,0.16666666666666666,1,40
+34,Microwave the popcorn bag,popcorn_microwave,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+35,Microwave the popcorn bag,popcorn_microwave,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+36,Serve water into a bowl,serve_water,0,2,6,0.3333333333333333,0.16666666666666666,1,40
+37,Serve water into a bowl,serve_water,0,2,6,0.3333333333333333,0.16666666666666666,1,40
+38,Serve water into a bowl,serve_water,0,2,6,0.3333333333333333,0.16666666666666666,1,40
+39,Serve water into a bowl,serve_water,0,2,6,0.3333333333333333,0.16666666666666666,1,40
+40,Serve water into a bowl,serve_water,0,4,6,0.6666666666666666,0.5,3,72
+41,Serve water into a bowl,serve_water,0,2,6,0.3333333333333333,0.16666666666666666,1,40
+42,Serve water into a bowl,serve_water,0,2,6,0.3333333333333333,0.16666666666666666,1,41
+43,Serve water into a bowl,serve_water,0,4,6,0.6666666666666666,0.5,3,68
+44,Serve water into a bowl,serve_water,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+45,Serve water into a bowl,serve_water,0,2,6,0.3333333333333333,0.16666666666666666,1,40
+46,Serve water into a bowl,serve_water,0,2,6,0.3333333333333333,0.16666666666666666,1,40
+47,Serve water into a bowl,serve_water,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+48,Serve water into a bowl,serve_water,0,2,6,0.3333333333333333,0.16666666666666666,1,40
+49,Serve water into a bowl,serve_water,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+50,Serve water into a bowl,serve_water,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+51,Serve water into a bowl,serve_water,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+52,Serve water into a bowl,serve_water,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+53,Serve water into a bowl,serve_water,0,2,6,0.3333333333333333,0.16666666666666666,1,40
+54,Wipe the table and return the sponge,wipe_table,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+55,Wipe the table and return the sponge,wipe_table,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+56,Wipe the table and return the sponge,wipe_table,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+57,Wipe the table and return the sponge,wipe_table,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+58,Wipe the table and return the sponge,wipe_table,0,2,6,0.3333333333333333,0.16666666666666666,1,40
+59,Wipe the table and return the sponge,wipe_table,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+60,Wipe the table and return the sponge,wipe_table,0,3,6,0.5,0.3333333333333333,2,54
+61,Wipe the table and return the sponge,wipe_table,0,3,6,0.5,0.3333333333333333,2,54
+62,Wipe the table and return the sponge,wipe_table,0,3,6,0.5,0.3333333333333333,2,54
+63,Wipe the table and return the sponge,wipe_table,0,2,6,0.3333333333333333,0.16666666666666666,1,40
+64,Wipe the table and return the sponge,wipe_table,0,3,6,0.5,0.3333333333333333,2,56
+65,Wipe the table and return the sponge,wipe_table,0,3,6,0.5,0.3333333333333333,2,56
+66,Wipe the table and return the sponge,wipe_table,0,3,6,0.5,0.3333333333333333,2,54
+67,Wipe the table and return the sponge,wipe_table,0,3,6,0.5,0.3333333333333333,2,54
+68,Wipe the table and return the sponge,wipe_table,0,3,6,0.5,0.3333333333333333,2,54
+69,Wipe the table and return the sponge,wipe_table,0,3,6,0.5,0.3333333333333333,2,55
+70,Wipe the table and return the sponge,wipe_table,0,2,6,0.3333333333333333,0.16666666666666666,1,38
+71,Wipe the table and return the sponge,wipe_table,0,3,6,0.5,0.3333333333333333,2,54
+72,Attach the camera to the tripod,camera_tripod,0,2,5,0.4,0.2,1,40
+73,Attach the camera to the tripod,camera_tripod,0,2,5,0.4,0.2,1,41
+74,Attach the camera to the tripod,camera_tripod,0,2,5,0.4,0.2,1,40
+75,Attach the camera to the tripod,camera_tripod,0,2,5,0.4,0.2,1,40
+76,Attach the camera to the tripod,camera_tripod,0,2,5,0.4,0.2,1,41
+77,Attach the camera to the tripod,camera_tripod,0,2,5,0.4,0.2,1,41
+78,Attach the camera to the tripod,camera_tripod,0,2,5,0.4,0.2,1,40
+79,Attach the camera to the tripod,camera_tripod,0,2,5,0.4,0.2,1,40
+80,Attach the camera to the tripod,camera_tripod,0,2,5,0.4,0.2,1,41
+81,Attach the camera to the tripod,camera_tripod,0,2,5,0.4,0.2,1,40
+82,Attach the camera to the tripod,camera_tripod,0,2,5,0.4,0.2,1,41
+83,Attach the camera to the tripod,camera_tripod,0,2,5,0.4,0.2,1,41
+84,Attach the camera to the tripod,camera_tripod,0,2,5,0.4,0.2,1,40
+85,Attach the camera to the tripod,camera_tripod,0,4,5,0.8,0.6,3,76
+86,Attach the camera to the tripod,camera_tripod,0,2,5,0.4,0.2,1,41
+87,Attach the camera to the tripod,camera_tripod,0,2,5,0.4,0.2,1,41
+88,Attach the camera to the tripod,camera_tripod,0,2,5,0.4,0.2,1,41
+89,Attach the camera to the tripod,camera_tripod,0,2,5,0.4,0.2,1,41

@@ -1,0 +1,11 @@
+{
+  "all_pass": 1,
+  "allocation_gains_nonzero": 1,
+  "allocation_rankings_are_finite": 1,
+  "contact_bottlenecks_below_navigation": 1,
+  "deterministic_repeat": 1,
+  "exact_tscr_exceeds_full_success": 1,
+  "exact_valid_preconditions": 1,
+  "noise_monotone_tscr": 1,
+  "noise_monotone_validity": 1
+}

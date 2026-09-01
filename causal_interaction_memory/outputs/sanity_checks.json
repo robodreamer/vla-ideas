@@ -1,0 +1,9 @@
+{
+  "all_pass": 1,
+  "deterministic_repeat": 1,
+  "dual_best_overall_retry_success": 1,
+  "dual_memory_cross_phase_update": 1,
+  "dual_most_robust_on_hard_split": 1,
+  "support_memory_improves_dual_success": 1,
+  "transition_retrieval_improves_seen_phase": 1
+}

@@ -1,0 +1,176 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black,hypertexnames=false}
+
+\title{Causal Interaction Memory Toy:\\Phase-Aware Retry and Transfer Without Causal-Model Claims}
+\author{VLA Ideas}
+\date{September 1, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note distills one idea seeded by ZeVA into a deterministic manipulation-memory toy. Related tasks share hidden mass, friction, and joint-stiffness factors. Methods receive only visible task context plus prior interaction memory from sibling tasks and retry observations from the current target task. A phase-aware dual-timescale memory achieves the best retry success, strongest robustness, and lowest attempts-to-solve, while flat transition retrieval is competitive and lightweight online fine-tuning helps when no related-task memory exists. The result is a mechanism probe only; it does not identify causal world models or reproduce ZeVA.
+\end{abstract}
+
+\section{Motivation}
+Long-horizon interaction tasks often fail because the visible goal stays similar while the hidden response of the object changes. A heavy drawer, a sticky slider, and a stiff hinge can each demand a different corrective force even when the scene semantics are unchanged. The question here is narrower than ZeVA: if those hidden properties are shared across related tasks, what memory interface best helps retries and transfer?
+
+\section{Seed Reference}
+The experiment is seeded by ZeVA~\cite{zeva}, which motivates interaction-driven memory for long-horizon VLA systems. This package keeps only the memory theme and replaces perception, language, and robot execution with an explicit low-dimensional toy. No claim is made that the methods recover identified causes; they only exploit structured correlations induced by hidden physical factors.
+
+\section{Toy Setup}
+Each task has three ordered phases:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{lift:} mostly sensitive to hidden mass,
+  \item \textbf{slide:} mostly sensitive to hidden friction,
+  \item \textbf{turn:} mostly sensitive to hidden joint stiffness.
+\end{itemize}
+A family of related tasks shares a latent vector over those properties, with small task-specific variation. For each target task, the method predicts three phase-specific force corrections and may retry from the start for up to four attempts. If one phase fails, the attempt stops and yields a biased but informative transition estimate for that phase.
+
+The methods never receive the latent mass/friction/stiffness values directly. They only use visible task context, related-task support memory, and retry-time interaction summaries.
+
+\section{Compared Methods}
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Raw history:} retrieve whole support-task traces with weak phase structure.
+  \item \textbf{Transition retrieval:} phase-specific nearest-neighbor retrieval over support transitions.
+  \item \textbf{Phase-aware dual memory:} slow family consolidation plus a fast retry cache and cross-phase covariance update.
+  \item \textbf{Online fine-tune:} ridge-style parametric adaptation using support tasks and retry observations.
+\end{itemize}
+The dual-memory method is intentionally described as a structured memory baseline, not as a causal discovery algorithm.
+
+\section{Metrics}
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{First-attempt transfer:} fraction of target tasks solved before any target-specific retry update.
+  \item \textbf{Retry success:} fraction solved within four total attempts.
+  \item \textbf{Retry gain:} retry success minus first-attempt transfer.
+  \item \textbf{Mean attempts:} attempts-to-solve, with unsolved tasks assigned the full budget plus one.
+  \item \textbf{Robustness:} the same metrics under stronger hidden-parameter and context shifts.
+\end{itemize}
+
+\section{Main Results}
+The checked artifacts were generated with:
+\begin{verbatim}
+PYTHONWARNINGS=error \
+python causal_interaction_memory/run_causal_interaction_memory.py \
+  --seed 29 --trials 240 --support-tasks 4 --max-attempts 4
+\end{verbatim}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+Method & Transfer & Retry success & Retry gain & Mean attempts & Robust split \\
+\midrule
+Raw history & 30.8\% & 53.3\% & 22.5 pts & 3.17 & 38.3\% \\
+Transition retrieval & 44.6\% & 83.3\% & 38.8 pts & 2.40 & 63.3\% \\
+Phase-aware dual memory & \textbf{48.3\%} & \textbf{95.4\%} & \textbf{47.1 pts} & \textbf{1.85} & \textbf{85.0\%} \\
+Online fine-tune & 39.6\% & 69.6\% & 30.0 pts & 2.73 & 43.3\% \\
+\bottomrule
+\end{tabular}
+\caption{Aggregate results over 240 target tasks with four related support tasks per family. Robust split means the hardest severity bucket from the main evaluation.}
+\label{tab:main}
+\end{table}
+
+The dual-memory method solves 79.2\% of tasks by the second attempt and 92.1\% by the third, compared with 57.5\% and 74.6\% for flat transition retrieval. It also reduces mean phase error from 0.0476 on attempt 1 to 0.0276 on the final attempt.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.98\textwidth]{../outputs/headline_metrics.png}
+  \caption{Headline transfer, retry, and attempts-to-solve comparison.}
+  \label{fig:headline}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.72\textwidth]{../outputs/retry_curves.png}
+  \caption{Cumulative solve rate as the retry budget increases from one to four attempts.}
+  \label{fig:retry}
+\end{figure}
+
+\section{Sample Efficiency and Transfer}
+Support-memory size is swept over $\{0,2,4,8,12\}$ related tasks. Two points matter most:
+\begin{itemize}[leftmargin=1.5em]
+  \item With only two support tasks, phase-aware dual memory already reaches 98.8\% final success.
+  \item With no support tasks, online fine-tuning is the best fallback at 53.8\% because it can still use retries, while raw history falls to 5.6\%.
+\end{itemize}
+At twelve support tasks, online fine-tuning reaches the best first-attempt transfer at 54.4\%, matching the best transfer band, but it still trails dual memory on final success (75.0\% versus 98.1\%).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.98\textwidth]{../outputs/sample_efficiency.png}
+  \caption{Support-memory sweep for final retry success and first-attempt transfer.}
+  \label{fig:sample}
+\end{figure}
+
+\section{Robustness}
+Robustness increases the task-specific hidden shift and visible-context extrapolation severity. At severity $1.50$, final success is 27.5\% for raw history, 57.5\% for transition retrieval, 80.6\% for dual memory, and 36.3\% for online fine-tuning. The ranking therefore holds under stronger support--target mismatch, though all methods degrade.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.98\textwidth]{../outputs/robustness.png}
+  \caption{Final retry success and first-attempt transfer under stronger hidden-property shifts.}
+  \label{fig:robust}
+\end{figure}
+
+\section{Memory Ablations}
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrr}
+\toprule
+Setting & Success & Transfer & Solved by attempt 2 \\
+\midrule
+Full dual memory & \textbf{96.7\%} & \textbf{41.7\%} & \textbf{76.1\%} \\
+No fast retry memory & 41.7\% & 41.7\% & 41.7\% \\
+No slow consolidation & 34.4\% & 0.6\% & 8.3\% \\
+No cross-phase retrieval & 96.1\% & 41.7\% & 76.1\% \\
+No phase-aware prior & 88.3\% & 15.6\% & 51.1\% \\
+\bottomrule
+\end{tabular}
+\caption{Ablations on 180 held-out target tasks.}
+\label{tab:ablations}
+\end{table}
+
+Removing the fast retry cache or slow consolidation causes the largest losses, confirming that both timescales matter. Removing phase-aware retrieval has a smaller but still meaningful effect, while cross-phase covariance helps only modestly by trimming the late-attempt tail from 96.1\% to 96.7\%.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.98\textwidth]{../outputs/ablations.png}
+  \caption{Dual-memory ablations for final success, transfer, and two-attempt adaptation.}
+  \label{fig:ablations}
+\end{figure}
+
+\section{Interpretation}
+The local evidence supports three bounded claims. First, flat phase-specific transition retrieval is already much better than replaying raw whole-task history. Second, separating slow family consolidation from fast retry memory produces the best retry success and robustness in this structured family-sharing setting. Third, lightweight online fine-tuning is useful when no support memory exists, but it is less robust than explicit memory once related tasks are available.
+
+What the experiment does \emph{not} show is equally important: it does not prove that the learned summaries identify true causes, that the same ranking would hold in visual-language robotics, or that ZeVA's world-model components are reproduced here.
+
+\section{Limitations and Follow-Ups}
+\begin{itemize}[leftmargin=1.5em]
+  \item The toy exposes low-dimensional interaction summaries rather than images, language, or robot trajectories.
+  \item Online fine-tuning is a ridge-style proxy, not adaptation of a pretrained VLA.
+  \item The family structure is favorable to memory transfer because related tasks really do share hidden factors.
+  \item Cross-phase updates are linear covariance updates; richer latent-state models could matter more in harder settings.
+  \item A natural follow-up is to add distractor families with partially shared or misleading structure and test whether consolidation remains selective instead of overconfident.
+\end{itemize}
+
+\begin{thebibliography}{9}
+\bibitem{zeva} \emph{Zeva: In-Context Causal Learning for Self-Evolving Vision-Language-Action Models}. arXiv:2608.30880, 2026. \url{https://arxiv.org/abs/2608.30880}
+\end{thebibliography}
+
+\end{document}

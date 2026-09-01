@@ -1,0 +1,108 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black,hypertexnames=false}
+\title{Skill Reset Diagnostics for Long-Horizon Manipulation Chains\\\large A Deterministic Behavior-Skill-Inspired Toy Study}
+\author{VLA Ideas}
+\date{September 1, 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+This report presents a deterministic staged-manipulation toy inspired by Behavior-Skill. Five household manipulation chains are decomposed into executable constituent skills with saved intermediate states, skill-specific preconditions, local success conditions, and bounded horizons. The central comparison is between ordinary full rollouts and independently reset skill tests. In the checked run, full-task success is 0.0\%, while exact-reset Task Skill Completion Rate (TSCR) is 56.9\%. Under more realistic reset noise, TSCR falls to 44.2\%; under off-nominal starts it falls further to 41.1\%. Contact-rich, articulated, and tool-use skills form persistent bottlenecks, and full-rollout attempt coverage sharply underestimates the importance of later skills. Counterfactual data-allocation sweeps rank targets by improvement in successful skill completion, showing where reset diagnostics help and where reachability-weighted rollout evidence remains necessary.
+\end{abstract}
+
+\section{Motivation and Source Mapping}
+Behavior-Skill argues that long-horizon manipulation should be analyzed through constituent skills rather than only end-to-end task completion. Its benchmark saves restorable intermediate states, attaches skill-specific goals, and reports both trajectory-level TSCR and skill-type Skill-Type Success Rate (STSR). This toy keeps those evaluation ideas but replaces VLAs, simulator assets, and BDDL goals with a transparent deterministic reliability model over staged manipulation chains.
+
+\section{Toy benchmark construction}
+The package instantiates five long-horizon tasks: storing a mug in a cabinet, microwaving popcorn, serving water into a bowl, wiping a table and returning the sponge, and attaching a camera to a tripod. Each trajectory is segmented into semantic skills such as \emph{Move To}, \emph{Pick Up From}, \emph{Open Door}, \emph{Place In}, \emph{Pour}, \emph{Attach}, and \emph{Release}. Each skill instance contains:
+\begin{itemize}[leftmargin=1.5em]
+  \item a saved precondition state represented by deterministic latent mismatch channels;
+  \item a natural-language skill instruction;
+  \item a local success condition; and
+  \item a horizon equal to twice the nominal demonstration length.
+\end{itemize}
+Full rollouts stop when a constituent skill fails, leaving later skills unexecuted. Independent skill tests instead restore the skill start state and evaluate the policy directly under exact or noisy resets.
+
+\section{Checked configuration}
+The checked run used seed 41, 18 trajectories per task, and one equal-cost counterfactual data pack for each allocation experiment. A nominal demonstration pack raises clean skill capability for one semantic type. A recovery-data pack raises robustness to reset mismatch and chaining drift for one semantic type.
+
+\section{Headline results}
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Metric & Full rollout & Exact reset & Realistic reset & Off-nominal reset \\
+\midrule
+Task success / TSCR & 0.0\% & 56.9\% & 44.2\% & 41.1\% \\
+Executed skill fraction / valid reset fraction & 43.3\% & 100.0\% & 86.4\% & 49.3\% \\
+Mean steps & 45.7 & 19.0 & 21.4 & 22.2 \\
+\bottomrule
+\end{tabular}
+\caption{Aggregate trajectory- and skill-level diagnostics. Full rollouts and reset tests answer different questions.}
+\end{table}
+
+Three late, contact-sensitive skills illustrate the reachability gap. In full rollouts, Place In, Pour, and Attach are attempted on only 0.0\%, 11.1\%, 5.6\% of their occurrences, yet their exact-reset STSRs are 0.0\%, 0.0\%, 0.0\% and their realistic-reset STSRs drop to 0.0\%, 0.0\%, 0.0\%. Full rollouts therefore leave much of the bottleneck profile unseen.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{../outputs/headline_metrics.png}
+  \caption{Full-task success versus reset-based TSCR under increasingly realistic reset conditions.}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/reachability_bias.png}
+  \caption{Attempt coverage from full rollouts is much lower than independently measured success on later skills.}
+\end{figure}
+
+\section{Semantic skill bottlenecks}
+Exact-reset evaluation shows the expected pattern from the source paper's motivation: navigation and release remain easy, while contact-rich, articulated, precise-placement, and tool-use skills are harder. Realistic resets widen the gap further because later skills are more sensitive to pose, grasp, and precision mismatch.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{../outputs/stsr_heatmap.png}
+  \caption{Skill-type attempt coverage, conditional success when reached in full rollouts, and STSR under exact and noisy resets.}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/reset_ablations.png}
+  \caption{Reset-realism ablations at the overall benchmark level and by semantic family.}
+\end{figure}
+
+\section{Allocation ranking and reachability bias}
+The counterfactual allocation sweep asks where one extra data pack provides the largest lift in the fraction of successfully completed skills across full chains. The best nominal-demonstration target in this run is \emph{Pick Up From}, which improves chain completion by 13.4\%. The best recovery-data target is \emph{Pick Up From}, which improves chain completion by 5.0\%. Spearman correlation with measured allocation value is 0.75 for the full-rollout demo heuristic versus -0.30 for the reset-suite demo heuristic. For recovery allocation the values are 0.75 and 0.59, respectively. In this chain model, the reachability-weighted rollout heuristic is substantially better for demonstrations and clearly better for recovery allocation; the reset suite remains complementary because it exposes capabilities of skills that full rollouts rarely reach.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/allocation_value.png}
+  \caption{Lift in successful full-chain skill completion from one extra nominal-demo or recovery-data pack. Text labels show heuristic rank from full rollouts (F) and reset diagnostics (R).}
+\end{figure}
+
+\section{Interpretation}
+This toy reproduces the diagnostic logic rather than the scale of Behavior-Skill. Full rollouts remain important because chaining errors matter, but they are a biased lens for deciding where data collection helps most. Exact-reset skill tests expose constituent capability; noisy-reset ablations expose robustness to imperfect restoration; and the gap between the two indicates where recovery data is likely more valuable than additional clean demonstrations.
+
+\section{Limitations}
+The package uses a deterministic latent reliability model instead of images, real robot dynamics, BDDL predicates, or learned VLAs. Reset states are abstract mismatch channels, not simulator snapshots. The allocation sweep uses equal-cost synthetic data packs rather than actual retraining. Numbers should therefore be read as mechanism-level evidence only.
+
+\begin{thebibliography}{9}
+\bibitem{behavior-skill-paper}
+C. Ma, Y. Ma, Z. Ma, M. Zhang, S. Sheng, Y. Zhou, Z. Wang, X. Liu, B. Liu, J. Li, X. Lin, Z. Yang, R. Shi, and Y. Gao.
+\emph{A Fine-Grained Benchmark for Evaluating Vision-Language-Action Policies in Long-Horizon Tasks}.
+arXiv:2608.30536, 2026. \url{https://arxiv.org/abs/2608.30536}
+
+\bibitem{behavior-skill-repo}
+Behavior-Skill project repository. \url{https://github.com/nubot-nudt/Behavior-Skill}
+\end{thebibliography}
+\end{document}

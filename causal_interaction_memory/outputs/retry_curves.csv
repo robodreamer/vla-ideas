@@ -1,0 +1,17 @@
+method,attempt,solved_rate
+raw_history,1,0.30833333333333335
+raw_history,2,0.4791666666666667
+raw_history,3,0.5125
+raw_history,4,0.5333333333333333
+transition_retrieval,1,0.44583333333333336
+transition_retrieval,2,0.575
+transition_retrieval,3,0.7458333333333333
+transition_retrieval,4,0.8333333333333334
+phase_dual_memory,1,0.48333333333333334
+phase_dual_memory,2,0.7916666666666666
+phase_dual_memory,3,0.9208333333333333
+phase_dual_memory,4,0.9541666666666667
+online_finetune,1,0.3958333333333333
+online_finetune,2,0.5333333333333333
+online_finetune,3,0.6416666666666667
+online_finetune,4,0.6958333333333333

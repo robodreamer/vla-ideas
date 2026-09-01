@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/robodreamer/vla-ideas?style=social)](https://github.com/robodreamer/vla-ideas/stargazers)
 
-Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains twenty-six compact experiment tracks plus a lightweight research-notes index:
+Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains twenty-nine compact experiment tracks plus a lightweight research-notes index:
 
 - `recap_pi`: RECAP-style advantage-conditioned navigation demos in 2D and 3D.
 - `async_chunking_compare`: a lightweight simulator for comparing synchronous and asynchronous chunked-control strategies under inference delay.
@@ -35,6 +35,9 @@ Toy research prototypes for exploring visual-language-action timing, policy cond
 - `force_embodiment_gap`: a Koala-inspired contact toy separating visual aliasing from force calibration, morphology, and action-coordinate transfer.
 - `grounded_online_adaptation`: a GRAFT-inspired fine-mark toy comparing reward-only and supervised visual anchors with exact cached/uncached policy parity.
 - `predictive_error_correction`: a PredVLA-inspired current-state correction toy comparing exact open loop, inference-time prediction-error updates, and finite-history policies.
+- `semantic_program_lineage`: a SUN-inspired task-interface toy comparing one compiled semantic specification against drift in demonstration labels, stage guards, reward targets, and success checks.
+- `causal_interaction_memory`: a Zeva-inspired hidden-dynamics toy comparing raw history, transition retrieval, phase-aware dual-timescale memory, and online fine-tuning across retries.
+- `skill_reset_diagnostics`: a Behavior-Skill-inspired long-horizon diagnostic comparing full rollouts with exact and noisy independent skill resets plus data-allocation rankings.
 - `notes`: source-grounded research notes and a reference index for ideas that may become experiments.
 
 ## Preview
@@ -152,16 +155,28 @@ This repo is organized as a small ideas lab rather than a polished framework. Th
 
 `predictive_error_correction` keeps recurrent weights fixed and corrects the current latent state from sensory prediction errors at inference time. Exact open loop, current-state correction, finite-history policies, and open-loop chunks are evaluated under hidden force, target maneuvers, observation noise, and drift.
 
+### `semantic_program_lineage`
+
+`semantic_program_lineage` tests whether one typed task specification can keep demonstration labels, execution guards, reward targets, and success checks aligned. Small copied inconsistencies are introduced separately and together to expose behavioral failures, stage-trace drift, and evaluator false positives.
+
+### `causal_interaction_memory`
+
+`causal_interaction_memory` hides mass, friction, and joint-stiffness factors across related tasks. Raw history, phase-local transition retrieval, phase-aware fast/slow memory, and lightweight online fine-tuning are compared on first-attempt transfer, retry success, robustness, and memory ablations.
+
+### `skill_reset_diagnostics`
+
+`skill_reset_diagnostics` decomposes five staged manipulation chains into restorable semantic skills. Full rollouts are compared with exact, pose-jitter, realistic, and off-nominal reset suites, then nominal-demo and recovery-data allocations are ranked by full-chain completion lift.
+
 ## How the experiments relate
 
 The tracks intentionally isolate different intervention points rather than treating every improvement as the same kind of adaptation:
 
 | Family | Tracks | Main distinction |
 | --- | --- | --- |
-| Task prompting, transfer, and data interfaces | `demo_prompted_policy`, `video_prompt_shortcut_resistance`, `cross_embodiment_world_model`, `force_embodiment_gap`, `force_feedback_demonstration_quality` | Runtime task prompts, cross-embodiment action semantics, sensor/morphology interfaces, and collection-time target quality are evaluated separately. |
+| Task prompting, transfer, and data interfaces | `demo_prompted_policy`, `video_prompt_shortcut_resistance`, `cross_embodiment_world_model`, `force_embodiment_gap`, `force_feedback_demonstration_quality`, `semantic_program_lineage` | Runtime task prompts, cross-embodiment action semantics, sensor/morphology interfaces, collection-time target quality, and semantic interface lineage are evaluated separately. |
 | Timing, planning, and action delivery | `async_chunking_compare`, `prefix_rl_chunking`, `bspline_action_parameterization`, `turbo_vla_direct_control`, `openvla_oft_systems_toy`, `anticipatory_context_chunking`, `context_chunk_tradeoff`, `streaming_action_denoising`, `instruction_conditioned_async_control` | Planner latency, decoder scheduling, handoff-state compensation, representation, context, horizon, and prefix stability are distinct mechanisms. |
-| Adaptation, prediction, and recovery | `recap_pi`, `explorative_policy_chunks`, `conflict_aware_replay`, `retry_reset_recovery`, `prediction_error_policy_state`, `predictive_error_correction`, `grounded_online_adaptation`, `local_residual_sim2real` | The update locus ranges from conditioning and candidate selection to replay, recovery skills, transient latent inference, policy updates, and local transition memory. |
-| Safety and diagnostics | `path_consistent_safety_filtering`, `constraint_manifold_action_filter`, `bc_distribution_shift_mysteries`, `configured_failure_audit` | Execution filtering, geometric projection, benign closed-loop distribution shift, and hidden conditional-behavior auditing answer different failure questions. |
+| Adaptation, prediction, and recovery | `recap_pi`, `explorative_policy_chunks`, `conflict_aware_replay`, `retry_reset_recovery`, `prediction_error_policy_state`, `predictive_error_correction`, `grounded_online_adaptation`, `local_residual_sim2real`, `causal_interaction_memory` | The update locus ranges from conditioning and candidate selection to replay, recovery skills, transient latent inference, policy updates, and fast/slow transition memory. |
+| Safety and diagnostics | `path_consistent_safety_filtering`, `constraint_manifold_action_filter`, `bc_distribution_shift_mysteries`, `configured_failure_audit`, `skill_reset_diagnostics` | Execution filtering, geometric projection, benign closed-loop distribution shift, hidden conditional behavior, and reachability-biased skill evaluation answer different failure questions. |
 
 Each new experiment README and PDF includes a more detailed comparison against its nearest repository neighbors, including negative results and confounds found during review.
 
@@ -365,6 +380,24 @@ cd /home/andypark/Projects/repos/vla-ideas
 PYTHONWARNINGS=error /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python predictive_error_correction/run_predictive_error_correction.py --seed 23 --trials 64 --train-episodes 180
 ```
 
+Run the semantic-program-lineage toy from the repository root:
+
+```bash
+PYTHONWARNINGS=error python semantic_program_lineage/run_semantic_program_lineage.py --seed 13
+```
+
+Run the causal-interaction-memory toy from the repository root:
+
+```bash
+PYTHONWARNINGS=error python causal_interaction_memory/run_causal_interaction_memory.py --seed 29 --trials 240 --support-tasks 4 --max-attempts 4
+```
+
+Run the skill-reset-diagnostics toy from the repository root:
+
+```bash
+PYTHONWARNINGS=error python skill_reset_diagnostics/run_skill_reset_diagnostics.py --seed 41 --trajectories-per-task 18
+```
+
 ## What Gets Generated
 
 The experiment scripts write visual outputs and reports directly into the repo so results stay easy to compare across iterations.
@@ -538,6 +571,27 @@ The experiment scripts write visual outputs and reports directly into the repo s
 - eight deterministic mechanism checks and four figures;
 - a generated LaTeX experiment report and rendered PDF.
 
+### `semantic_program_lineage/outputs`
+
+- held-out lineage, per-episode, interface-consistency, and reward-selection metrics;
+- separate label, guard, reward, and evaluator drift diagnostics;
+- deterministic expert and crafted near-miss sanity checks plus four figures;
+- a generated LaTeX experiment report and rendered PDF.
+
+### `causal_interaction_memory/outputs`
+
+- paired retry trials, cumulative retry curves, support-memory sweeps, robustness sweeps, and dual-memory ablations;
+- transfer, final success, attempts-to-solve, phase error, and hidden-shift metrics;
+- deterministic memory-mechanism checks plus five figures;
+- a maintained LaTeX experiment report and rendered PDF.
+
+### `skill_reset_diagnostics/outputs`
+
+- full-rollout and independently reset skill/trajectory metrics;
+- exact, pose-jitter, realistic, and off-nominal reset summaries;
+- semantic skill/family bottlenecks and nominal-demo/recovery allocation rankings;
+- deterministic sanity checks, five figures, and a generated LaTeX report/PDF.
+
 ## Current Snapshot
 
 The existing `recap_pi` docs report these latest verified headline numbers:
@@ -655,8 +709,20 @@ vla-ideas/
 │   ├── run_grounded_online_adaptation.py
 │   ├── outputs/
 │   └── docs/
-└── predictive_error_correction/
-    ├── run_predictive_error_correction.py
+├── predictive_error_correction/
+│   ├── run_predictive_error_correction.py
+│   ├── outputs/
+│   └── docs/
+├── semantic_program_lineage/
+│   ├── run_semantic_program_lineage.py
+│   ├── outputs/
+│   └── docs/
+├── causal_interaction_memory/
+│   ├── run_causal_interaction_memory.py
+│   ├── outputs/
+│   └── docs/
+└── skill_reset_diagnostics/
+    ├── run_skill_reset_diagnostics.py
     ├── outputs/
     └── docs/
 ```
@@ -721,6 +787,12 @@ LaTeX reports share one renderer and Docker setup under [`tools/`](tools/). Each
 - [`grounded_online_adaptation/docs/grounded_online_adaptation_report.pdf`](grounded_online_adaptation/docs/grounded_online_adaptation_report.pdf)
 - [`predictive_error_correction/README.md`](predictive_error_correction/README.md)
 - [`predictive_error_correction/docs/predictive_error_correction_report.pdf`](predictive_error_correction/docs/predictive_error_correction_report.pdf)
+- [`semantic_program_lineage/README.md`](semantic_program_lineage/README.md)
+- [`semantic_program_lineage/docs/semantic_program_lineage_report.pdf`](semantic_program_lineage/docs/semantic_program_lineage_report.pdf)
+- [`causal_interaction_memory/README.md`](causal_interaction_memory/README.md)
+- [`causal_interaction_memory/docs/causal_interaction_memory_report.pdf`](causal_interaction_memory/docs/causal_interaction_memory_report.pdf)
+- [`skill_reset_diagnostics/README.md`](skill_reset_diagnostics/README.md)
+- [`skill_reset_diagnostics/docs/skill_reset_diagnostics_report.pdf`](skill_reset_diagnostics/docs/skill_reset_diagnostics_report.pdf)
 - [`recap_pi/README.md`](recap_pi/README.md)
 - [`recap_pi/docs/rl_tokens_experiment_report.md`](recap_pi/docs/rl_tokens_experiment_report.md)
 - [`recap_pi/docs/recap_concept_writeup.pdf`](recap_pi/docs/recap_concept_writeup.pdf)

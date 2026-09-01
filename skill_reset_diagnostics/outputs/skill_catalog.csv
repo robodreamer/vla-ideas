@@ -1,0 +1,11 @@
+skill_type,skill_label,family,example_instruction,preconditions,success_conditions,horizon_rule
+MoveTo,Move To,navigation,move to the mug,robot starts near home base,robot is aligned with the mug,2x nominal demonstration length
+PickUpFrom,Pick Up From,contact-rich,pick up the mug from the counter,robot is aligned with the mug | gripper is empty,mug is held securely,2x nominal demonstration length
+OpenDoor,Open Door,articulation,open the cabinet door,robot is aligned with the cabinet handle | mug is held securely,cabinet door is open enough for insertion,2x nominal demonstration length
+PlaceIn,Place In,precise placement,place the mug inside the cabinet,mug is held securely | cabinet door is open enough for insertion,mug is inside the cabinet,2x nominal demonstration length
+CloseDoor,Close Door,articulation,close the cabinet door,mug is inside the cabinet,cabinet door is closed,2x nominal demonstration length
+Pour,Pour,tool use,pour water from the cup into the bowl,cup is held securely | robot is aligned with the bowl,enough water has been transferred to the bowl,2x nominal demonstration length
+PlaceOn,Place On,placement,place the cup back on the coaster,cup is held securely,cup is resting on the coaster,2x nominal demonstration length
+SweepSurface,Sweep Surface,contact-rich,wipe the marked table area,sponge is held securely,table debris is cleared from the marked area,2x nominal demonstration length
+Attach,Attach,tool use,attach the camera to the tripod,camera is held securely | robot is aligned with the tripod mount,camera is locked onto the tripod mount,2x nominal demonstration length
+Release,Release,release,release the cup,cup is resting on the coaster | cup is held securely,gripper is open and the cup stays on the coaster,2x nominal demonstration length

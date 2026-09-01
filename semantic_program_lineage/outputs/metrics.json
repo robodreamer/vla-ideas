@@ -1,0 +1,278 @@
+{
+  "config": {
+    "seed": 13,
+    "train_episodes": 48,
+    "val_episodes": 20,
+    "test_episodes": 36,
+    "max_steps": 44,
+    "ridge_alpha": 0.01,
+    "reward_gains": [
+      0.0,
+      0.25,
+      0.5,
+      0.75
+    ],
+    "stage_bonus": 0.9,
+    "label_shift_steps": [
+      2,
+      2,
+      2,
+      1
+    ],
+    "speed_scale": [
+      1.0,
+      0.82,
+      0.92,
+      0.72,
+      0.88
+    ]
+  },
+  "stages": [
+    {
+      "name": "approach_object",
+      "target_entity": "object",
+      "tolerance": 0.055,
+      "grip_target": -1.0,
+      "require_holding": false,
+      "dwell": 2,
+      "reward_weight": 1.2,
+      "speed": 0.95
+    },
+    {
+      "name": "close_gripper",
+      "target_entity": "object",
+      "tolerance": 0.042,
+      "grip_target": 1.0,
+      "require_holding": true,
+      "dwell": 2,
+      "reward_weight": 1.45,
+      "speed": 0.55
+    },
+    {
+      "name": "carry_to_goal",
+      "target_entity": "goal",
+      "tolerance": 0.06,
+      "grip_target": 1.0,
+      "require_holding": true,
+      "dwell": 2,
+      "reward_weight": 1.6,
+      "speed": 1.0
+    },
+    {
+      "name": "open_at_goal",
+      "target_entity": "goal",
+      "tolerance": 0.065,
+      "grip_target": -1.0,
+      "require_holding": false,
+      "dwell": 2,
+      "reward_weight": 1.35,
+      "speed": 0.58
+    },
+    {
+      "name": "retreat",
+      "target_entity": "retreat",
+      "tolerance": 0.082,
+      "grip_target": -1.0,
+      "require_holding": false,
+      "dwell": 2,
+      "reward_weight": 0.95,
+      "speed": 0.88
+    }
+  ],
+  "lineages": [
+    {
+      "key": "compiled_spec",
+      "drift_demo": false,
+      "drift_guard": false,
+      "drift_reward": false,
+      "drift_success": false
+    },
+    {
+      "key": "copied_demo_labels",
+      "drift_demo": true,
+      "drift_guard": false,
+      "drift_reward": false,
+      "drift_success": false
+    },
+    {
+      "key": "copied_stage_guards",
+      "drift_demo": false,
+      "drift_guard": true,
+      "drift_reward": false,
+      "drift_success": false
+    },
+    {
+      "key": "copied_rewards",
+      "drift_demo": false,
+      "drift_guard": false,
+      "drift_reward": true,
+      "drift_success": false
+    },
+    {
+      "key": "copied_success_check",
+      "drift_demo": false,
+      "drift_guard": false,
+      "drift_reward": false,
+      "drift_success": true
+    },
+    {
+      "key": "copied_all",
+      "drift_demo": true,
+      "drift_guard": true,
+      "drift_reward": true,
+      "drift_success": true
+    }
+  ],
+  "source_mapping": {
+    "paper": "Persistent Programs For Language-Grounded Control-to-Learning-to-Real Policies",
+    "arxiv": "https://arxiv.org/abs/2608.31167",
+    "scope": "typed semantics compiled once into aligned interfaces"
+  },
+  "sanity_check": {
+    "compiled_expert_success": true,
+    "copied_label_shift_nonzero": true,
+    "copied_success_false_positive_exists": true
+  },
+  "summaries": {
+    "compiled_spec": {
+      "lineage": "compiled_spec",
+      "episodes": 36,
+      "reward_gain": 0.75,
+      "true_success": 1.0,
+      "reported_success": 1.0,
+      "overclaim": 0.0,
+      "stage_mismatch_rate": 0.0909090909090909,
+      "compiled_return": 21.12107510069774,
+      "lineage_return": 21.12107510069774,
+      "final_object_error": 0.004930814380862474,
+      "min_goal_error": 0.0047899043531175545,
+      "label_error_rate": 0.0,
+      "guard_transition_abs_error": 0.0,
+      "reward_target_drift": 0.0,
+      "success_false_positive_rate": 0.0
+    },
+    "copied_demo_labels": {
+      "lineage": "copied_demo_labels",
+      "episodes": 36,
+      "reward_gain": 0.5,
+      "true_success": 0.0,
+      "reported_success": 0.0,
+      "overclaim": 0.0,
+      "stage_mismatch_rate": 0.011363636363636362,
+      "compiled_return": -17.8570441302474,
+      "lineage_return": -17.8570441302474,
+      "final_object_error": 1.0431479631943552,
+      "min_goal_error": 1.0431479631943552,
+      "label_error_rate": 0.3012933262389784,
+      "guard_transition_abs_error": 0.0,
+      "reward_target_drift": 0.0,
+      "success_false_positive_rate": 0.0
+    },
+    "copied_stage_guards": {
+      "lineage": "copied_stage_guards",
+      "episodes": 36,
+      "reward_gain": 0.75,
+      "true_success": 1.0,
+      "reported_success": 1.0,
+      "overclaim": 0.0,
+      "stage_mismatch_rate": 0.8832070707070707,
+      "compiled_return": 20.629746495625383,
+      "lineage_return": 20.629746495625383,
+      "final_object_error": 0.035026300366162846,
+      "min_goal_error": 0.035026300366162846,
+      "label_error_rate": 0.0,
+      "guard_transition_abs_error": 0.8875,
+      "reward_target_drift": 0.0,
+      "success_false_positive_rate": 0.0
+    },
+    "copied_rewards": {
+      "lineage": "copied_rewards",
+      "episodes": 36,
+      "reward_gain": 0.5,
+      "true_success": 0.0,
+      "reported_success": 0.0,
+      "overclaim": 0.0,
+      "stage_mismatch_rate": 0.010101010101010102,
+      "compiled_return": -7.536699968042977,
+      "lineage_return": -0.8636112760048716,
+      "final_object_error": 0.9764621278574465,
+      "min_goal_error": 0.9755108837802386,
+      "label_error_rate": 0.0,
+      "guard_transition_abs_error": 0.0,
+      "reward_target_drift": 0.07929489363276378,
+      "success_false_positive_rate": 0.0
+    },
+    "copied_success_check": {
+      "lineage": "copied_success_check",
+      "episodes": 36,
+      "reward_gain": 0.75,
+      "true_success": 1.0,
+      "reported_success": 1.0,
+      "overclaim": 0.0,
+      "stage_mismatch_rate": 0.0909090909090909,
+      "compiled_return": 21.12107510069774,
+      "lineage_return": 21.12107510069774,
+      "final_object_error": 0.004930814380862474,
+      "min_goal_error": 0.0047899043531175545,
+      "label_error_rate": 0.0,
+      "guard_transition_abs_error": 0.0,
+      "reward_target_drift": 0.0,
+      "success_false_positive_rate": 0.3333333333333333
+    },
+    "copied_all": {
+      "lineage": "copied_all",
+      "episodes": 36,
+      "reward_gain": 0.75,
+      "true_success": 0.0,
+      "reported_success": 0.0,
+      "overclaim": 0.0,
+      "stage_mismatch_rate": 0.6679292929292928,
+      "compiled_return": -25.51611221473765,
+      "lineage_return": -18.294784627629905,
+      "final_object_error": 1.0431479631943552,
+      "min_goal_error": 1.0431479631943552,
+      "label_error_rate": 0.3012933262389784,
+      "guard_transition_abs_error": 0.8875,
+      "reward_target_drift": 0.07929489363276378,
+      "success_false_positive_rate": 0.3333333333333333
+    }
+  },
+  "interfaces": {
+    "compiled_spec": {
+      "label_error_rate": 0.0,
+      "guard_transition_abs_error": 0.0,
+      "reward_target_drift": 0.0,
+      "success_false_positive_rate": 0.0
+    },
+    "copied_demo_labels": {
+      "label_error_rate": 0.3012933262389784,
+      "guard_transition_abs_error": 0.0,
+      "reward_target_drift": 0.0,
+      "success_false_positive_rate": 0.0
+    },
+    "copied_stage_guards": {
+      "label_error_rate": 0.0,
+      "guard_transition_abs_error": 0.8875,
+      "reward_target_drift": 0.0,
+      "success_false_positive_rate": 0.0
+    },
+    "copied_rewards": {
+      "label_error_rate": 0.0,
+      "guard_transition_abs_error": 0.0,
+      "reward_target_drift": 0.07929489363276378,
+      "success_false_positive_rate": 0.0
+    },
+    "copied_success_check": {
+      "label_error_rate": 0.0,
+      "guard_transition_abs_error": 0.0,
+      "reward_target_drift": 0.0,
+      "success_false_positive_rate": 0.3333333333333333
+    },
+    "copied_all": {
+      "label_error_rate": 0.3012933262389784,
+      "guard_transition_abs_error": 0.8875,
+      "reward_target_drift": 0.07929489363276378,
+      "success_false_positive_rate": 0.3333333333333333
+    }
+  }
+}
