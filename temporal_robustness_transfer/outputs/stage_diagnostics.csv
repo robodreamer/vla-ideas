@@ -1,0 +1,127 @@
+method,label,regime,stage,pass_rate,episodes
+scripted_expert,Scripted expert,demonstrated_anchor,acquisition,1.0,720
+scripted_expert,Scripted expert,demonstrated_anchor,lift,1.0,720
+scripted_expert,Scripted expert,demonstrated_anchor,reorientation,1.0,720
+scripted_expert,Scripted expert,demonstrated_anchor,preinsert,1.0,720
+scripted_expert,Scripted expert,demonstrated_anchor,insertion,1.0,720
+scripted_expert,Scripted expert,demonstrated_anchor,release,1.0,720
+scripted_expert,Scripted expert,demonstrated_anchor,settling,1.0,720
+scripted_expert,Scripted expert,interpolation,acquisition,1.0,540
+scripted_expert,Scripted expert,interpolation,lift,1.0,540
+scripted_expert,Scripted expert,interpolation,reorientation,1.0,540
+scripted_expert,Scripted expert,interpolation,preinsert,1.0,540
+scripted_expert,Scripted expert,interpolation,insertion,1.0,540
+scripted_expert,Scripted expert,interpolation,release,1.0,540
+scripted_expert,Scripted expert,interpolation,settling,1.0,540
+scripted_expert,Scripted expert,extrapolation,acquisition,1.0,540
+scripted_expert,Scripted expert,extrapolation,lift,1.0,540
+scripted_expert,Scripted expert,extrapolation,reorientation,1.0,540
+scripted_expert,Scripted expert,extrapolation,preinsert,1.0,540
+scripted_expert,Scripted expert,extrapolation,insertion,0.7537037037037037,540
+scripted_expert,Scripted expert,extrapolation,release,0.7537037037037037,540
+scripted_expert,Scripted expert,extrapolation,settling,0.7537037037037037,540
+raw_time_scaling,Raw elapsed time,demonstrated_anchor,acquisition,0.7486111111111111,720
+raw_time_scaling,Raw elapsed time,demonstrated_anchor,lift,0.7486111111111111,720
+raw_time_scaling,Raw elapsed time,demonstrated_anchor,reorientation,0.7486111111111111,720
+raw_time_scaling,Raw elapsed time,demonstrated_anchor,preinsert,0.7486111111111111,720
+raw_time_scaling,Raw elapsed time,demonstrated_anchor,insertion,0.7097222222222223,720
+raw_time_scaling,Raw elapsed time,demonstrated_anchor,release,0.7097222222222223,720
+raw_time_scaling,Raw elapsed time,demonstrated_anchor,settling,0.7097222222222223,720
+raw_time_scaling,Raw elapsed time,interpolation,acquisition,0.6666666666666666,540
+raw_time_scaling,Raw elapsed time,interpolation,lift,0.6666666666666666,540
+raw_time_scaling,Raw elapsed time,interpolation,reorientation,0.6666666666666666,540
+raw_time_scaling,Raw elapsed time,interpolation,preinsert,0.6666666666666666,540
+raw_time_scaling,Raw elapsed time,interpolation,insertion,0.6666666666666666,540
+raw_time_scaling,Raw elapsed time,interpolation,release,0.6666666666666666,540
+raw_time_scaling,Raw elapsed time,interpolation,settling,0.6666666666666666,540
+raw_time_scaling,Raw elapsed time,extrapolation,acquisition,1.0,540
+raw_time_scaling,Raw elapsed time,extrapolation,lift,0.07777777777777778,540
+raw_time_scaling,Raw elapsed time,extrapolation,reorientation,0.07777777777777778,540
+raw_time_scaling,Raw elapsed time,extrapolation,preinsert,0.07777777777777778,540
+raw_time_scaling,Raw elapsed time,extrapolation,insertion,0.025925925925925925,540
+raw_time_scaling,Raw elapsed time,extrapolation,release,0.025925925925925925,540
+raw_time_scaling,Raw elapsed time,extrapolation,settling,0.025925925925925925,540
+phase_normalization,Normalized phase,demonstrated_anchor,acquisition,1.0,720
+phase_normalization,Normalized phase,demonstrated_anchor,lift,1.0,720
+phase_normalization,Normalized phase,demonstrated_anchor,reorientation,1.0,720
+phase_normalization,Normalized phase,demonstrated_anchor,preinsert,1.0,720
+phase_normalization,Normalized phase,demonstrated_anchor,insertion,0.9708333333333333,720
+phase_normalization,Normalized phase,demonstrated_anchor,release,0.9708333333333333,720
+phase_normalization,Normalized phase,demonstrated_anchor,settling,0.9708333333333333,720
+phase_normalization,Normalized phase,interpolation,acquisition,1.0,540
+phase_normalization,Normalized phase,interpolation,lift,1.0,540
+phase_normalization,Normalized phase,interpolation,reorientation,1.0,540
+phase_normalization,Normalized phase,interpolation,preinsert,1.0,540
+phase_normalization,Normalized phase,interpolation,insertion,0.9981481481481481,540
+phase_normalization,Normalized phase,interpolation,release,0.9981481481481481,540
+phase_normalization,Normalized phase,interpolation,settling,0.9981481481481481,540
+phase_normalization,Normalized phase,extrapolation,acquisition,1.0,540
+phase_normalization,Normalized phase,extrapolation,lift,0.03333333333333333,540
+phase_normalization,Normalized phase,extrapolation,reorientation,0.03333333333333333,540
+phase_normalization,Normalized phase,extrapolation,preinsert,0.03333333333333333,540
+phase_normalization,Normalized phase,extrapolation,insertion,0.012962962962962963,540
+phase_normalization,Normalized phase,extrapolation,release,0.012962962962962963,540
+phase_normalization,Normalized phase,extrapolation,settling,0.012962962962962963,540
+speed_conditioned,Speed-conditioned,demonstrated_anchor,acquisition,1.0,720
+speed_conditioned,Speed-conditioned,demonstrated_anchor,lift,1.0,720
+speed_conditioned,Speed-conditioned,demonstrated_anchor,reorientation,1.0,720
+speed_conditioned,Speed-conditioned,demonstrated_anchor,preinsert,1.0,720
+speed_conditioned,Speed-conditioned,demonstrated_anchor,insertion,0.9972222222222222,720
+speed_conditioned,Speed-conditioned,demonstrated_anchor,release,0.9972222222222222,720
+speed_conditioned,Speed-conditioned,demonstrated_anchor,settling,0.9972222222222222,720
+speed_conditioned,Speed-conditioned,interpolation,acquisition,1.0,540
+speed_conditioned,Speed-conditioned,interpolation,lift,1.0,540
+speed_conditioned,Speed-conditioned,interpolation,reorientation,1.0,540
+speed_conditioned,Speed-conditioned,interpolation,preinsert,1.0,540
+speed_conditioned,Speed-conditioned,interpolation,insertion,1.0,540
+speed_conditioned,Speed-conditioned,interpolation,release,1.0,540
+speed_conditioned,Speed-conditioned,interpolation,settling,1.0,540
+speed_conditioned,Speed-conditioned,extrapolation,acquisition,1.0,540
+speed_conditioned,Speed-conditioned,extrapolation,lift,0.8555555555555555,540
+speed_conditioned,Speed-conditioned,extrapolation,reorientation,0.8555555555555555,540
+speed_conditioned,Speed-conditioned,extrapolation,preinsert,0.8555555555555555,540
+speed_conditioned,Speed-conditioned,extrapolation,insertion,0.5037037037037037,540
+speed_conditioned,Speed-conditioned,extrapolation,release,0.5037037037037037,540
+speed_conditioned,Speed-conditioned,extrapolation,settling,0.5037037037037037,540
+force_feedback,Speed + force feedback,demonstrated_anchor,acquisition,1.0,720
+force_feedback,Speed + force feedback,demonstrated_anchor,lift,1.0,720
+force_feedback,Speed + force feedback,demonstrated_anchor,reorientation,1.0,720
+force_feedback,Speed + force feedback,demonstrated_anchor,preinsert,1.0,720
+force_feedback,Speed + force feedback,demonstrated_anchor,insertion,1.0,720
+force_feedback,Speed + force feedback,demonstrated_anchor,release,1.0,720
+force_feedback,Speed + force feedback,demonstrated_anchor,settling,1.0,720
+force_feedback,Speed + force feedback,interpolation,acquisition,0.9962962962962963,540
+force_feedback,Speed + force feedback,interpolation,lift,0.9962962962962963,540
+force_feedback,Speed + force feedback,interpolation,reorientation,0.9962962962962963,540
+force_feedback,Speed + force feedback,interpolation,preinsert,0.9962962962962963,540
+force_feedback,Speed + force feedback,interpolation,insertion,0.9962962962962963,540
+force_feedback,Speed + force feedback,interpolation,release,0.9962962962962963,540
+force_feedback,Speed + force feedback,interpolation,settling,0.9962962962962963,540
+force_feedback,Speed + force feedback,extrapolation,acquisition,0.9981481481481481,540
+force_feedback,Speed + force feedback,extrapolation,lift,0.9981481481481481,540
+force_feedback,Speed + force feedback,extrapolation,reorientation,0.9981481481481481,540
+force_feedback,Speed + force feedback,extrapolation,preinsert,0.9981481481481481,540
+force_feedback,Speed + force feedback,extrapolation,insertion,0.6722222222222223,540
+force_feedback,Speed + force feedback,extrapolation,release,0.6722222222222223,540
+force_feedback,Speed + force feedback,extrapolation,settling,0.6722222222222223,540
+dynamics_augmentation,Dynamics augmentation,demonstrated_anchor,acquisition,1.0,720
+dynamics_augmentation,Dynamics augmentation,demonstrated_anchor,lift,1.0,720
+dynamics_augmentation,Dynamics augmentation,demonstrated_anchor,reorientation,1.0,720
+dynamics_augmentation,Dynamics augmentation,demonstrated_anchor,preinsert,1.0,720
+dynamics_augmentation,Dynamics augmentation,demonstrated_anchor,insertion,0.9986111111111111,720
+dynamics_augmentation,Dynamics augmentation,demonstrated_anchor,release,0.9986111111111111,720
+dynamics_augmentation,Dynamics augmentation,demonstrated_anchor,settling,0.9986111111111111,720
+dynamics_augmentation,Dynamics augmentation,interpolation,acquisition,1.0,540
+dynamics_augmentation,Dynamics augmentation,interpolation,lift,1.0,540
+dynamics_augmentation,Dynamics augmentation,interpolation,reorientation,1.0,540
+dynamics_augmentation,Dynamics augmentation,interpolation,preinsert,1.0,540
+dynamics_augmentation,Dynamics augmentation,interpolation,insertion,1.0,540
+dynamics_augmentation,Dynamics augmentation,interpolation,release,1.0,540
+dynamics_augmentation,Dynamics augmentation,interpolation,settling,1.0,540
+dynamics_augmentation,Dynamics augmentation,extrapolation,acquisition,1.0,540
+dynamics_augmentation,Dynamics augmentation,extrapolation,lift,1.0,540
+dynamics_augmentation,Dynamics augmentation,extrapolation,reorientation,1.0,540
+dynamics_augmentation,Dynamics augmentation,extrapolation,preinsert,1.0,540
+dynamics_augmentation,Dynamics augmentation,extrapolation,insertion,0.6462962962962963,540
+dynamics_augmentation,Dynamics augmentation,extrapolation,release,0.6462962962962963,540
+dynamics_augmentation,Dynamics augmentation,extrapolation,settling,0.6462962962962963,540

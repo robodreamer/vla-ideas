@@ -1,0 +1,201 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
+
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black}
+
+\title{Does Imitation Preserve Temporal Robustness?\\A Multi-Speed Insertion Toy}
+\author{Andy Park\\\href{mailto:andypark.purdue@gmail.com}{andypark.purdue@gmail.com}}
+\date{September 2, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This report presents a deterministic synthetic study motivated by ParcelStow's matched expert--learner evaluation across task execution speeds. A scripted insertion expert generates demonstrations at four speedup factors in $[0.5,2]$. Identical ridge imitation models then use raw whole-cycle time, normalized task phase, or explicit speed conditioning; two additional conditions add synthetic contact-force feedback or dynamics-aware data augmentation. All policies reach at least 99.4\% success at the nominal rate $r=1$, but extrapolation success ranges from 1.3\% for phase normalization to 67.2\% with force feedback. The force residual is a privileged simulator-aligned correction, while dynamics augmentation adds richer features and extra demonstrations including out-of-range rates; neither is a like-for-like same-data comparison. The local result illustrates that nominal success and interpolation accuracy do not determine the temporal operating envelope. It is not a reproduction of ParcelStow, ACT, Isaac Lab, or real contact mechanics, and no local number should be read as evidence for a physical robot.
+\end{abstract}
+
+\section{Source, Question, and Claim Boundary}
+
+Enwerem, Baras, and Belta ask whether an imitation learner preserves the temporal robustness of the expert that supplied its demonstrations \cite{parcelstowpaper}. Their ParcelStow benchmark holds initial-condition draws, task geometry, success predicates, state observation, and joint-position action interface fixed while changing an execution-speed factor $r$. Demonstrations cover $r\in[0.5,2]$, and the reported evaluation includes $r\in\{0.5,1,1.5,2,2.25,2.5,3\}$.
+
+The paper's primary expert--ACT-A comparison is especially sharp: both actors succeed in 100 of 100 nominal-speed episodes, but at $r=2$ the expert succeeds in 84 episodes and ACT-A in 53. Of ACT-A's 47 failures at $r=2$, 35 are insertion misalignments and 10 are insertion jams. The diagnostic release also reports that no acquired episode without force closure completes the task in the evaluated records. These are source results documented in the paper and official repository \cite{parcelstowpaper,parcelstowrepo}.
+
+This package asks a prospective intervention question:
+\begin{quote}
+When the base demonstrations already span multiple speeds, which representation or control additions help a small imitation model preserve the expert's operating envelope at held-out interpolation and extrapolation speeds?
+\end{quote}
+
+The interventions tested here are not evaluated in the source paper. The experiment contains no Isaac Lab environment, ParcelStow record, checkpoint, ACT implementation, image observation, or robot. It therefore supports only a synthetic mechanism and study-design claim.
+
+\section{Toy Task}
+
+A compact insertion scenario is parameterized by initial lateral error $x_0$, yaw error $\theta_0$, friction $\mu$, compliance $c$, servo gain $g$, and force-sensor bias. It has ordered stages:
+\[
+\text{acquisition}\rightarrow\text{lift}\rightarrow\text{reorientation}\rightarrow
+\text{preinsert}\rightarrow\text{insertion}\rightarrow\text{release}\rightarrow\text{settling}.
+\]
+
+Following the timing structure reported for ParcelStow, the toy uses 6.3 seconds of fixed-duration phases and $7.8/r$ seconds of speed-scaled phases:
+\begin{equation}
+T(r)=6.3+\frac{7.8}{r}.
+\end{equation}
+Thus $T(1)=14.1$ seconds and $T(2)=10.2$ seconds. Normalized task phase $\phi\in[0,1]$ is sampled at 81 points. The expert produces four action targets: cumulative lateral correction, cumulative yaw correction, insertion-speed command, and grip command.
+
+The required lateral and yaw corrections contain linear and quadratic rate terms, compliance, and servo-lag effects. A representative structure is
+\begin{align}
+a_x^*(r) &=-\left(x_0 + \alpha_1(r-1)\theta_0+\alpha_2\frac{(r-1)^2}{c}+\alpha_3(r-1)(1-g)\right),\\
+a_\theta^*(r) &=-\left(\theta_0+\beta_1(r-1)+\beta_2\frac{(r-1)^2}{c}+\beta_3(r-1)(1-g)\right).
+\end{align}
+Grip demand rises with lower friction and with a quadratic dynamic-load term. These equations are deliberately favorable to a compact regression study and are not rigid-contact mechanics.
+
+\subsection{Insertion and acquisition diagnostics}
+
+The force-closure proxy is the sign of acquisition grip reserve after a small lateral-offset penalty. A nonpositive reserve terminates the episode at acquisition. This mirrors the source's use of force-closure sign as a necessary-condition diagnostic, but replaces contact geometry and wrench space with one scalar.
+
+Pre-insertion lateral and yaw residuals feed a receptacle-force proxy:
+\begin{equation}
+F_{\mathrm{peak}} = b_0+b_1\frac{r^2}{c}+b_2|e_x|+b_3|e_\theta|+b_4|v-v^*|+b_5\,\text{grip deficit}+\epsilon.
+\end{equation}
+Insertion fails as misalignment when lateral or yaw residual exceeds the toy clearance tolerance. It fails as a jam when the force proxy exceeds a threshold or insertion depth falls below 50 mm. These labels are diagnostics, not a reproduction of ParcelStow's simulator predicates.
+
+\section{Training and Methods}
+
+Base training contains 48 demonstrations at each of $r\in\{0.5,1,1.5,2\}$, for 192 trajectories. Each demonstration contains noisy expert targets on the same 81-point phase grid. Evaluation uses 180 matched scenarios at each of ten rates:
+\begin{itemize}[leftmargin=1.5em]
+\item demonstrated anchors: $0.5,1,1.5,2$;
+\item held-out interpolation: $0.75,1.25,1.75$;
+\item extrapolation: $2.25,2.5,3$.
+\end{itemize}
+
+Every learned method uses a standardized multi-output ridge regressor. The feature or data intervention changes as follows.
+
+\paragraph{Raw elapsed time.}
+Elapsed seconds are divided by total cycle time. Because fixed and sped-up phases occupy rate-dependent fractions of the cycle, equal clock coordinates do not imply equal task phase.
+
+\paragraph{Normalized phase.}
+The policy receives $\phi$ and scenario features but not $r$. This removes schedule aliasing while averaging speed-dependent action demand.
+
+\paragraph{Speed conditioning.}
+The phase basis receives explicit first-order interactions with $r-1$. This can interpolate the demonstrated rates but does not exactly represent the quadratic dynamic terms.
+
+\paragraph{Force feedback.}
+The speed-conditioned prediction receives a synthetic contact residual after acquisition and near insertion. The residual adjusts grip, lateral/yaw correction, and insertion speed toward the simulator target. This is a favorable closed-loop hypothesis with privileged structure, not a real sensor/controller model.
+
+\paragraph{Dynamics augmentation.}
+A richer basis includes $(r-1)^2$, $r^2/c$, servo-lag, and rate/friction terms. It is trained with 144 additional simulator-generated demonstrations at broader rates and randomized dynamics. This condition therefore changes both inductive bias and data support.
+
+\section{Results}
+
+\begin{table}[H]
+\centering
+\small
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrr}
+\toprule
+Method & Nominal ($r=1$) & $r=2$ & Interpolation & Extrapolation & Drop $r=1\!\to\!2$ & Extrap. AUC $[2,3]$ \\
+\midrule
+Scripted expert & 1.000 & 1.000 & 1.000 & 0.754 & 0.000 & 0.815 \\
+Raw elapsed time & 0.994 & 0.844 & 0.667 & 0.026 & 0.150 & 0.125 \\
+Normalized phase & 1.000 & 0.900 & 0.998 & 0.013 & 0.100 & 0.122 \\
+Speed-conditioned & 1.000 & 0.989 & 1.000 & 0.504 & 0.011 & 0.578 \\
+\textbf{Speed + force feedback} & \textbf{1.000} & \textbf{1.000} & 0.996 & \textbf{0.672} & \textbf{0.000} & \textbf{0.751} \\
+Dynamics augmentation & 1.000 & 1.000 & \textbf{1.000} & 0.646 & 0.000 & 0.723 \\
+\bottomrule
+\end{tabular}}
+\caption{Full deterministic sweep. Each row aggregates 1,800 episodes. Values are point estimates from one configured simulator run without cross-seed confidence intervals. Interpolation averages rates $0.75,1.25,1.75$; extrapolation averages $2.25,2.5,3$. AUC is normalized over $r\in[2,3]$.}
+\label{tab:main}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../outputs/operating_envelope.png}
+\caption{Matched success rates versus execution speed. The shaded area is the base demonstration range. All learned methods are strong at nominal speed, but their envelopes differ sharply.}
+\label{fig:envelope}
+\end{figure}
+
+Nominal success is not a proxy for temporal robustness in this construction. Raw time, normalized phase, and speed conditioning achieve at least 99.4\% at $r=1$, yet their extrapolation averages are 2.6\%, 1.3\%, and 50.4\%. Phase normalization nearly solves held-out interpolation but cannot adapt the averaged action target to out-of-range speed-dependent demand. Explicit speed conditioning raises extrapolation success by 49.1 percentage points over phase normalization.
+
+Force feedback reaches 67.2\% extrapolation success, 16.9 points above speed conditioning. Its mean pre-insertion misalignment is 0.96 mm rather than 1.72 mm, and its mean peak force proxy is 4.25 N rather than 4.72 N. This gain uses a privileged simulator-aligned residual, not an ordinary force sensor interface. Dynamics augmentation reaches 64.6\% extrapolation success, 14.3 points above speed conditioning, at the cost of 144 extra synthetic trajectories, source-aligned dynamics features, and out-of-range rate coverage. These two conditions therefore should not be read as same-data policy ablations.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../outputs/stage_diagnostics.png}
+\caption{Ordered stage pass rates. Interpolation hides large representational differences because most phase-aware policies pass all stages; extrapolation localizes the collapse at acquisition/lift for raw time and at insertion for the speed-aware methods.}
+\label{fig:stages}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../outputs/insertion_proxies.png}
+\caption{Mean pre-insertion lateral error, receptacle-force proxy, and acquisition force-closure rate. Dashed lines mark the end of the demonstrated range; dotted red lines mark toy failure thresholds.}
+\label{fig:diagnostics}
+\end{figure}
+
+The stage view matters. Whole-cycle time aliasing causes the raw-time policy to lose force closure at slow rates and dynamic grip at fast rates. Phase normalization protects acquisition and interpolation, but its averaged speed target raises contact force and lowers insertion depth in extrapolation. Speed-aware methods preserve early stages and fail primarily at insertion as the physical/contact envelope is exceeded. At $r=3$, even the scripted expert succeeds in only 26.1\% of episodes, so none of the interventions removes the toy's physical limit.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.96\textwidth]{../outputs/representative_trajectory.png}
+\caption{One extrapolation scenario at $r=2.5$. The phase-only and raw-time policies underpredict speed-dependent yaw and insertion commands. Contact feedback corrects the speed-conditioned prediction near the shaded insertion interval; dynamics augmentation represents the target from its richer basis and broader synthetic data.}
+\label{fig:trajectory}
+\end{figure}
+
+\section{Interpretation and Toy-to-Real Mapping}
+
+The bounded conclusion is methodological: evaluation should treat task speed as an intervention and report a matched operating envelope rather than a single nominal point. Multi-speed data alone do not determine how a policy represents progress, conditions on requested speed, reacts to contact, or covers nonlinear dynamics. Those mechanisms should be separated experimentally.
+
+Normalized phase corresponds to an event-based controller or learned progress estimator, but phase is perfect here. The speed scalar corresponds to a commanded task rate, but real time scaling changes tracking, torque, perception latency, and contact transients. The force residual corresponds to tactile or wrist-force closed-loop control, but the toy residual has privileged access to simulator structure. Dynamics augmentation corresponds to randomized simulation or model-generated correction data, but its labels share the evaluator's equations and include out-of-range rates.
+
+A real study should preserve matched expert--learner initial conditions, pre-register demonstrated/interpolation/extrapolation rates, evaluate phase estimation separately from speed conditioning, retain raw force/contact streams, and report paired intervals for success, stage progression, pre-insertion pose, contact force, insertion depth, and force-closure sign. Chunk horizon, temporal ensembling, and replanning rate should also be ablated because the source paper identifies ACT's temporally extended action prediction as an unresolved possible mechanism.
+
+\section{Limitations}
+
+\begin{itemize}[leftmargin=1.5em]
+\item No Isaac Lab, robot, dexterous hand, camera, VLA, ACT, Diffusion Policy, DAgger, or released ParcelStow record/checkpoint is used.
+\item Perfect normalized phase is available to every method except the deliberately raw-clock baseline.
+\item Force feedback directly corrects toward a simulator target; sensing delay, calibration, saturation, noise dynamics, and closed-loop stability are not modeled faithfully.
+\item Dynamics augmentation uses the same structural equations as evaluation and includes rates beyond the base demonstration range.
+\item Force closure, misalignment, contact force, depth, release, and settling are threshold proxies rather than geometry/contact computations.
+\item One deterministic seed and one small regressor family are reported, without uncertainty over training seeds.
+\item The expert cliff and method ranking depend on hand-designed equations and thresholds.
+\item The experiment cannot identify the mechanism behind the paper's ACT-A result or establish transfer to hardware.
+\end{itemize}
+
+\section{Reproduction}
+
+The verified full command was:
+\begin{verbatim}
+cd /home/andypark/Projects/repos/vla-ideas
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  temporal_robustness_transfer/run_temporal_robustness_transfer.py \
+  --mode full
+\end{verbatim}
+Machine-readable outputs include per-episode, speed-sweep, stage, summary, sanity, and JSON metric files.
+
+\begin{thebibliography}{9}
+\bibitem{parcelstowpaper}
+C. Enwerem, J. S. Baras, and C. Belta.
+\emph{Does Imitation Learning Preserve Temporal Robustness in Dexterous Manipulation? An Expert-Learner Comparison Across Task Execution Speeds}.
+arXiv:2609.01453, 2026.
+\url{https://arxiv.org/abs/2609.01453}
+
+\bibitem{parcelstowrepo}
+C. Enwerem.
+\emph{ParcelStow: Matched expert--learner evaluation of temporal robustness in dexterous manipulation}.
+Official code, data records, specifications, and diagnostics, 2026.
+\url{https://github.com/coenwerem/parcelstow}
+\end{thebibliography}
+
+\end{document}

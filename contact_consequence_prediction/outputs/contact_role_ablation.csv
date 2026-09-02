@@ -1,0 +1,4 @@
+setting,episodes,success_rate,damage_rate,jam_rate,mean_peak_force
+full_action_wrench_critic,120,0.625,0.0,0.25833333333333336,1.4778229937975667
+action_only_score,120,0.65,0.0,0.6,1.4569984560568083
+no_candidate_reranking,120,0.625,0.0,0.5833333333333334,1.4778229937975667

@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/robodreamer/vla-ideas?style=social)](https://github.com/robodreamer/vla-ideas/stargazers)
 
-Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains twenty-nine compact experiment tracks plus a lightweight research-notes index:
+Toy research prototypes for exploring visual-language-action timing, policy conditioning, and execution under latency. The repository currently contains thirty-two compact experiment tracks plus a lightweight research-notes index:
 
 - `recap_pi`: RECAP-style advantage-conditioned navigation demos in 2D and 3D.
 - `async_chunking_compare`: a lightweight simulator for comparing synchronous and asynchronous chunked-control strategies under inference delay.
@@ -26,6 +26,9 @@ Toy research prototypes for exploring visual-language-action timing, policy cond
 - `retry_reset_recovery`: a FLARE-inspired recovery-data toy separating robot-pose retry robustness from monitor-gated object-state reset skills.
 - `streaming_action_denoising`: a FlashVLA-inspired systems toy comparing isolated, few-step, and staggered chunk refinement under delay and disturbances.
 - `force_feedback_demonstration_quality`: a PHABS-inspired matched-data toy testing whether cleaner haptic force demonstrations improve fragile-object imitation under shift.
+- `contact_consequence_prediction`: a Facet-0-inspired insertion toy comparing force-conditioned imitation, future-wrench prediction, action-wrench critic reranking, and bounded local adaptation under visually aliased contact.
+- `attention_gated_chunk_horizon`: a Knowing-When-to-Stop-inspired execution toy comparing fixed horizons with state, ensemble, cross-attention-entropy, shuffled-attention, and oracle truncation rules.
+- `temporal_robustness_transfer`: a ParcelStow-inspired operating-envelope toy comparing raw time scaling, normalized phase, speed conditioning, force feedback, and dynamics augmentation across demonstrated and extrapolation speeds.
 - `prediction_error_policy_state`: a PredVLA-inspired temporal-control toy comparing iterative prediction-error state correction with one-pass observers and exact open loop.
 - `configured_failure_audit`: a defense-only TrapVLA-inspired synthetic audit for conditional phase-local failures, mitigation, and execution monitoring.
 - `video_prompt_shortcut_resistance`: a Zero-WAM-inspired composition toy testing whether future-chunk supervision increases reliance on the correct video-like prompt instead of text/history shortcuts.
@@ -119,6 +122,18 @@ This repo is organized as a small ideas lab rather than a polished framework. Th
 
 `force_feedback_demonstration_quality` uses matched synthetic haptics-on/off demonstrations for a bimanual fragile-object handoff and insertion. Identical ridge imitation policies test whether force-profile quality, rather than force annotation alone, changes damage, slip/drop, retry, and shifted-object robustness.
 
+### `contact_consequence_prediction`
+
+`contact_consequence_prediction` isolates the Facet-0 idea that contact should be predicted and valued as a consequence of action. A sign-aliased insertion toy compares action-only and force-conditioned BC, a future-wrench auxiliary, candidate reranking with an action-wrench critic, and a bounded stiffness-adaptation residual under part-dynamics shift.
+
+### `attention_gated_chunk_horizon`
+
+`attention_gated_chunk_horizon` tests a training-free execution rule based on sustained high cross-attention entropy. It compares fixed chunks with state-error, ensemble-disagreement, ordered-attention, shuffled-attention, and future-aware oracle stopping across task stages, impulses, and visual distractors.
+
+### `temporal_robustness_transfer`
+
+`temporal_robustness_transfer` asks whether nominally successful imitation retains the expert's valid speed envelope. A staged insertion proxy compares elapsed-time and phase representations, explicit speed conditioning, contact feedback, and dynamics augmentation over interpolation and extrapolation rates.
+
 ### `prediction_error_policy_state`
 
 `prediction_error_policy_state` isolates observation-driven latent correction in a compact generative recurrent controller. It compares simple recurrence, finite-window attention-like updates, a learned observer, iterative predictive-coding correction, and an exact open-loop ablation under occlusion, delay, disturbance, and sensor bias.
@@ -174,8 +189,8 @@ The tracks intentionally isolate different intervention points rather than treat
 | Family | Tracks | Main distinction |
 | --- | --- | --- |
 | Task prompting, transfer, and data interfaces | `demo_prompted_policy`, `video_prompt_shortcut_resistance`, `cross_embodiment_world_model`, `force_embodiment_gap`, `force_feedback_demonstration_quality`, `semantic_program_lineage` | Runtime task prompts, cross-embodiment action semantics, sensor/morphology interfaces, collection-time target quality, and semantic interface lineage are evaluated separately. |
-| Timing, planning, and action delivery | `async_chunking_compare`, `prefix_rl_chunking`, `bspline_action_parameterization`, `turbo_vla_direct_control`, `openvla_oft_systems_toy`, `anticipatory_context_chunking`, `context_chunk_tradeoff`, `streaming_action_denoising`, `instruction_conditioned_async_control` | Planner latency, decoder scheduling, handoff-state compensation, representation, context, horizon, and prefix stability are distinct mechanisms. |
-| Adaptation, prediction, and recovery | `recap_pi`, `explorative_policy_chunks`, `conflict_aware_replay`, `retry_reset_recovery`, `prediction_error_policy_state`, `predictive_error_correction`, `grounded_online_adaptation`, `local_residual_sim2real`, `causal_interaction_memory` | The update locus ranges from conditioning and candidate selection to replay, recovery skills, transient latent inference, policy updates, and fast/slow transition memory. |
+| Timing, planning, and action delivery | `async_chunking_compare`, `prefix_rl_chunking`, `bspline_action_parameterization`, `turbo_vla_direct_control`, `openvla_oft_systems_toy`, `anticipatory_context_chunking`, `context_chunk_tradeoff`, `streaming_action_denoising`, `instruction_conditioned_async_control`, `attention_gated_chunk_horizon`, `temporal_robustness_transfer` | Planner latency, decoder scheduling, handoff-state compensation, representation, context, adaptive horizon, speed-envelope transfer, and prefix stability are distinct mechanisms. |
+| Adaptation, prediction, and recovery | `recap_pi`, `explorative_policy_chunks`, `conflict_aware_replay`, `retry_reset_recovery`, `prediction_error_policy_state`, `predictive_error_correction`, `grounded_online_adaptation`, `local_residual_sim2real`, `causal_interaction_memory`, `contact_consequence_prediction` | The update locus ranges from conditioning and candidate selection to consequence prediction, value-based reranking, replay, recovery skills, transient latent inference, policy updates, and fast/slow transition memory. |
 | Safety and diagnostics | `path_consistent_safety_filtering`, `constraint_manifold_action_filter`, `bc_distribution_shift_mysteries`, `configured_failure_audit`, `skill_reset_diagnostics` | Execution filtering, geometric projection, benign closed-loop distribution shift, hidden conditional behavior, and reachability-biased skill evaluation answer different failure questions. |
 
 Each new experiment README and PDF includes a more detailed comparison against its nearest repository neighbors, including negative results and confounds found during review.
@@ -315,6 +330,27 @@ Run the PHABS-inspired force-feedback demonstration toy:
 ```bash
 cd /home/andypark/Projects/repos/vla-ideas
 /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python force_feedback_demonstration_quality/run_force_feedback_demonstration_quality.py --seed 37 --demo-scenarios 72 --demo-repeats 2 --eval-trials-per-shift 180
+```
+
+Run the Facet-0-inspired contact-consequence toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+PYTHONWARNINGS=error /home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python contact_consequence_prediction/run_contact_consequence_prediction.py --mode full
+```
+
+Run the attention-gated chunk-horizon toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python attention_gated_chunk_horizon/run_attention_gated_chunk_horizon.py --mode full --seed 31
+```
+
+Run the temporal-robustness transfer toy:
+
+```bash
+cd /home/andypark/Projects/repos/vla-ideas
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python temporal_robustness_transfer/run_temporal_robustness_transfer.py --mode full
 ```
 
 Run the PredVLA-inspired predictive-state correction toy:
@@ -508,6 +544,27 @@ The experiment scripts write visual outputs and reports directly into the repo s
 - deterministic matching and force-quality sanity checks plus four figures;
 - a generated LaTeX experiment report and rendered PDF.
 
+### `contact_consequence_prediction/outputs`
+
+- paired insertion rollouts for action-only, force-conditioned, future-wrench, critic-reranked, and bounded-adaptation controllers;
+- part-dynamics robustness and contact-role ablations with jam, recovery, wrench, intervention, and completion metrics;
+- exact visual-alias, force-sign, residual-bound, and determinism sanity checks plus four figures;
+- a generated LaTeX experiment report and rendered PDF.
+
+### `attention_gated_chunk_horizon/outputs`
+
+- paired staged-control trials for four fixed and five adaptive execution rules;
+- disturbance/distractor sweeps, signal-to-future-error diagnostics, efficiency frontiers, and shuffled-attention controls;
+- deterministic plateau, ordering, and execution checks plus five figures;
+- a generated LaTeX experiment report and rendered PDF.
+
+### `temporal_robustness_transfer/outputs`
+
+- paired multi-speed insertion trials across demonstrated, held-out interpolation, and extrapolation rates;
+- operating-envelope, stage, force-closure, misalignment, jam, contact-force, and augmentation diagnostics;
+- deterministic schedule, expert, and force-feedback sanity checks plus four figures;
+- a generated LaTeX experiment report and rendered PDF.
+
 ### `prediction_error_policy_state/outputs`
 
 - 5,136 paired temporal-control trials and 107 method/perturbation aggregates;
@@ -677,6 +734,18 @@ vla-ideas/
 │   ├── run_force_feedback_demonstration_quality.py
 │   ├── outputs/
 │   └── docs/
+├── contact_consequence_prediction/
+│   ├── run_contact_consequence_prediction.py
+│   ├── outputs/
+│   └── docs/
+├── attention_gated_chunk_horizon/
+│   ├── run_attention_gated_chunk_horizon.py
+│   ├── outputs/
+│   └── docs/
+├── temporal_robustness_transfer/
+│   ├── run_temporal_robustness_transfer.py
+│   ├── outputs/
+│   └── docs/
 ├── prediction_error_policy_state/
 │   ├── run_prediction_error_policy_state.py
 │   ├── outputs/
@@ -769,6 +838,12 @@ LaTeX reports share one renderer and Docker setup under [`tools/`](tools/). Each
 - [`streaming_action_denoising/docs/streaming_action_denoising_report.pdf`](streaming_action_denoising/docs/streaming_action_denoising_report.pdf)
 - [`force_feedback_demonstration_quality/README.md`](force_feedback_demonstration_quality/README.md)
 - [`force_feedback_demonstration_quality/docs/force_feedback_demonstration_quality_report.pdf`](force_feedback_demonstration_quality/docs/force_feedback_demonstration_quality_report.pdf)
+- [`contact_consequence_prediction/README.md`](contact_consequence_prediction/README.md)
+- [`contact_consequence_prediction/docs/contact_consequence_prediction_report.pdf`](contact_consequence_prediction/docs/contact_consequence_prediction_report.pdf)
+- [`attention_gated_chunk_horizon/README.md`](attention_gated_chunk_horizon/README.md)
+- [`attention_gated_chunk_horizon/docs/attention_gated_chunk_horizon_report.pdf`](attention_gated_chunk_horizon/docs/attention_gated_chunk_horizon_report.pdf)
+- [`temporal_robustness_transfer/README.md`](temporal_robustness_transfer/README.md)
+- [`temporal_robustness_transfer/docs/temporal_robustness_transfer_report.pdf`](temporal_robustness_transfer/docs/temporal_robustness_transfer_report.pdf)
 - [`prediction_error_policy_state/README.md`](prediction_error_policy_state/README.md)
 - [`prediction_error_policy_state/docs/prediction_error_policy_state_report.pdf`](prediction_error_policy_state/docs/prediction_error_policy_state_report.pdf)
 - [`configured_failure_audit/README.md`](configured_failure_audit/README.md)

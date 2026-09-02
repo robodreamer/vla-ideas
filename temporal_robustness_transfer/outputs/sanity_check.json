@@ -1,0 +1,11 @@
+{
+  "deterministic_expert": true,
+  "deterministic_scenario": true,
+  "force_feedback_reduces_stress_action_error": true,
+  "higher_speed_requires_more_dynamic_grip": true,
+  "nominal_cycle_duration_s": 14.1,
+  "passed": true,
+  "r2_cycle_duration_s": 10.2,
+  "stress_error_after": 3.4709591016352794,
+  "stress_error_before": 7.83498350449652
+}

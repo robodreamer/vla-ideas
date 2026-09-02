@@ -1,0 +1,32 @@
+{
+  "checks": {
+    "action_only_cannot_change_with_hidden_sign": true,
+    "adaptation_not_more_damaging_in_probe": true,
+    "bounded_residual_limit_is_positive_and_below_action_limit": true,
+    "deterministic_episode_repeat": true,
+    "force_conditioned_correction_changes_sign": true,
+    "force_reveals_opposite_lateral_sign": true,
+    "visual_alias_is_exact": true
+  },
+  "passed": true,
+  "probe": {
+    "action_only_minus": [
+      -1.0161252763399627e-18,
+      -0.026840063414530026
+    ],
+    "action_only_plus": [
+      -1.0161252763399627e-18,
+      -0.026840063414530026
+    ],
+    "adapted_success": true,
+    "critic_success": false,
+    "force_minus": [
+      0.075,
+      -0.032
+    ],
+    "force_plus": [
+      -0.075,
+      -0.032
+    ]
+  }
+}

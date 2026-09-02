@@ -1,0 +1,152 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black,hypertexnames=false}
+
+\title{Attention-Gated Chunk Horizons: A Deterministic Stopping-Rule Mechanism Probe}
+\author{VLA Ideas}
+\date{September 2, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note turns the execution rule proposed in \emph{Knowing When to Stop} into a deterministic two-dimensional control toy. A frozen policy predicts 24 actions while its useful open-loop horizon changes across coarse, interaction, and precision stages. We compare fixed execution lengths, state-rollout error, ensemble disagreement, action-to-observation attention entropy, a shuffled-attention control, and a future-aware oracle under physical disturbances and irrelevant attention distractors. The synthetic entropy signal is deliberately coupled to the future-error boundary, so this is a stopping-logic probe under favorable temporal alignment rather than evidence that real attention is calibrated or predictive. It does not reproduce a VLA or robot benchmark.
+\end{abstract}
+
+\section{Source-Grounded Motivation}
+Shan et al.~\cite{knowing} report that action-to-VLM cross-attention entropy in flow-based VLA action experts often rises and reaches a high plateau along the predicted action horizon. They measure a positive association between entropy and offline action error, then use a training-free plateau detector to truncate execution. Their detector requires both high entropy and small average entropy change over a sustained window; without a qualifying plateau, the complete predicted horizon is executed.
+
+The present study asks a narrower engineering question: if such an internal signal is available, what does its execution frontier look like against simple alternatives, and what fails when the signal's temporal alignment is destroyed or irrelevant visual content changes its entropy?
+
+\paragraph{Claim boundary.}
+The source evaluates $\pi_{0.5}$ and X-VLA on RoboTwin 2.0, LIBERO, and three real-world tasks. This package uses none of those models, datasets, or tasks. The source supports the motivation and form of the stopping rule only. All local quantitative results belong to the synthetic mechanism toy.
+
+\section{Toy Setup}
+A point robot with position $p_t\in\mathbb{R}^2$ and velocity $v_t\in\mathbb{R}^2$ follows a staged reference. True dynamics include drag, action-gain mismatch, process noise, and optional sparse impulses. Each policy query predicts $H_p=24$ actions with a nominal model. The reference has three phases: a predictable coarse approach, a curved interaction, and a precision insertion with faster corrections.
+
+The policy extrapolates the current local reference velocity. A stage-dependent common-mode drift enters future targets after a latent useful-horizon boundary. Because this drift is shared by the ensemble, sample disagreement is intentionally an imperfect detector. Replanning boundaries introduce a small deterministic handoff cost, representing control discontinuity or inference handoff rather than measured GPU latency.
+
+\section{Synthetic Cross-Attention and Plateau Rule}
+For each action index $j$, the toy constructs a distribution $p_{i,j}$ over $N=48$ observation tokens by mixing a peaked relevant-token distribution with the uniform distribution. Entropy is
+\begin{equation}
+  \mathcal{E}_j=-\sum_{i=1}^{N}p_{i,j}\log p_{i,j}.
+\end{equation}
+The uniform mixture rises before the common-mode plan error, creating a high plateau. This is a controlled assumption, not a learned empirical result.
+
+Following the source's structure, a moving average with window $k=4$ is computed:
+\begin{equation}
+ \bar{\mathcal{E}}_j=\frac{1}{k}\sum_{m=0}^{k-1}\mathcal{E}_{j+m}.
+\end{equation}
+The first candidate window must keep every smoothed value above $\eta\log N$ and have small mean first-order change. This toy uses $\eta=0.94$ and stability threshold $\tau=0.012$. The selected boundary includes the evidence-window offset; if no sustained high plateau exists, all 24 actions are executed.
+
+The shuffled-attention control applies exactly the same detector after permuting the entropy values across action indices. It preserves the marginal values while removing the action-horizon ordering.
+
+\section{Compared Methods}
+\begin{itemize}[leftmargin=1.5em]
+  \item fixed horizons of 3, 6, 12, and 24 actions;
+  \item state-error gating from nominal rollout versus constant-velocity extrapolation;
+  \item ensemble-uncertainty gating from eight perturbed action plans;
+  \item the cross-attention entropy plateau gate;
+  \item the shuffled-attention negative control;
+  \item a future-aware oracle using true predicted-versus-oracle action error.
+\end{itemize}
+The state-error and ensemble gates are generic toy proxies, not reproductions of specific methods cited by the source.
+
+\section{Evaluation}
+Four paired conditions are evaluated: clean, physical disturbance, visual distractor, and their combination. The full run uses 120 trials per condition. Metrics are success under fixed tail/final tracking tolerances, full-episode tracking RMSE, policy-query count, mean executed horizon, selected-boundary action error, and signal/action-error correlation. A separate combined-severity sweep measures degradation.
+
+The checked command is:
+\begin{verbatim}
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  attention_gated_chunk_horizon/run_attention_gated_chunk_horizon.py \
+  --mode full --seed 31
+\end{verbatim}
+
+\section{Results}
+% RESULTS_TABLE_START
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Method & Success & Tracking RMSE & Policy calls & Mean executed $H$ \\
+\midrule
+Fixed 3 & 100.0\% & 0.153 & 56.0 & 3.0 \\
+Fixed 6 & 100.0\% & 0.209 & 28.0 & 6.0 \\
+Fixed 12 & 8.3\% & 0.383 & 14.0 & 12.0 \\
+Fixed 24 & 0.0\% & 1.074 & 7.0 & 24.0 \\
+State-error gate & 15.8\% & 0.616 & 14.0 & 12.0 \\
+Ensemble uncertainty & 0.0\% & 0.958 & 8.2 & 20.4 \\
+\textbf{Attention entropy} & 43.3\% & 0.392 & 13.0 & 12.9 \\
+Shuffled attention & 0.8\% & 0.937 & 8.7 & 19.5 \\
+Oracle stop & 100.0\% & 0.152 & 38.5 & 4.4 \\
+\bottomrule
+\end{tabular}
+\caption{Combined physical-disturbance and visual-distractor condition, 120 paired trials. Values are deterministic point estimates from one configured simulator run, without cross-seed confidence intervals.}
+\end{table}
+
+The attention gate obtains 43.3\% success with 13.0 policy calls, compared with 8.3\% success and 14.0 calls for fixed 12. Shuffling the same entropy values across action indices reduces success to 0.8\%, supporting the importance of horizon ordering in this constructed mechanism. Fixed 6 and fixed 3 both retain 100\% success, but require 28 and 56 calls. The attention rule therefore improves the middle of the configured accuracy--efficiency frontier; it does not outperform aggressive replanning in raw success.
+
+Across the four conditions, attention gating averages 41.7\% success. Mean per-query Pearson correlation with future action error is approximately 0.55 for normalized attention entropy, 0.54 for ensemble disagreement, and 0.13 for state error. These correlations are diagnostics of this construction, not uncertainty calibration. The similar ensemble correlation does not yield a good stopping policy because common-mode plan bias keeps disagreement below its gate until chunks are too long. The combined-severity sweep also reveals a calibration caveat: sufficiently strong distractor mixing can force shorter chunks and accidentally improve thresholded success. This is conservative regularization, not evidence that distractors are semantically understood.
+% RESULTS_TABLE_END
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/headline_metrics.png}
+  \caption{Success, tracking error, and policy-query cost. Hatched bars denote the combined physical-disturbance and visual-distractor condition.}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/condition_robustness.png}
+  \caption{Method behavior across clean, disturbance-only, distractor-only, and combined conditions.}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{../outputs/efficiency_frontier.png}
+  \caption{Tracking accuracy versus the number of policy queries. Very short fixed chunks provide a high-compute accuracy reference.}
+\end{figure}
+
+\section{Mechanism and Controls}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../outputs/mechanism_example.png}
+  \caption{Representative trajectories, errors, a precision-stage entropy/error curve, and executed-horizon histograms.}
+\end{figure}
+
+The shuffled control is important because an entropy histogram alone cannot establish a temporal boundary. If shuffling removes the benefit, the ordered rise-and-plateau pattern rather than the marginal entropy values is doing useful work in this toy. Distractor mixing tests a different issue: even correctly ordered entropy can be miscalibrated when irrelevant tokens disperse attention.
+
+\section{Toy-to-Real Mapping}
+The 2-D state represents low-dimensional robot feedback; staged reference segments represent approach, interaction, and precision phases; the analytical 24-action plan represents a VLA chunk; 48 synthetic observation tokens represent VLM context; impulses represent unmodeled execution disturbances; and query count represents relative inference burden. These analogies omit images, language, contacts, robot kinematics, generative denoising, learned representations, and measured wall-clock latency.
+
+\section{Limitations and Follow-Ups}
+\begin{itemize}[leftmargin=1.5em]
+  \item Attention is informative by construction. A real test must first establish out-of-sample calibration between cross-attention dynamics and action error.
+  \item Entropy does not distinguish task-relevant dispersion from distractor-induced dispersion. Token masking, head/layer selection, or conditional calibration could be necessary.
+  \item The ensemble shares common-mode bias, so low disagreement need not mean low error.
+  \item The oracle has future reference and disturbance access and is not deployable.
+  \item The ranking depends on toy dynamics, handoff cost, thresholds, and success tolerances.
+  \item A real follow-up should log per-layer/per-head action-to-observation attention, action error, task phase, distractor annotations, selected horizons, control frequency, and end-task success on held-out environments.
+\end{itemize}
+
+\begin{thebibliography}{9}
+\bibitem{knowing}
+X. Shan, S. Dai, Y. Wang, and J. Yu,
+``Knowing When to Stop: Adaptive Action Chunking via Internal Cross-Attention Dynamics in VLAs,''
+\emph{arXiv:2609.00908v1}, September 1, 2026.
+\url{https://arxiv.org/abs/2609.00908}
+\end{thebibliography}
+
+\end{document}

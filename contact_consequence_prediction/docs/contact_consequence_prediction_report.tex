@@ -1,0 +1,189 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black,hypertexnames=false}
+
+\title{Contact-Consequence Prediction Toy:\\From Visually Aliased Behavior Cloning to Bounded Local Adaptation}
+\author{VLA Ideas}
+\date{September 2, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note distills one mechanism from Facet-0 into a deterministic synthetic insertion experiment. A sign-aliased visual observation cannot distinguish opposite lateral misalignments, while wrist wrench reveals the contact state after engagement. We compare action-only behavior cloning, force-conditioned behavior cloning, an auxiliary next-wrench predictor, action--wrench critic reranking, and bounded online adaptation of a local stiffness estimate. On 320 paired shifted-part episodes, completion rises from 0.0\% for action-only cloning to 62.2\% with force conditioning, 62.8\% with future-wrench gating, 72.5\% with critic reranking, and 100.0\% with bounded adaptation. The adapted result is a deterministic point estimate favored by a directly observable one-parameter stiffness structure, not evidence of general adaptation robustness. The toy supports a narrow mechanism claim only and is not a Facet-0 reproduction, VLA result, or certified safety study.
+\end{abstract}
+
+\section{Primary Motivation and Claim Boundary}
+Facet-0~\cite{facet0} describes a robotic foundation model for contact-rich precision assembly. Its policy conditions on visual--language context, kinematic state, and causal wrench history, and jointly generates action chunks with the future wrist-wrench profile expected after those actions. A deployment-trained distributional Action--Wrench Critic values the joint proposal. For part-specific transfer, a lightweight actor reuses a frozen representation, outputs bounded executable Cartesian actions, and retains an auxiliary, non-commanded wrench-prediction head.
+
+The Facet-0 authors report 82\% mean success over five sub-millimeter computer-assembly tasks versus 15\% for their strongest matched baseline. Their controlled variants report 16\% after semantic--contact alignment, 38\% after value-guided refinement, and 82\% with bounded local adaptation. The official project page presents the associated ManuFacet-1K dataset and system overview~\cite{facetproject}. These are source-reported real-system results, not local measurements.
+
+This package retains only the sequence ``condition on contact, predict consequence, value a proposed action, adapt within a bound.'' It removes images, language, pretrained representations, flow matching, a distributional return model, high-rate compliant control, and robot hardware.
+
+\section{Synthetic Insertion Problem}
+The state is
+\[
+  s_t = (z_t, e_t, \Delta z_{t-1}, a_{t-1}),
+\]
+where $z_t$ is insertion depth and $e_t$ is signed lateral error. The visual observation quantizes $|e_t|$ and removes its sign. Therefore the states $(z,+e)$ and $(z,-e)$ have exactly the same visual feature vector. Once contact begins, the two-axis wrench
+\[
+  w_t = (f^{\mathrm{axial}}_t, f^{\mathrm{lateral}}_t)
+\]
+reveals the lateral sign and interaction severity.
+
+A part samples five dynamics parameters: lateral stiffness, jam gain, friction, motion/force transmission, and clearance scale. Positive axial commands make progress only when alignment lies near the effective clearance. Otherwise progress contracts sharply and contact load rises. The force ramp depends on contact engagement depth, which permits a shallow probing action before a deeper push.
+
+The executable action is $a_t=(\Delta x_t,\Delta z_t)$. Every method is clipped to
+\[
+ |\Delta x_t|\leq 0.075, \qquad -0.032\leq \Delta z_t\leq 0.072.
+\]
+A trial succeeds by reaching depth 1.0 within 58 steps without exceeding the simulator's hard wrench threshold. These bounds are kinematic only; they do not imply passivity or a physical force guarantee.
+
+\section{Compared Methods}
+\begin{enumerate}[leftmargin=1.7em]
+  \item \textbf{Action-only BC.} Ridge regression maps sign-aliased visual features to a 2-D action. Mirrored demonstrations force the optimal visual-only lateral prediction toward zero under exact aliasing.
+  \item \textbf{Force-conditioned BC.} The same regression family additionally reads current axial/lateral wrench and polynomial interaction features.
+  \item \textbf{Future-wrench auxiliary.} A separate ridge model predicts the next axial/lateral wrench, absolute lateral wrench, and wrench norm from state and proposed action. Predicted contact intensity gates a shallow axial probe. Wrench is predictive and is never executed.
+  \item \textbf{Action--wrench critic reranking.} Perturbed deployment transitions train a scalar one-step critic. At contact, the critic selects among bounded axial candidates using predicted future wrench, with a trust-region penalty around the BC proposal.
+  \item \textbf{Bounded local adaptation.} Measured changes in lateral wrench after a lateral command update one effective stiffness estimate. The inferred alignment correction is added around the frozen critic proposal and clipped to a residual magnitude of 0.03.
+\end{enumerate}
+
+\section{Mapping to Facet-0}
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{p{0.23\textwidth}p{0.31\textwidth}p{0.36\textwidth}}
+\toprule
+Toy component & Facet-0 motivation & Simplification \\
+\midrule
+Sign-aliased slot & Visually similar progress can hide clean insertion or jam & Six visual scalars; no image or language model \\
+Current 2-D wrench & Causal wrench history conditions contact behavior & One sample rather than a 10-frame, 6-D history \\
+Next-wrench regression & Joint action--future-wrench proposal & Separate ridge head, not joint flow matching \\
+Candidate critic & Action--Wrench Critic & One-step scalar ridge value, not a return distribution \\
+Stiffness update & Bounded part-specific adaptation & One hand-designed estimator, not a learned TD3+BC actor \\
+Action clipping & Bounded executable Cartesian action & No compliant controller or certified force bound \\
+\bottomrule
+\end{tabular}
+\caption{Toy-to-real mapping. Similarity is conceptual rather than architectural.}
+\end{table}
+
+\section{Metrics and Protocol}
+The main split uses 320 paired trials per method at dynamics-shift severity 1.35. Each paired trial shares its initial alignment and part parameters across all methods. We report completion, jam incidence, recovery conditional on a jam, soft-threshold intervention, episode length, final absolute alignment error, action variation, peak wrench, and auxiliary consequence error. Robustness uses 120 paired trials per method at severities $\{0.70,1.00,1.35,1.70,2.05\}$.
+
+The checked run was:
+\begin{verbatim}
+PYTHONWARNINGS=error \
+/home/andypark/Projects/repos/dhb-xr/.pixi/envs/default/bin/python \
+  contact_consequence_prediction/run_contact_consequence_prediction.py \
+  --mode full
+\end{verbatim}
+
+\section{Main Results}
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+Method & Success & Jam & Recovery & Steps & Intervene & Pred. wrench MAE \\
+\midrule
+Action-only BC & 0.0\% & 0.0\%$^*$ & 0.0\% & 58.0 & 16.6\% & 0.352 \\
+Force-conditioned BC & 62.2\% & 45.3\% & 89.7\% & 39.1 & 3.4\% & 0.145 \\
+Future-wrench auxiliary & 62.8\% & 35.9\% & \textbf{100.0\%} & 38.9 & 3.4\% & 0.144 \\
+Critic reranking & 72.5\% & 5.6\% & 72.2\% & 33.1 & 3.4\% & 0.149 \\
+Bounded adaptation & \textbf{100.0\%} & \textbf{2.8\%} & \textbf{100.0\%} & \textbf{23.3} & 3.4\% & \textbf{0.121} \\
+\bottomrule
+\end{tabular}
+\caption{Main paired evaluation at severity 1.35. Values are deterministic point estimates from one configured simulator run. Conditional recovery uses 145, 115, 18, and 9 observed jams for force-conditioned BC, future-wrench auxiliary, critic reranking, and bounded adaptation. $^*$Action-only BC usually stalls before the toy jam predicate activates; zero jam is not benign because completion is also zero.}
+\label{tab:main}
+\end{table}
+
+Force conditioning adds 62.2 completion points over action-only BC by revealing the sign removed from vision. The auxiliary consequence gate adds only 0.6 completion points, but lowers jam incidence by 9.4 points and makes all observed jams recoverable. Critic reranking adds 9.7 completion points over the auxiliary policy and cuts jam incidence to 5.6\%. Bounded adaptation adds a further 27.5 points and reduces mean steps by 15.8 relative to force-conditioned BC.
+
+The four contact-aware methods have the same mean main-split peak wrench, 1.477, because they share the first contact probe. Thus the local result supports completion and speed gains, but not a claim that adaptation reduces peak force.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.98\textwidth]{../outputs/headline_metrics.png}
+  \caption{Completion, conditional recovery, and mean peak contact load.}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.98\textwidth]{../outputs/paired_trajectories.png}
+  \caption{Paired trajectory example. The plot is diagnostic rather than statistically representative.}
+\end{figure}
+
+\section{Part-Dynamics Robustness}
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+Method & 0.70 & 1.00 & 1.35 & 1.70 & 2.05 \\
+\midrule
+Action-only BC & 0.0\% & 0.0\% & 0.0\% & 0.0\% & 0.0\% \\
+Force-conditioned BC & 100.0\% & 93.3\% & 60.8\% & 53.3\% & 54.2\% \\
+Future-wrench auxiliary & 100.0\% & 92.5\% & 62.5\% & 53.3\% & 54.2\% \\
+Critic reranking & 100.0\% & 96.7\% & 70.8\% & 55.8\% & 54.2\% \\
+Bounded adaptation & \textbf{100.0\%} & \textbf{100.0\%} & \textbf{100.0\%} & \textbf{100.0\%} & \textbf{99.2\%} \\
+\bottomrule
+\end{tabular}
+\caption{Completion versus part-dynamics shift severity, 120 paired trials per cell.}
+\end{table}
+
+The frozen consequence model and critic lose their advantage at the hardest shift. Bounded adaptation remains nearly perfect because the toy exposes a favorable stiffness relation directly through measured wrench changes. This is a designed mechanism test, not evidence that a one-parameter update is sufficient for real part transfer.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.98\textwidth]{../outputs/robustness.png}
+  \caption{Success and mean peak wrench under increasing part-dynamics shift.}
+\end{figure}
+
+\section{Consequence Prediction and Ablation}
+The future-wrench model is trained only on nominal demonstrations. Its calibration plot shows useful correlation in that range but does not establish calibrated uncertainty under shift. A separate contact-role ablation compares the action--wrench critic with progress-only candidate scoring and no reranking. The CSV artifact is treated as a diagnostic because the one-step learned critic can be sensitive to its candidate set and model error.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.62\textwidth]{../outputs/wrench_prediction.png}
+  \caption{Predicted versus realized next-wrench norm on nominal synthetic dynamics.}
+\end{figure}
+
+\section{Sanity Checks}
+The run verifies that: (i) positive and negative misalignment produce exactly equal visual observations; (ii) lateral wrench changes sign; (iii) action-only BC returns the same action for both hidden signs; (iv) force-conditioned BC reverses its corrective action; (v) the local residual bound is positive and below the global action limit; and (vi) a repeated episode is bitwise deterministic under the same seed and configuration.
+
+\section{Limitations}
+\begin{itemize}[leftmargin=1.5em]
+  \item Dynamics, thresholds, utility, and observation aliasing are manually constructed.
+  \item Ridge models are not VLAs; the critic is one-step and scalar rather than distributional.
+  \item The auxiliary model predicts vector and magnitude targets separately, not through joint action--wrench flow matching.
+  \item Local adaptation estimates one effective stiffness and has direct access to informative force changes.
+  \item Command clipping bounds displacement only. It does not certify contact force, energy, passivity, or collision safety.
+  \item The action-only policy's low force is caused by failure to insert and must not be read as safer behavior.
+  \item No significance test is reported. Pairing improves comparison efficiency but does not make this simulator representative of manufacturing.
+\end{itemize}
+
+\section{Conclusion}
+Within an exact visual alias, action-only cloning cannot choose the signed correction. Force resolves that ambiguity; future-wrench prediction reduces jam incidence; a learned critic improves candidate pacing; and a bounded local dynamics update restores performance under larger part shift. The result is intentionally narrower than Facet-0: it illustrates why predicted and valued contact consequences can be useful, while leaving the paper's real-system claims to the primary source.
+
+\begin{thebibliography}{9}
+\bibitem{facet0}
+H. Liu et al., \emph{Facet-0: A Robotic Foundation Model for Contact-Rich Precise Manipulation}, arXiv:2609.01596, 2026. \url{https://arxiv.org/abs/2609.01596}
+
+\bibitem{facetproject}
+PINE Lab, Nanyang Technological University, \emph{Facet-0 official project page}, 2026. \url{https://pine-lab-ntu.github.io/facet-0/}
+\end{thebibliography}
+
+\end{document}

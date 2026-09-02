@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "checks": {
+    "attention_entropy_rises": true,
+    "attention_gate_is_nontrivial": true,
+    "shuffle_preserves_entropy_multiset": true,
+    "fixed_horizons_exact": true,
+    "oracle_not_worse_than_fixed24_combined": true,
+    "attention_beats_shuffled_combined": true,
+    "attention_uses_fewer_calls_than_fixed3_clean": true
+  },
+  "example_attention_horizon": 11
+}

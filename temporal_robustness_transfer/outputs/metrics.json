@@ -1,0 +1,226 @@
+{
+  "claim_boundary": "Synthetic mechanism study; not ParcelStow/ACT reproduction or real-robot evidence.",
+  "comparisons": {
+    "dynamics_augmentation": {
+      "extrapolation_success_gain_over_speed_conditioned": 0.1425925925925926,
+      "r2_gap_to_expert": 0.0,
+      "temporal_drop_excess_over_expert": 0.0
+    },
+    "force_feedback": {
+      "extrapolation_success_gain_over_speed_conditioned": 0.16851851851851862,
+      "r2_gap_to_expert": 0.0,
+      "temporal_drop_excess_over_expert": 0.0
+    },
+    "phase_normalization": {
+      "extrapolation_success_gain_over_speed_conditioned": -0.4907407407407407,
+      "r2_gap_to_expert": 0.09999999999999998,
+      "temporal_drop_excess_over_expert": 0.09999999999999998
+    },
+    "raw_time_scaling": {
+      "extrapolation_success_gain_over_speed_conditioned": -0.47777777777777775,
+      "r2_gap_to_expert": 0.15555555555555556,
+      "temporal_drop_excess_over_expert": 0.15000000000000002
+    },
+    "speed_conditioned": {
+      "extrapolation_success_gain_over_speed_conditioned": 0.0,
+      "r2_gap_to_expert": 0.011111111111111072,
+      "temporal_drop_excess_over_expert": 0.011111111111111072
+    }
+  },
+  "config": {
+    "demos_per_rate": 48,
+    "eval_episodes_per_rate": 180,
+    "eval_rates": [
+      0.5,
+      0.75,
+      1.0,
+      1.25,
+      1.5,
+      1.75,
+      2.0,
+      2.25,
+      2.5,
+      3.0
+    ],
+    "mode": "full",
+    "phase_steps": 81,
+    "ridge": 0.035,
+    "seed": 53,
+    "train_rates": [
+      0.5,
+      1.0,
+      1.5,
+      2.0
+    ]
+  },
+  "sanity": {
+    "deterministic_expert": true,
+    "deterministic_scenario": true,
+    "force_feedback_reduces_stress_action_error": true,
+    "higher_speed_requires_more_dynamic_grip": true,
+    "nominal_cycle_duration_s": 14.1,
+    "passed": true,
+    "r2_cycle_duration_s": 10.2,
+    "stress_error_after": 3.4709591016352794,
+    "stress_error_before": 7.83498350449652
+  },
+  "summary": [
+    {
+      "action_rmse": 0.0,
+      "demonstrated_range_auc": 1.0,
+      "episodes": 1800,
+      "extrapolation_auc": 0.8152777777777778,
+      "extrapolation_success": 0.7537037037037037,
+      "force_closure_failure_rate": 0.0,
+      "insertion_jam_rate": 0.07388888888888889,
+      "insertion_misalignment_rate": 0.0,
+      "interpolation_success": 1.0,
+      "label": "Scripted expert",
+      "mean_alignment_mm": 0.5997899753451303,
+      "mean_insertion_depth_mm": 58.10645162151313,
+      "mean_peak_contact_force_n": 3.907414138392375,
+      "method": "scripted_expert",
+      "nominal_success": 1.0,
+      "r2_success": 1.0,
+      "success_rate": 0.9261111111111111,
+      "temporal_drop_r1_to_r2": 0.0
+    },
+    {
+      "action_rmse": 1.1413392713401718,
+      "demonstrated_range_auc": 0.7361111111111112,
+      "episodes": 1800,
+      "extrapolation_auc": 0.125,
+      "extrapolation_success": 0.025925925925925925,
+      "force_closure_failure_rate": 0.2005555555555556,
+      "insertion_jam_rate": 0.03111111111111111,
+      "insertion_misalignment_rate": 0.0,
+      "interpolation_success": 0.6666666666666666,
+      "label": "Raw elapsed time",
+      "mean_alignment_mm": 1.7859029624634564,
+      "mean_insertion_depth_mm": 51.59867222475261,
+      "mean_peak_contact_force_n": 6.076052406696303,
+      "method": "raw_time_scaling",
+      "nominal_success": 0.9944444444444445,
+      "r2_success": 0.8444444444444444,
+      "success_rate": 0.49166666666666664,
+      "temporal_drop_r1_to_r2": 0.15000000000000002
+    },
+    {
+      "action_rmse": 0.9896209379491869,
+      "demonstrated_range_auc": 0.9893518518518518,
+      "episodes": 1800,
+      "extrapolation_auc": 0.12222222222222222,
+      "extrapolation_success": 0.012962962962962963,
+      "force_closure_failure_rate": 0.0,
+      "insertion_jam_rate": 0.018333333333333333,
+      "insertion_misalignment_rate": 0.0,
+      "interpolation_success": 0.9981481481481481,
+      "label": "Normalized phase",
+      "mean_alignment_mm": 1.8574019154380272,
+      "mean_insertion_depth_mm": 52.02277469857754,
+      "mean_peak_contact_force_n": 5.934634931362044,
+      "method": "phase_normalization",
+      "nominal_success": 1.0,
+      "r2_success": 0.9,
+      "success_rate": 0.6916666666666667,
+      "temporal_drop_r1_to_r2": 0.09999999999999998
+    },
+    {
+      "action_rmse": 0.5956955730910931,
+      "demonstrated_range_auc": 0.9990740740740741,
+      "episodes": 1800,
+      "extrapolation_auc": 0.5784722222222223,
+      "extrapolation_success": 0.5037037037037037,
+      "force_closure_failure_rate": 0.0,
+      "insertion_jam_rate": 0.10333333333333333,
+      "insertion_misalignment_rate": 0.0033333333333333335,
+      "interpolation_success": 1.0,
+      "label": "Speed-conditioned",
+      "mean_alignment_mm": 1.7230499577566292,
+      "mean_insertion_depth_mm": 55.43530247742606,
+      "mean_peak_contact_force_n": 4.723287307618466,
+      "method": "speed_conditioned",
+      "nominal_success": 1.0,
+      "r2_success": 0.9888888888888889,
+      "success_rate": 0.85,
+      "temporal_drop_r1_to_r2": 0.011111111111111072
+    },
+    {
+      "action_rmse": 0.46845378147215694,
+      "demonstrated_range_auc": 0.9981481481481481,
+      "episodes": 1800,
+      "extrapolation_auc": 0.7513888888888889,
+      "extrapolation_success": 0.6722222222222223,
+      "force_closure_failure_rate": 0.0016666666666667052,
+      "insertion_jam_rate": 0.09777777777777778,
+      "insertion_misalignment_rate": 0.0,
+      "interpolation_success": 0.9962962962962963,
+      "label": "Speed + force feedback",
+      "mean_alignment_mm": 0.961816874722611,
+      "mean_insertion_depth_mm": 57.013520505873515,
+      "mean_peak_contact_force_n": 4.245037867644938,
+      "method": "force_feedback",
+      "nominal_success": 1.0,
+      "r2_success": 1.0,
+      "success_rate": 0.9005555555555556,
+      "temporal_drop_r1_to_r2": 0.0
+    },
+    {
+      "action_rmse": 0.41660747768348133,
+      "demonstrated_range_auc": 0.999537037037037,
+      "episodes": 1800,
+      "extrapolation_auc": 0.7229166666666667,
+      "extrapolation_success": 0.6462962962962963,
+      "force_closure_failure_rate": 0.0,
+      "insertion_jam_rate": 0.10555555555555556,
+      "insertion_misalignment_rate": 0.0011111111111111111,
+      "interpolation_success": 1.0,
+      "label": "Dynamics augmentation",
+      "mean_alignment_mm": 1.4851168654148907,
+      "mean_insertion_depth_mm": 56.38486154501158,
+      "mean_peak_contact_force_n": 4.463447712741533,
+      "method": "dynamics_augmentation",
+      "nominal_success": 1.0,
+      "r2_success": 1.0,
+      "success_rate": 0.8933333333333333,
+      "temporal_drop_r1_to_r2": 0.0
+    }
+  ],
+  "training": {
+    "dynamics_augmentation": {
+      "augmented_demonstrations": 144,
+      "base_demonstrations": 192,
+      "demonstrations": 336,
+      "features": 230,
+      "samples": 27216
+    },
+    "force_feedback": {
+      "augmented_demonstrations": 0,
+      "base_demonstrations": 192,
+      "demonstrations": 192,
+      "features": 146,
+      "samples": 15552
+    },
+    "phase_normalization": {
+      "augmented_demonstrations": 0,
+      "base_demonstrations": 192,
+      "demonstrations": 192,
+      "features": 125,
+      "samples": 15552
+    },
+    "raw_time_scaling": {
+      "augmented_demonstrations": 0,
+      "base_demonstrations": 192,
+      "demonstrations": 192,
+      "features": 125,
+      "samples": 15552
+    },
+    "speed_conditioned": {
+      "augmented_demonstrations": 0,
+      "base_demonstrations": 192,
+      "demonstrations": 192,
+      "features": 146,
+      "samples": 15552
+    }
+  }
+}
